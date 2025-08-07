@@ -1,5 +1,7 @@
 {
  "products": {
-  "cart": "Add to Cart"
+  "cart": "Add to Cart",
+  "register": "xxx",
+  "login": "sing up"
  }
 }

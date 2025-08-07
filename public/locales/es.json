@@ -1,5 +1,7 @@
 {
  "products": {
-  "cart": "agregar"
+  "cart": "agregar",
+  "login": "entrar",
+  "register": "registro"
  }
 }

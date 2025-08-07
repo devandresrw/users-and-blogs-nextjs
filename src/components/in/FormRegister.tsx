@@ -1,7 +1,7 @@
 export const FormRegister = () => {
  return (
   <>
-   register
+   <h1>Register</h1>
   </>
  )
 }
