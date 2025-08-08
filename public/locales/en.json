@@ -1,7 +1,43 @@
 {
  "products": {
   "cart": "Add to Cart",
-  "register": "xxx",
-  "login": "sing up"
+  "login": "Sign In",
+  "register": "Register"
+ },
+ "loginErrorsSchema": {
+  "invalidEmail": "Invalid email",
+  "shortPassword": "Minimum 8 characters",
+  "maxPassword": "Maximum 20 characters",
+  "weakPassword": "Special characters (aA1#) required"
+ },
+ "loginForm": {
+  "email": "Email",
+  "password": "Password",
+  "submit": "Sign In",
+  "emailPlaceholder": "email@provider.com",
+  "passwordPlaceholder": "123Abc$%.",
+  "providers": "Sign in with:"
+ },
+ "registerForm": {
+  "email": "Email",
+  "minEmail": "Min. 5 characters",
+  "maxEmail": "Max. 50 characters",
+  "invalidEmail": "Invalid email",
+  "requiredEmail": "Email is required",
+  "password": "Password",
+  "minPassword": "Min. 8 characters",
+  "maxPassword": "Max. 30 characters",
+  "requiredPassword": "Password is required",
+  "confirmPassword": "Confirm Password",
+  "minCPassword": "Min. 8 characters",
+  "maxCPassword": "Max. 30 characters",
+  "requiredCPassword": "Please confirm password",
+  "passwordMismatch": "Passwords do not match",
+  "weakPassword": "Special characters (aA1#) required",
+  "submit": "Register",
+  "emailPlaceholder": "email@provider.com",
+  "passwordPlaceholder": "123Abc$%.",
+  "confirmPasswordPlaceholder": "123Abc$%.",
+  "provider": "Sign up with:"
  }
 }

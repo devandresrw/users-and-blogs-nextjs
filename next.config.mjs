@@ -4,6 +4,9 @@ const nextConfig = {
   locales: ['es-ES', 'en-US'],
   defaultLocale: 'es-ES',
  },
+ experimental: {
+  serverComponentsExternalPackages: ['@prisma/client', 'bcryptjs']
+ }
 };
 
 export default nextConfig;

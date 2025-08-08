@@ -1,7 +1,43 @@
 {
  "products": {
-  "cart": "agregar",
-  "login": "entrar",
-  "register": "registro"
+  "cart": "Agregar al carrito",
+  "login": "Ingresar",
+  "register": "Registrarse"
+ },
+ "loginErrorsSchema": {
+  "invalidEmail": "Correo no válido",
+  "shortPassword": "Mínimo 8 caracteres",
+  "maxPassword": "Máximo 20 caracteres",
+  "weakPassword": "Caracteres especiales (aA1#) requeridos"
+ },
+ "loginForm": {
+  "email": "Correo electrónico",
+  "password": "Contraseña",
+  "submit": "Ingresar",
+  "emailPlaceholder": "correo@provedor.com",
+  "passwordPlaceholder": "123Abc$%.",
+  "providers": "Inicia sessión con:"
+ },
+ "registerForm": {
+  "email": "Correo electrónico",
+  "minEmail": "Mín. 5 caracteres",
+  "maxEmail": "Máx. 50 caracteres",
+  "invalidEmail": "Correo inválido",
+  "requiredEmail": "El correo es obligatorio",
+  "password": "Contraseña",
+  "minPassword": "Mín. 8 caracteres",
+  "maxPassword": "Máx. 30 caracteres",
+  "requiredPassword": "La contraseña es obligatoria",
+  "confirmPassword": "Confirmar contraseña",
+  "weakPassword": "Caracteres especiales (aA1#) requeridos",
+  "minCPassword": "Mín. 8 caracteres",
+  "maxCPassword": "Máx. 30 caracteres",
+  "requiredCPassword": "Confirma la contraseña",
+  "passwordMismatch": "Las contraseñas no coinciden",
+  "submit": "Registrarse",
+  "emailPlaceholder": "correo@proveedor.com",
+  "passwordPlaceholder": "123Abc$%.",
+  "confirmPasswordPlaceholder": "123Abc$%.",
+  "provider": "Regístrate con:"
  }
 }

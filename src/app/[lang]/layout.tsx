@@ -1,5 +1,6 @@
+
 export async function generateStaticParams() {
-  return [{ lang: 'en-US' }, { lang: 'es' }]
+  return [{ lang: 'en' }, { lang: 'es' }]
 }
 
 export default async function RootLayout({
@@ -7,7 +8,7 @@ export default async function RootLayout({
   params,
 }: Readonly<{
   children: React.ReactNode
-  params: Promise<{ lang: 'en-US' | 'es' }>
+  params: Promise<{ lang: 'en' | 'es' }>
 }>) {
   return (
     <html lang={(await params).lang}>
