@@ -19,7 +19,6 @@ function getLocale(request: Request) {
 export async function middleware(request: NextRequest) {
  const { pathname } = request.nextUrl
 
- // Extraer el locale del pathname si existe
  const pathnameHasLocale = locales.some(
   (locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`
  )
@@ -28,32 +27,26 @@ export async function middleware(request: NextRequest) {
  let pathWithoutLocale = pathname
 
  if (pathnameHasLocale) {
-  // Extraer el locale actual del pathname
   const localeMatch = pathname.match(/^\/([^\/]+)/)
   if (localeMatch && locales.includes(localeMatch[1])) {
    currentLocale = localeMatch[1]
    pathWithoutLocale = pathname.replace(`/${currentLocale}`, '') || '/'
   }
  } else {
-  // Si no hay locale, detectarlo y redirigir
   const detectedLocale = getLocale(request)
   request.nextUrl.pathname = `/${detectedLocale}${pathname}`
   return NextResponse.redirect(request.nextUrl)
  }
 
- // Verificar autenticación - SOLO auth() sin servicios adicionales
  const session = await auth()
 
- // Rutas que requieren autenticación (sin locale)
  const protectedRoutes = ['/admin-panel', '/account']
  const loginRoute = '/in'
 
- // Si el usuario está autenticado y trata de ir a /in, redirige a /account
  if (pathWithoutLocale.startsWith(loginRoute) && session?.user) {
   return NextResponse.redirect(new URL(`/${currentLocale}/account`, request.url))
  }
 
- // Si no hay sesión, protege /admin-panel y /account
  if (!session?.user) {
   if (protectedRoutes.some(route => pathWithoutLocale.startsWith(route))) {
    return NextResponse.redirect(new URL(`/${currentLocale}${loginRoute}`, request.url))
@@ -61,18 +54,18 @@ export async function middleware(request: NextRequest) {
   return NextResponse.next()
  }
 
- // Protege /admin-panel solo para administrador
- if (pathWithoutLocale.startsWith('/admin-panel') && session.user.role !== "ADMINISTRADOR") {
+ // Usar solo el rol del token/session, no consultar la API ni la base de datos
+ const userRole = session.user.role
+
+ if (pathWithoutLocale.startsWith('/admin-panel') && userRole !== "ADMINISTRADOR") {
   return NextResponse.redirect(new URL(`/${currentLocale}/account`, request.url))
  }
 
- // Permite el acceso a otras rutas
  return NextResponse.next()
 }
 
 export const config = {
  matcher: [
   '/((?!_next|api|static|favicon.ico).*)',
- ],
- runtime: 'nodejs',
+ ]
 }

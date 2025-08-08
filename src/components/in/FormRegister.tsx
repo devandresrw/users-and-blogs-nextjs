@@ -10,88 +10,92 @@ import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
 import { FaFacebookF, FaGoogle } from "react-icons/fa";
 import { useHandleRegister } from '@/hooks/auth/useHandleRegister'
+import { signIn } from 'next-auth/react'
 
 export const FormRegister = ({ params, dict }: { params: LangParams, dict: Dictionary }) => {
- const {
-  register,
-  handleSubmit,
-  onSubmit,
-  errors,
-  isSubmitting,
-  isSubmitSuccessful,
-  sendStatus,
-  resetSendStatus
- } = useHandleRegister(params.lang, dict)
+  const {
+    register,
+    handleSubmit,
+    onSubmit,
+    errors,
+    isSubmitting,
+    isSubmitSuccessful,
+    sendStatus,
+    resetSendStatus
+  } = useHandleRegister(params.lang, dict)
 
- const [showPassword, setShowPassword] = useState(false)
- const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
- return (
-  <div>
-   <form className="flex flex-col justify-between gap-1" onSubmit={handleSubmit(onSubmit)}>
-    <div className="h-20">
-     <Label>{dict.registerForm.email}</Label>
-     <Input {...register("email")} placeholder={dict.registerForm.emailPlaceholder} />
-     <div className="min-h-3">
-      {errors.email && <span className="text-sm">{errors.email.message}</span>}
-     </div>
-    </div>
-    <div className="h-20 relative">
-     <Label>{dict.registerForm.password}</Label>
-     <Input
-      type={showPassword ? "text" : "password"}
-      {...register("password")}
-      placeholder={dict.registerForm.passwordPlaceholder}
-     />
-     <button
-      type="button"
-      className="absolute right-2 top-8 text-xl"
-      onClick={() => setShowPassword((prev) => !prev)}
-      tabIndex={-1}
-     >
-      {showPassword ? <IoEyeSharp /> : <FaEyeSlash />}
-     </button>
-     <div className="min-h-3">
-      {errors.password && <span className="text-sm">{errors.password.message}</span>}
-     </div>
-    </div>
-    <div className="h-20 relative">
-     <Label>{dict.registerForm.confirmPassword}</Label>
-     <Input
-      type={showConfirmPassword ? "text" : "password"}
-      {...register("confirmPassword")}
-      placeholder={dict.registerForm.confirmPasswordPlaceholder}
-     />
-     <button
-      type="button"
-      className="absolute right-2 top-8 text-xl"
-      onClick={() => setShowConfirmPassword((prev) => !prev)}
-      tabIndex={-1}
-     >
-      {showConfirmPassword ? <IoEyeSharp /> : <FaEyeSlash />}
-     </button>
-     <div className="min-h-3">
-      {errors.confirmPassword && <span className="text-sm">{errors.confirmPassword.message}</span>}
-     </div>
-    </div>
+  return (
     <div>
-     <Button type="submit"
-      disabled={isSubmitting} className='w-full'>{dict.registerForm.submit}</Button>
+      <form className="flex flex-col justify-between gap-1" onSubmit={handleSubmit(onSubmit)}>
+        <div className="h-20">
+          <Label>{dict.registerForm.email}</Label>
+          <Input {...register("email")} placeholder={dict.registerForm.emailPlaceholder} />
+          <div className="min-h-3">
+            {errors.email && <span className="text-sm">{errors.email.message}</span>}
+          </div>
+        </div>
+        <div className="h-20 relative">
+          <Label>{dict.registerForm.password}</Label>
+          <Input
+            type={showPassword ? "text" : "password"}
+            {...register("password")}
+            placeholder={dict.registerForm.passwordPlaceholder}
+          />
+          <button
+            type="button"
+            className="absolute right-2 top-8 text-xl"
+            onClick={() => setShowPassword((prev) => !prev)}
+            tabIndex={-1}
+          >
+            {showPassword ? <IoEyeSharp /> : <FaEyeSlash />}
+          </button>
+          <div className="min-h-3">
+            {errors.password && <span className="text-sm">{errors.password.message}</span>}
+          </div>
+        </div>
+        <div className="h-20 relative">
+          <Label>{dict.registerForm.confirmPassword}</Label>
+          <Input
+            type={showConfirmPassword ? "text" : "password"}
+            {...register("confirmPassword")}
+            placeholder={dict.registerForm.confirmPasswordPlaceholder}
+          />
+          <button
+            type="button"
+            className="absolute right-2 top-8 text-xl"
+            onClick={() => setShowConfirmPassword((prev) => !prev)}
+            tabIndex={-1}
+          >
+            {showConfirmPassword ? <IoEyeSharp /> : <FaEyeSlash />}
+          </button>
+          <div className="min-h-3">
+            {errors.confirmPassword && <span className="text-sm">{errors.confirmPassword.message}</span>}
+          </div>
+        </div>
+        <div>
+          <Button type="submit"
+            disabled={isSubmitting} className='w-full'>{dict.registerForm.submit}</Button>
+        </div>
+      </form>
+      <div className='mt-2'>
+        <Separator />
+        <h3 className="text-center mt-1">{dict.registerForm.provider}</h3>
+        <div className='mt-1 w-full flex justify-between items-center gap-2'>
+          <Button type="button" className='flex-1'
+            onClick={() => signIn("google")}
+          ><FaGoogle /></Button>
+          <Button type="button" className='flex-1'
+            onClick={() => signIn("facebook")}><FaFacebookF /></Button>
+        </div>
+        {sendStatus.message && (
+          <div className={`mt-2 text-center ${sendStatus.success ? 'text-green-500' : 'text-red-500'}`}>
+            {sendStatus.message}
+          </div>
+        )}
+      </div>
     </div>
-   </form>
-   <div className='mt-2'>
-    <Separator />
-    <h3 className="text-center mt-1">{dict.registerForm.provider}</h3>
-    <div className='mt-1 w-full flex justify-between items-center gap-2'>
-     <Button type="button" className='flex-1'><FaGoogle /></Button>
-     <Button type="button" className='flex-1'><FaFacebookF /></Button>
-    </div>
-    {sendStatus.message && (
-     <div className={`mt-2 text-center ${sendStatus.success ? 'text-green-500' : 'text-red-500'}`}>
-      {sendStatus.message}
-     </div>
-    )}
-   </div>
-  </div>
- )
+  )
 }
