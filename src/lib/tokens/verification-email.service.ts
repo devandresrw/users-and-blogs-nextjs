@@ -54,3 +54,15 @@ export async function verifyToken(token: string) {
 
  return true;
 }
+
+// Exportar como clase para compatibilidad
+export const VerificationService = {
+ createVerificationToken,
+ verifyToken
+};
+
+// Exportaciones por defecto
+export default {
+ createVerificationToken,
+ verifyToken
+};

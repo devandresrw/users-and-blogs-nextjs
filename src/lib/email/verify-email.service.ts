@@ -1,7 +1,9 @@
 'use server'
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Verificar si tenemos la API key
+const resendApiKey = process.env.RESEND_API_KEY;
+const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
 export interface EmailData {
   to: string;
@@ -11,20 +13,45 @@ export interface EmailData {
 
 export async function sendEmail({ to, subject, html }: EmailData) {
   try {
+    // En desarrollo sin API key, simular envío
+    if (process.env.NODE_ENV === 'development' && !resendApiKey) {
+      console.log('📧 SIMULANDO EMAIL (falta RESEND_API_KEY):');
+      console.log('📧 Para:', to);
+      console.log('📧 Asunto:', subject);
+      console.log('📧 HTML:', html.substring(0, 100) + '...');
+      return { id: 'dev-simulated-' + Date.now() };
+    }
+
+    // Verificar que tenemos Resend configurado
+    if (!resend) {
+      throw new Error('Resend no está configurado. Verifica RESEND_API_KEY.');
+    }
+
     const { data, error } = await resend.emails.send({
-      from: 'onboarding@resend.dev', // Para desarrollo
+      from: process.env.NODE_ENV === 'production'
+        ? 'noreply@tudominio.com'
+        : 'onboarding@resend.dev', // Para desarrollo
       to,
       subject,
       html,
     });
 
     if (error) {
-      throw new Error(error.message);
+      console.error('Error de Resend:', error);
+      throw new Error(`Error de Resend: ${error.message}`);
     }
 
+    console.log('✅ Email enviado exitosamente:', data?.id);
     return data;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error enviando email:', error);
+
+    // En desarrollo, no fallar completamente
+    if (process.env.NODE_ENV === 'development') {
+      console.log('⚠️ Email falló en desarrollo, continuando...');
+      return { id: 'dev-error-' + Date.now() };
+    }
+
     throw error;
   }
 }

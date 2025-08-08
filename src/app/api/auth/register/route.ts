@@ -4,7 +4,38 @@ import axios from 'axios';
 
 export async function POST(request: NextRequest) {
  try {
-  const { email, password, confirmPassword, recaptchaToken } = await request.json();
+  // Validar que el request tenga contenido
+  const contentType = request.headers.get('content-type');
+  if (!contentType || !contentType.includes('application/json')) {
+   return NextResponse.json(
+    { message: 'Content-Type debe ser application/json' },
+    { status: 400 }
+   );
+  }
+
+  // Obtener el texto del body primero para debugging
+  const bodyText = await request.text();
+
+  if (!bodyText || bodyText.trim() === '') {
+   return NextResponse.json(
+    { message: 'El body de la petición está vacío' },
+    { status: 400 }
+   );
+  }
+
+  let bodyData;
+  try {
+   bodyData = JSON.parse(bodyText);
+  } catch (parseError) {
+   console.error('Error parseando JSON:', parseError);
+   console.error('Body recibido:', bodyText);
+   return NextResponse.json(
+    { message: 'JSON inválido en el body de la petición' },
+    { status: 400 }
+   );
+  }
+
+  const { email, password, confirmPassword, recaptchaToken } = bodyData;
 
   // Validar campos requeridos
   if (!email || !password || !confirmPassword) {
