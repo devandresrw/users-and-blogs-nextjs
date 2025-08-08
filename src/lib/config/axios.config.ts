@@ -1,25 +1,20 @@
-import axios from "axios";
+import axios from 'axios';
 
 const axiosInstance = axios.create({
- baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api",
- timeout: 10000,
+ baseURL: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000', // ✅ Sin /api
  headers: {
-  "Content-Type": "application/json",
+  'Content-Type': 'application/json',
  },
+ timeout: 10000,
 });
 
-// Interceptor para agregar el token de autenticación si existe
-axiosInstance.interceptors.request.use(
- (config) => {
-  if (typeof window !== "undefined") {
-   const token = localStorage.getItem("auth_token");
-   if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-   }
-  }
-  return config;
- },
- (error) => Promise.reject(error)
+// Interceptors para manejar errores
+axiosInstance.interceptors.response.use(
+ (response) => response,
+ (error) => {
+  console.error('API Error:', error.response?.data || error.message);
+  return Promise.reject(error);
+ }
 );
 
 export default axiosInstance;

@@ -5,7 +5,12 @@
 /.pnp
 .pnp.js
 .yarn/install-state.gz
+
+# core dumps - archivos de volcado del sistema
+core
 core.*
+*.core
+
 # testing
 /coverage
 
@@ -27,6 +32,7 @@ yarn-error.log*
 
 # local env files
 .env*.local
+.env
 
 # vercel
 .vercel
@@ -35,4 +41,18 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# prisma generated files
 /src/generated/prisma
+
+# system files
+.DS_Store
+Thumbs.db
+
+# logs
+*.log
+logs/
+
+# temporary files
+*.tmp
+*.temp
+.cache/

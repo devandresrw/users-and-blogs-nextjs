@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { registerUser } from '@/lib/auth/register.service';
+import axios from 'axios';
 
 export async function POST(request: NextRequest) {
  try {
@@ -21,31 +22,53 @@ export async function POST(request: NextRequest) {
    );
   }
 
-  // Validar reCAPTCHA
-  if (!recaptchaToken) {
-   return NextResponse.json(
-    { message: 'Token de reCAPTCHA requerido' },
-    { status: 400 }
-   );
-  }
-
-  // Verificar reCAPTCHA con Google
-  const recaptchaResponse = await fetch(
-   `https://www.google.com/recaptcha/api/siteverify`,
-   {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: `secret=${process.env.RECAPTCHA_SECRET}&response=${recaptchaToken}`
+  // Validar reCAPTCHA solo en producción
+  if (process.env.NODE_ENV === 'production') {
+   if (!recaptchaToken) {
+    return NextResponse.json(
+     { message: 'Token de reCAPTCHA requerido' },
+     { status: 400 }
+    );
    }
-  );
 
-  const recaptchaData = await recaptchaResponse.json();
+   try {
+    // Usar axios para verificar reCAPTCHA (consistente con api.service.ts)
+    const recaptchaResponse = await axios.post(
+     'https://www.google.com/recaptcha/api/siteverify',
+     `secret=${process.env.RECAPTCHA_SECRET}&response=${recaptchaToken}`,
+     {
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      timeout: 5000 // 5 segundos de timeout
+     }
+    );
 
-  if (!recaptchaData.success || recaptchaData.score < 0.5) {
-   return NextResponse.json(
-    { message: 'Falló la verificación de reCAPTCHA. Intenta nuevamente.' },
-    { status: 400 }
-   );
+    const recaptchaData = recaptchaResponse.data;
+
+    if (!recaptchaData.success || recaptchaData.score < 0.5) {
+     return NextResponse.json(
+      { message: 'Falló la verificación de reCAPTCHA. Intenta nuevamente.' },
+      { status: 400 }
+     );
+    }
+   } catch (recaptchaError: any) {
+    console.error('Error verificando reCAPTCHA:', recaptchaError);
+
+    // Manejar timeout específicamente
+    if (recaptchaError.code === 'ECONNABORTED' || recaptchaError.message?.includes('timeout')) {
+     return NextResponse.json(
+      { message: 'Timeout al verificar reCAPTCHA. Intenta nuevamente.' },
+      { status: 408 }
+     );
+    }
+
+    return NextResponse.json(
+     { message: 'Error al verificar reCAPTCHA. Intenta nuevamente.' },
+     { status: 500 }
+    );
+   }
+  } else {
+   // En desarrollo, solo loguear
+   console.log('⚠️ reCAPTCHA omitido en desarrollo');
   }
 
   // Registrar usuario

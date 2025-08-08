@@ -37,6 +37,13 @@ export const { auth, handlers } = NextAuth({
   GoogleProvider({
    clientId: process.env.GOOGLE_CLIENT_ID!,
    clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+   authorization: {
+    params: {
+     prompt: "consent",
+     access_type: "offline",
+     response_type: "code"
+    }
+   }
   }),
   FacebookProvider({
    clientId: process.env.FACEBOOK_CLIENT_ID!,
@@ -54,14 +61,13 @@ export const { auth, handlers } = NextAuth({
     }
 
     try {
-     // Verificación directa en la base de datos
      const user = await prismaService.prisma.user.findUnique({
       where: { email: credentials.email as string },
      });
 
      if (!user || !user.password) return null;
 
-     // Verificar si la cuenta está activa
+     // Verificar si la cuenta está activa (solo para credenciales)
      if (!user.isActive) {
       throw new Error('Cuenta no verificada. Revisa tu email.');
      }
@@ -89,7 +95,7 @@ export const { auth, handlers } = NextAuth({
  callbacks: {
   async signIn({ user, account, profile }) {
    // Para proveedores OAuth (Google, Facebook)
-   if (account?.provider !== 'credentials') {
+   if (account?.provider === 'google' || account?.provider === 'facebook') {
     try {
      // Verificar si el usuario ya existe
      const existingUser = await prismaService.prisma.user.findUnique({
@@ -97,29 +103,59 @@ export const { auth, handlers } = NextAuth({
      });
 
      if (existingUser) {
-      // Actualizar información del proveedor si es necesario
+      // Actualizar información del usuario existente
       await prismaService.prisma.user.update({
        where: { id: existingUser.id },
        data: {
-        name: user.name,
-        image: user.image,
-        provider: account.provider,
-        providerId: account.providerAccountId,
-        isActive: true, // Los usuarios de OAuth se consideran verificados
+        name: user.name || existingUser.name,
+        image: user.image || existingUser.image,
+        isActive: true, // Los usuarios OAuth se consideran verificados
+        emailVerified: new Date(), // Marcar como verificado
        },
       });
+      // Asignar rol para la sesión
       user.role = existingUser.role;
+     } else {
+      // Crear nuevo usuario
+      const newUser = await prismaService.prisma.user.create({
+       data: {
+        email: user.email!,
+        name: user.name,
+        image: user.image,
+        isActive: true, // OAuth users son automáticamente activos
+        role: "USER",
+        emailVerified: new Date(),
+       },
+      });
+      user.role = newUser.role;
      }
     } catch (error) {
      console.error('Error en signIn callback:', error);
+     return false; // Rechazar el signin si hay error
     }
    }
    return true;
   },
-  async jwt({ token, user }) {
-   if (user?.role) {
+  async jwt({ token, user, account }) {
+   // Si es la primera vez (login)
+   if (user) {
     token.role = user.role;
    }
+
+   // Si es OAuth, obtener el rol de la base de datos
+   if (account?.provider !== 'credentials' && token.email) {
+    try {
+     const dbUser = await prismaService.prisma.user.findUnique({
+      where: { email: token.email },
+     });
+     if (dbUser) {
+      token.role = dbUser.role;
+     }
+    } catch (error) {
+     console.error('Error fetching user role:', error);
+    }
+   }
+
    return token;
   },
   async session({ session, token }) {
@@ -130,7 +166,7 @@ export const { auth, handlers } = NextAuth({
   },
  },
  pages: {
-  signIn: '/es/in', // Página personalizada de login
-  error: '/es/in', // Redirigir errores a login
+  signIn: '/es/in',
+  error: '/es/in',
  },
 });
