@@ -1,34 +1,30 @@
-import './globals.css'
-import { ThemeProvider } from '@/providers/theme.provider'
-import { SessionProvider } from '@/providers/auth/SessionProvider'
-import { FloatingThemeToggle } from '@/components/theme/ThemeToggle'
-import { Inter } from 'next/font/google'
-import { auth } from '@/auth'
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "./globals.css";
+import { ThemeProvider } from "@/providers/theme.provider";
+import { SessionProvider } from "@/providers/auth/SessionProvider";
+const inter = Inter({ subsets: ["latin"] });
 
-const inter = Inter({ subsets: ['latin'] })
+export const metadata: Metadata = {
+ title: "Tu App",
+ description: "Descripción de tu app",
+};
 
-export default async function RootLayout({
+export default function RootLayout({
  children,
 }: {
- children: React.ReactNode
+ children: React.ReactNode;
 }) {
- const session = await auth()
-
  return (
   <html lang="es" suppressHydrationWarning>
-   <body className={inter.className}>
-    <SessionProvider session={session}>
-     <ThemeProvider
-      attribute="class"
-      defaultTheme="system"
-      enableSystem
-      disableTransitionOnChange
-     >
+   <body className={inter.className} suppressHydrationWarning>
+    <SessionProvider>
+     <ThemeProvider>
       {children}
-      <FloatingThemeToggle />
+
      </ThemeProvider>
     </SessionProvider>
    </body>
   </html>
- )
+ );
 }

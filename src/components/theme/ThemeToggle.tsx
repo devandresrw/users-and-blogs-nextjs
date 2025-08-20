@@ -1,32 +1,32 @@
-'use client'
+"use client";
 
-import { Moon, Sun } from 'lucide-react'
-import { useTheme } from 'next-themes'
-import { Button } from '@/components/ui/button'
-import { useEffect, useState } from 'react'
+import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
 
 export function FloatingThemeToggle() {
- const [mounted, setMounted] = useState(false)
- const { theme, setTheme } = useTheme()
+ const { theme, setTheme } = useTheme();
+ const [mounted, setMounted] = useState(false);
 
  useEffect(() => {
-  setMounted(true)
- }, [])
+  setMounted(true);
+ }, []);
 
+ // No renderizar nada hasta que esté montado
  if (!mounted) {
-  return null
+  return (
+   <div className="fixed bottom-4 right-4 p-3 rounded-full bg-gray-200 dark:bg-gray-800 shadow-lg">
+    <div className="w-6 h-6" />
+   </div>
+  );
  }
 
  return (
-  <Button
-   variant="outline"
-   size="icon"
-   className="fixed bottom-4 right-4 z-50 shadow-lg"
-   onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+  <button
+   onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+   className="fixed bottom-4 right-4 p-3 rounded-full bg-primary text-primary-foreground shadow-lg hover:shadow-xl transition-all z-50"
+   aria-label="Toggle theme"
   >
-   <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-   <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-   <span className="sr-only">Toggle theme</span>
-  </Button>
- )
+   {theme === 'dark' ? '🌞' : '🌙'}
+  </button>
+ );
 }
