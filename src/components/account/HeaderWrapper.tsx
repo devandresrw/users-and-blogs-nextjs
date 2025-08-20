@@ -12,6 +12,7 @@ export async function HeaderWrapper() {
   <HeaderAccount
    userName={user.name || "Usuario"}
    userImage={user.image || undefined}
+   userRole={user.role || 'USER'}
   />
  );
 }

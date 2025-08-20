@@ -8,6 +8,7 @@ export default function Home() {
    <h1>Selecciona tu idioma / Select your language</h1>
    <button onClick={() => router.push('/es/')}>Español</button>
    <button onClick={() => router.push('/en/')}>English</button>
-  </div>
+   </div>
+
  )
 }

@@ -7,6 +7,14 @@ import Negotiator from 'negotiator'
 const locales = ['en', 'es']
 const defaultLocale = 'es'
 
+// Definir permisos por ruta
+const ROUTE_PERMISSIONS = {
+ '/admin-panel': ['COLABORADOR', 'ADMINISTRADOR', 'ROOT'],
+ '/admin-panel/users': ['ADMINISTRADOR', 'ROOT'],
+ '/admin-panel/system': ['ROOT'],
+ '/account': ['USER', 'LECTOR', 'COLABORADOR', 'ADMINISTRADOR', 'ROOT'],
+} as const
+
 function getLocale(request: Request) {
  const negotiatorHeaders: Record<string, string> = {}
  request.headers.forEach((value, key) => {
@@ -14,6 +22,18 @@ function getLocale(request: Request) {
  })
  const languages = new Negotiator({ headers: negotiatorHeaders }).languages()
  return match(languages, locales, defaultLocale)
+}
+
+function hasPermissionForRoute(userRole: string, path: string): boolean {
+ // Buscar la ruta más específica que coincida
+ const matchingRoute = Object.keys(ROUTE_PERMISSIONS)
+  .sort((a, b) => b.length - a.length) // Ordenar por longitud descendente
+  .find(route => path.startsWith(route))
+
+ if (!matchingRoute) return true // Si no hay restricciones, permitir acceso
+
+ const allowedRoles = ROUTE_PERMISSIONS[matchingRoute as keyof typeof ROUTE_PERMISSIONS]
+ return allowedRoles.includes(userRole as any)
 }
 
 export async function middleware(request: NextRequest) {
@@ -43,10 +63,12 @@ export async function middleware(request: NextRequest) {
  const protectedRoutes = ['/admin-panel', '/account']
  const loginRoute = '/in'
 
+ // Redirigir usuarios autenticados que intentan acceder al login
  if (pathWithoutLocale.startsWith(loginRoute) && session?.user) {
   return NextResponse.redirect(new URL(`/${currentLocale}/account`, request.url))
  }
 
+ // Verificar autenticación para rutas protegidas
  if (!session?.user) {
   if (protectedRoutes.some(route => pathWithoutLocale.startsWith(route))) {
    return NextResponse.redirect(new URL(`/${currentLocale}${loginRoute}`, request.url))
@@ -54,10 +76,11 @@ export async function middleware(request: NextRequest) {
   return NextResponse.next()
  }
 
- // Usar solo el rol del token/session, no consultar la API ni la base de datos
- const userRole = session.user.role
+ // Verificar permisos basados en roles
+ const userRole = session.user.role || 'USER'
 
- if (pathWithoutLocale.startsWith('/admin-panel') && userRole !== "ADMINISTRADOR") {
+ if (!hasPermissionForRoute(userRole, pathWithoutLocale)) {
+  console.log(`Access denied for user ${session.user.email} with role ${userRole} to ${pathWithoutLocale}`)
   return NextResponse.redirect(new URL(`/${currentLocale}/account`, request.url))
  }
 
