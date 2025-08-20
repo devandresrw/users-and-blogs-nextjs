@@ -1,42 +1,96 @@
-'use server'
-import prismaService from "@/lib/config/prisma.service";
-import { hash } from "bcryptjs";
-import { sendVerificationEmail } from "@/lib/email/verify-email.service";
-import { createVerificationToken } from "@/lib/tokens/verification-email.service";
+import { hash } from 'bcryptjs';
+import prismaService from '@/lib/config/prisma.service';
+import { sendVerificationEmail } from '@/lib/email/verify-email.service';
+import { uploadProfileImage } from '@/lib/images/cloudinary.service';
 
-export async function registerUser({ email, password }: { email: string; password: string }) {
+interface RegisterUserData {
+ email: string;
+ password: string;
+ name?: string;
+ imageFile?: string; // Base64 string de la imagen
+}
+
+export async function registerUser({
+ email,
+ password,
+ name,
+ imageFile
+}: RegisterUserData) {
  try {
-  // Verifica si el usuario ya existe
-  const existingUser = await prismaService.prisma.user.findUnique({ where: { email } });
+  // Verificar si el usuario ya existe
+  const existingUser = await prismaService.prisma.user.findUnique({
+   where: { email }
+  });
+
   if (existingUser) {
-   throw new Error("El usuario ya existe");
+   throw new Error('El usuario ya existe');
   }
 
-  // Hashea la contraseña con bcryptjs
+  // Hashear la contraseña
   const hashedPassword = await hash(password, 12);
 
-  // Crea el usuario
+  // Crear el usuario primero sin imagen
   const user = await prismaService.prisma.user.create({
    data: {
     email,
     password: hashedPassword,
+    name: name || email.split('@')[0],
+    provider: 'credentials',
     isActive: false,
-    role: "USER",
+    role: 'USER',
    },
+   select: {
+    id: true,
+    email: true,
+    name: true,
+    isActive: true,
+    createdAt: true,
+   }
   });
 
-  // Generar token de verificación
-  const token = await createVerificationToken(user.id);
+  // Si hay imagen, subirla a Cloudinary y actualizar usuario
+  let imageUrl = null;
+  let cloudinaryImageId = null;
+
+  if (imageFile) {
+   try {
+    const uploadResult = await uploadProfileImage(imageFile, user.id);
+    imageUrl = uploadResult.secure_url;
+    cloudinaryImageId = uploadResult.public_id;
+
+    // Actualizar usuario con la imagen
+    await prismaService.prisma.user.update({
+     where: { id: user.id },
+     data: {
+      image: imageUrl,
+      cloudinaryImageId
+     }
+    });
+
+    console.log('✅ Imagen de perfil subida:', cloudinaryImageId);
+   } catch (imageError) {
+    console.error('Error subiendo imagen de perfil:', imageError);
+    // No fallar el registro por un error de imagen
+   }
+  }
 
   // Enviar email de verificación
-  await sendVerificationEmail(email, token);
+  try {
+   await sendVerificationEmail(user.email, user.name || 'Usuario');
+  } catch (emailError) {
+   console.error('Error enviando email:', emailError);
 
-  // Retorna el usuario sin la contraseña
+   if (process.env.NODE_ENV === 'development') {
+    console.log('⚠️ Email falló en desarrollo, continuando...');
+   } else {
+    throw new Error('Error enviando email de verificación');
+   }
+  }
+
   return {
-   id: user.id,
-   email: user.email,
-   role: user.role,
-   isActive: user.isActive,
+   ...user,
+   image: imageUrl,
+   cloudinaryImageId
   };
  } catch (error) {
   console.error('Error en registerUser:', error);

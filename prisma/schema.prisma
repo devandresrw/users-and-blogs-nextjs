@@ -14,23 +14,25 @@ generator zod {
 }
 
 model User {
-  id            String     @id @default(cuid())
-  name          String?
-  email         String?    @unique
-  emailVerified DateTime?
-  password      String?
-  provider      String?
-  providerId    String?
-  isActive      Boolean    @default(false)
-  role          Role       @default(USER)
-  createdAt     DateTime   @default(now())
-  accounts      Account[]
-  sessions      Session[]
-  votes         Vote[]
-  info          Info?
-  blogLikes     BlogLike[]
-  authors       Author[]
-  Image         Image[]
+  id                String     @id @default(cuid())
+  name              String?
+  email             String?    @unique
+  emailVerified     DateTime?
+  image             String? // URL de la imagen
+  cloudinaryImageId String? // ID de Cloudinary para gestión
+  password          String?
+  provider          String?
+  providerId        String?
+  isActive          Boolean    @default(false)
+  role              Role       @default(USER)
+  createdAt         DateTime   @default(now())
+  accounts          Account[]
+  sessions          Session[]
+  votes             Vote[]
+  info              Info?
+  blogLikes         BlogLike[]
+  authors           Author[]
+  Image             Image[]
 }
 
 enum Role {

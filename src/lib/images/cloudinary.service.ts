@@ -9,6 +9,19 @@ export const uploadImage = async (filePath: string, options: Record<string, any>
  });
 };
 
+export const uploadProfileImage = async (filePath: string, userId: string, options: Record<string, any> = {}) => {
+ return cloudinary.uploader.upload(filePath, {
+  folder: `${CLOUDINARY_FOLDER}/profiles`,
+  public_id: `profile_${userId}`,
+  overwrite: true, // Sobrescribir si existe
+  transformation: [
+   { width: 400, height: 400, crop: 'fill', gravity: 'face' },
+   { quality: 'auto', fetch_format: 'auto' }
+  ],
+  ...options,
+ });
+};
+
 export const deleteImage = async (publicId: string) => {
  return cloudinary.uploader.destroy(publicId);
 };

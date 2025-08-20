@@ -4,43 +4,67 @@ import axios from 'axios';
 
 export async function POST(request: NextRequest) {
  try {
-  // Validar que el request tenga contenido
+  // Verificar si es FormData (para archivos) o JSON
   const contentType = request.headers.get('content-type');
-  if (!contentType || !contentType.includes('application/json')) {
-   return NextResponse.json(
-    { message: 'Content-Type debe ser application/json' },
-    { status: 400 }
-   );
+
+  let bodyData: any = {};
+  let imageFile: string | null = null;
+
+  if (contentType?.includes('multipart/form-data')) {
+   // Manejar FormData para archivos
+   const formData = await request.formData();
+
+   bodyData = {
+    email: formData.get('email') as string,
+    password: formData.get('password') as string,
+    confirmPassword: formData.get('confirmPassword') as string,
+    name: formData.get('name') as string,
+    recaptchaToken: formData.get('recaptchaToken') as string,
+   };
+
+   const file = formData.get('image') as File;
+   if (file && file.size > 0) {
+    // Convertir File a base64
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+    imageFile = `data:${file.type};base64,${buffer.toString('base64')}`;
+   }
+  } else {
+   // Manejar JSON normal
+   if (!contentType || !contentType.includes('application/json')) {
+    return NextResponse.json(
+     { message: 'Content-Type debe ser application/json o multipart/form-data' },
+     { status: 400 }
+    );
+   }
+
+   const bodyText = await request.text();
+   if (!bodyText || bodyText.trim() === '') {
+    return NextResponse.json(
+     { message: 'El body de la petición está vacío' },
+     { status: 400 }
+    );
+   }
+
+   try {
+    bodyData = JSON.parse(bodyText);
+    // Para JSON, la imagen vendría como base64 en el campo image
+    imageFile = bodyData.image || null;
+   } catch (parseError) {
+    console.error('Error parseando JSON:', parseError);
+    return NextResponse.json(
+     { message: 'JSON inválido en el body de la petición' },
+     { status: 400 }
+    );
+   }
   }
 
-  // Obtener el texto del body primero para debugging
-  const bodyText = await request.text();
-
-  if (!bodyText || bodyText.trim() === '') {
-   return NextResponse.json(
-    { message: 'El body de la petición está vacío' },
-    { status: 400 }
-   );
-  }
-
-  let bodyData;
-  try {
-   bodyData = JSON.parse(bodyText);
-  } catch (parseError) {
-   console.error('Error parseando JSON:', parseError);
-   console.error('Body recibido:', bodyText);
-   return NextResponse.json(
-    { message: 'JSON inválido en el body de la petición' },
-    { status: 400 }
-   );
-  }
-
-  const { email, password, confirmPassword, recaptchaToken } = bodyData;
+  const { email, password, confirmPassword, name, recaptchaToken } = bodyData;
 
   // Validar campos requeridos
   if (!email || !password || !confirmPassword) {
    return NextResponse.json(
-    { message: 'Todos los campos son requeridos' },
+    { message: 'Email y contraseña son requeridos' },
     { status: 400 }
    );
   }
@@ -63,13 +87,12 @@ export async function POST(request: NextRequest) {
    }
 
    try {
-    // Usar axios para verificar reCAPTCHA (consistente con api.service.ts)
     const recaptchaResponse = await axios.post(
      'https://www.google.com/recaptcha/api/siteverify',
      `secret=${process.env.RECAPTCHA_SECRET}&response=${recaptchaToken}`,
      {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      timeout: 5000 // 5 segundos de timeout
+      timeout: 5000
      }
     );
 
@@ -83,27 +106,22 @@ export async function POST(request: NextRequest) {
     }
    } catch (recaptchaError: any) {
     console.error('Error verificando reCAPTCHA:', recaptchaError);
-
-    // Manejar timeout específicamente
-    if (recaptchaError.code === 'ECONNABORTED' || recaptchaError.message?.includes('timeout')) {
-     return NextResponse.json(
-      { message: 'Timeout al verificar reCAPTCHA. Intenta nuevamente.' },
-      { status: 408 }
-     );
-    }
-
     return NextResponse.json(
      { message: 'Error al verificar reCAPTCHA. Intenta nuevamente.' },
      { status: 500 }
     );
    }
   } else {
-   // En desarrollo, solo loguear
    console.log('⚠️ reCAPTCHA omitido en desarrollo');
   }
 
-  // Registrar usuario
-  const user = await registerUser({ email, password });
+  // Registrar usuario con nombre e imagen
+  const user = await registerUser({
+   email,
+   password,
+   name: name || email.split('@')[0],
+   imageFile: imageFile || undefined
+  });
 
   return NextResponse.json(
    {
@@ -111,6 +129,8 @@ export async function POST(request: NextRequest) {
     user: {
      id: user.id,
      email: user.email,
+     name: user.name,
+     image: user.image,
      isActive: user.isActive
     }
    },
@@ -120,18 +140,10 @@ export async function POST(request: NextRequest) {
  } catch (error: any) {
   console.error('Error en registro:', error);
 
-  // Errores específicos
   if (error.message === 'El usuario ya existe') {
    return NextResponse.json(
     { message: 'Ya existe una cuenta con este email' },
     { status: 409 }
-   );
-  }
-
-  if (error.message?.includes('Invalid email')) {
-   return NextResponse.json(
-    { message: 'Email inválido' },
-    { status: 400 }
    );
   }
 
