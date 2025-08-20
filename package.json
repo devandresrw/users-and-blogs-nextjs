@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "gen": "quicktype -l ts -o src/types/interfaces/dictionary.interface.ts public/locales/es.json"
+    "gen": "quicktype -l ts -o src/types/interfaces/dictionary.interface.ts public/locales/es.json",
+    "dev:https": "npm run dev -- --hostname localhost --experimental-https --ssl-cert ./localhost+2.pem --ssl-key ./localhost+2-key.pem"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.10.0",

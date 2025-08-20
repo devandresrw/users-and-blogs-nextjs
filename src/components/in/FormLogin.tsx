@@ -2,7 +2,6 @@
 import { IoEyeSharp } from "react-icons/io5";
 import { FaEyeSlash } from "react-icons/fa";
 import { useState } from "react"
-
 import type { Dictionary } from '@/types/interfaces/dictionary.interface'
 import { FaFacebookF, FaGoogle } from "react-icons/fa";
 import type { LangParams } from '@/types/interfaces/lang.interfaces'
@@ -11,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
 import { useHandleLogin } from '@/hooks/auth/useHandleLogin'
+import { signIn } from 'next-auth/react'
 
 export const FormLogin = ({ params, dict }: { params: LangParams, dict: Dictionary }) => {
   const [showPassword, setShowPassword] = useState(false)
@@ -64,8 +64,11 @@ export const FormLogin = ({ params, dict }: { params: LangParams, dict: Dictiona
         <Separator />
         <h3 className="text-center mt-1">{dict.loginForm.providers}</h3>
         <div className='mt-1 w-full flex justify-between items-center gap-2'>
-          <Button type="button" className='flex-1'><FaGoogle /></Button>
-          <Button type="button" className='flex-1'><FaFacebookF /></Button>
+          <Button type="button" className='flex-1'
+            onClick={() => signIn("google")}
+          ><FaGoogle /></Button>
+          <Button type="button" className='flex-1'
+            onClick={() => signIn("facebook")}><FaFacebookF /></Button>
         </div>
         {sendStatus.message && (
           <div className={`mt-2 text-center ${sendStatus.success ? 'text-green-500' : 'text-red-500'}`}>
