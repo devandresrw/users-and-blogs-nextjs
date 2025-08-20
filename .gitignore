@@ -5,6 +5,7 @@
 /.pnp
 .pnp.js
 .yarn/install-state.gz
+tmp/
 
 # core dumps - archivos de volcado del sistema
 core
