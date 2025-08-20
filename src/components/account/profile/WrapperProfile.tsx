@@ -9,10 +9,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 interface User {
  id: string
  name: string
- email: string
- image?: string
- description?: string
- interests?: string[]
+ email: string | null
+ image: string | null
+ description: string | null
+ interests: string[]
+ cloudinaryImageId?: string | null
+ isActive?: boolean
+ role?: any
+ emailVerified?: Date | null
+ socialMedia?: any[]
 }
 
 export const WrapperProfile = ({ user }: { user: User }) => {

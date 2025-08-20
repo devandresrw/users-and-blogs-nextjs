@@ -9,5 +9,13 @@ export default async function ProfilePage() {
   redirect('/es/in')
  }
 
- return <WrapperProfile user={user} />
+ const userWithName = {
+  ...user,
+  name: user.name || user.email || 'Usuario',
+  image: user.image || null,
+  description: user.description || null,
+  interests: user.interests || []
+ }
+
+ return <WrapperProfile user={userWithName} />
 }

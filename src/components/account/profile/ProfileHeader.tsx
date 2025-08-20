@@ -11,8 +11,15 @@ import { useRouter } from 'next/navigation'
 interface User {
  id: string
  name: string
- email: string
- image?: string
+ email: string | null
+ image: string | null
+ description?: string | null
+ interests?: string[]
+ cloudinaryImageId?: string | null
+ isActive?: boolean
+ role?: any
+ emailVerified?: Date | null
+ socialMedia?: any[]
 }
 
 export const ProfileHeader = ({ user }: { user: User }) => {
@@ -90,7 +97,7 @@ export const ProfileHeader = ({ user }: { user: User }) => {
       </DialogHeader>
       <ImageUpload
        userId={user.id}
-       currentImage={user.image}
+       currentImage={user.image!}
        onSuccess={() => setIsImageDialogOpen(false)}
       />
      </DialogContent>

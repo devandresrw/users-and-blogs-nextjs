@@ -39,6 +39,20 @@ function hasPermissionForRoute(userRole: string, path: string): boolean {
 export async function middleware(request: NextRequest) {
  const { pathname } = request.nextUrl
 
+ // Excluir completamente todas las rutas de API de NextAuth y otras APIs
+ if (pathname.startsWith('/api/')) {
+  return NextResponse.next()
+ }
+
+ // Excluir archivos estáticos y recursos del sistema
+ if (
+  pathname.startsWith('/_next/') ||
+  pathname.startsWith('/favicon.ico') ||
+  pathname.match(/\.(svg|png|jpg|jpeg|gif|webp|ico|css|js)$/)
+ ) {
+  return NextResponse.next()
+ }
+
  const pathnameHasLocale = locales.some(
   (locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`
  )
@@ -58,7 +72,15 @@ export async function middleware(request: NextRequest) {
   return NextResponse.redirect(request.nextUrl)
  }
 
- const session = await auth()
+ // Obtener la sesión con manejo de errores
+ let session;
+ try {
+  session = await auth()
+ } catch (error) {
+  console.error('Error getting session in middleware:', error)
+  // Si hay error obteniendo la sesión, permitir continuar sin autenticación
+  session = null
+ }
 
  const protectedRoutes = ['/admin-panel', '/account']
  const loginRoute = '/in'
@@ -89,6 +111,15 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
  matcher: [
-  '/((?!_next|api|static|favicon.ico).*)',
+  /*
+   * Match all request paths except for the ones starting with:
+   * - api (all API routes including NextAuth)
+   * - _next/static (static files)
+   * - _next/image (image optimization files)
+   * - favicon.ico (favicon file)
+   * - static assets
+   */
+  '/((?!api|_next/static|_next/image|favicon.ico).*)',
+  '/((?!.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js)$).*)',
  ]
 }

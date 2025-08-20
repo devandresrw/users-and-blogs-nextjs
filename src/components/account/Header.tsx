@@ -32,7 +32,7 @@ export const HeaderAccount = ({ userName, userImage, userRole }: HeaderProps) =>
      href="/es/account"
      className="text-sm hover:text-primary transition-colors"
     >
-     Dashboard
+     Your Space
     </Link>
 
     <Link

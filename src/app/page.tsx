@@ -9,6 +9,5 @@ export default function Home() {
    <button onClick={() => router.push('/es/')}>Español</button>
    <button onClick={() => router.push('/en/')}>English</button>
    </div>
-
  )
 }

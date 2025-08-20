@@ -20,7 +20,14 @@ interface SocialMedia {
 interface User {
  id: string
  name: string
- description?: string
+ email: string | null
+ image: string | null
+ description: string | null
+ interests: string[]
+ cloudinaryImageId?: string | null
+ isActive?: boolean
+ role?: any
+ emailVerified?: Date | null
  socialMedia?: SocialMedia[]
 }
 
