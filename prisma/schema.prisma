@@ -133,8 +133,10 @@ model Category {
   name String
   slug String @unique
 
-  polls Poll[]
-  Image Image[]
+  polls        Poll[]
+  Image        Image[]
+  Blog         Blog[]
+  BlogCategory BlogCategory[]
 }
 
 model NewsItem {
@@ -177,29 +179,87 @@ model Poll {
 }
 
 model Blog {
-  id          String       @id @default(cuid())
-  title       String
-  content     String
-  slug        String       @unique
-  imagenSeo   String?
-  category    String?
-  dateNews    DateTime
-  likes       BlogLike[]
-  blogAuthors BlogAuthor[]
-  img_card    String?
-  newsItem    NewsItem     @relation("NewsItemBlog", fields: [newsItemId], references: [id], onDelete: Cascade)
-  newsItemId  String       @unique
-  Image       Image[]
+  id             String         @id @default(cuid())
+  title          String
+  content        String
+  slug           String         @unique
+  imagenSeoId    String? // Relación a imagen SEO
+  imagenSeo      Image?         @relation("BlogImagenSeo", fields: [imagenSeoId], references: [id])
+  seoDescription String? // Descripción SEO
+  dateNews       DateTime
+  imagenCardId   String? // Relación a imagen de tarjeta
+  imagenCard     Image?         @relation("BlogImagenCard", fields: [imagenCardId], references: [id])
+  newsItem       NewsItem?      @relation("NewsItemBlog", fields: [newsItemId], references: [id], onDelete: Cascade)
+  newsItemId     String?        @unique
+  Image          Image[]
+  readTime       Int? // minutos
+  views          Int            @default(0)
+  // Relaciones
+  blogAuthors    BlogAuthor[]
+  likes          BlogLike[]
+  tags           BlogTag[] // Relación muchos a muchos con Tag
+  categories     BlogCategory[] // Relación muchos a muchos con Category
+  Category       Category?      @relation(fields: [categoryId], references: [id])
+  categoryId     String?
+}
+
+model Tag {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  slug        String    @unique
+  description String? // Descripción SEO
+  blogs       BlogTag[]
+}
+
+model BlogTag {
+  id     String @id @default(cuid())
+  blog   Blog   @relation(fields: [blogId], references: [id], onDelete: Cascade)
+  blogId String
+  tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  tagId  String
+
+  @@unique([blogId, tagId])
+}
+
+model BlogCategory {
+  id         String   @id @default(cuid())
+  blog       Blog     @relation(fields: [blogId], references: [id], onDelete: Cascade)
+  blogId     String
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  categoryId String
+
+  @@unique([blogId, categoryId])
+}
+
+model BlogLike {
+  id        String   @id @default(cuid())
+  userId    String
+  blogId    String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  blog Blog @relation(fields: [blogId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, blogId])
+}
+
+model BlogAuthor {
+  id       String @id @default(cuid())
+  blogId   String
+  authorId String
+
+  blog   Blog   @relation(fields: [blogId], references: [id], onDelete: Cascade)
+  author Author @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@unique([blogId, authorId])
 }
 
 model PollOption {
-  id   String @id @default(uuid())
-  text String
-
+  id     String @id @default(uuid())
+  text   String
   pollId String
   poll   Poll   @relation(fields: [pollId], references: [id])
-
-  votes Vote[]
+  votes  Vote[]
 }
 
 model Author {
@@ -242,43 +302,23 @@ model SocialMedia {
   @@index([platform])
 }
 
-model BlogLike {
-  id        String   @id @default(cuid())
-  userId    String
-  blogId    String
-  createdAt DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  blog Blog @relation(fields: [blogId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, blogId])
-}
-
-model BlogAuthor {
-  id       String @id @default(cuid())
-  blogId   String
-  authorId String
-
-  blog   Blog   @relation(fields: [blogId], references: [id], onDelete: Cascade)
-  author Author @relation(fields: [authorId], references: [id], onDelete: Cascade)
-
-  @@unique([blogId, authorId])
-}
-
 model Image {
-  id         String    @id @default(cuid())
-  url        String
-  publicId   String
-  alt        String?
-  createdAt  DateTime  @default(now())
-  user       User?     @relation(fields: [userId], references: [id])
-  userId     String?
-  category   Category? @relation(fields: [categoryId], references: [id])
-  categoryId String?
-  newsItem   NewsItem? @relation(fields: [newsItemId], references: [id])
-  newsItemId String?
-  blog       Blog?     @relation(fields: [blogId], references: [id])
-  blogId     String?
-  poll       Poll?     @relation(fields: [pollId], references: [id])
-  pollId     String?
+  id             String    @id @default(cuid())
+  url            String
+  publicId       String
+  alt            String?
+  createdAt      DateTime  @default(now())
+  user           User?     @relation(fields: [userId], references: [id])
+  userId         String?
+  category       Category? @relation(fields: [categoryId], references: [id])
+  categoryId     String?
+  newsItem       NewsItem? @relation(fields: [newsItemId], references: [id])
+  newsItemId     String?
+  blog           Blog?     @relation(fields: [blogId], references: [id])
+  blogId         String?
+  poll           Poll?     @relation(fields: [pollId], references: [id])
+  pollId         String?
+  // Relaciones explícitas para imágenes SEO y de tarjeta de Blog
+  blogImagenSeo  Blog[]    @relation("BlogImagenSeo")
+  blogImagenCard Blog[]    @relation("BlogImagenCard")
 }
