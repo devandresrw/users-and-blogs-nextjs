@@ -13,6 +13,22 @@ generator zod {
   output   = "../src/types/zood"
 }
 
+// Modelo para manejar traducciones
+model Translation {
+  id         String   @id @default(cuid())
+  entityType String // 'blog', 'category', 'tag', 'poll', etc.
+  entityId   String // ID de la entidad original
+  language   String // 'es', 'en', 'fr', etc.
+  field      String // 'title', 'content', 'description', etc.
+  value      String   @db.Text
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([entityType, entityId, language, field])
+  @@index([entityType, entityId])
+  @@index([language])
+}
+
 model User {
   id                String           @id @default(cuid())
   name              String?
@@ -129,62 +145,64 @@ model Vote {
 }
 
 model Category {
-  id    String  @id @default(uuid())
-  name  String
-  slug  String  @unique
-  polls Poll[]
-  Image Image[]
-  Blog  Blog[]
+  id           String  @id @default(uuid())
+  name         String // Idioma base (español)
+  slug         String  @unique
+  baseLanguage String  @default("es") // Idioma base
+  polls        Poll[]
+  Image        Image[]
+  Blog         Blog[]
 }
 
 model NewsItem {
-  id        String   @id @default(cuid())
-  title     String
-  content   String
-  createdAt DateTime @default(now())
+  id           String   @id @default(cuid())
+  title        String // Idioma base
+  content      String // Idioma base
+  baseLanguage String   @default("es")
+  createdAt    DateTime @default(now())
 
   poll   Poll?   @relation("NewsItemPoll")
   pollId String? @unique
-
   blog   Blog?   @relation("NewsItemBlog")
   blogId String? @unique
   Image  Image[]
 }
 
 model Poll {
-  id          String    @id @default(uuid())
-  question    String
-  slug        String    @unique
-  description String?
-  startDate   DateTime
-  endDate     DateTime
-  createdAt   DateTime  @default(now())
-  Archived    Boolean   @default(false)
-  isPublic    Boolean   @default(true)
-  ArchivedAt  DateTime?
-  Deleted     Boolean   @default(false)
-  DeletedAt   DateTime?
+  id           String    @id @default(uuid())
+  question     String // Idioma base
+  slug         String    @unique
+  description  String? // Idioma base
+  baseLanguage String    @default("es")
+  startDate    DateTime
+  endDate      DateTime
+  createdAt    DateTime  @default(now())
+  Archived     Boolean   @default(false)
+  isPublic     Boolean   @default(true)
+  ArchivedAt   DateTime?
+  Deleted      Boolean   @default(false)
+  DeletedAt    DateTime?
 
   categoryId String
   category   Category @relation(fields: [categoryId], references: [id])
 
-  options PollOption[]
-  Vote    Vote[]
-
-  newsItem   NewsItem? @relation("NewsItemPoll", fields: [newsItemId], references: [id], onDelete: Cascade)
-  newsItemId String?   @unique
+  options    PollOption[]
+  Vote       Vote[]
+  newsItem   NewsItem?    @relation("NewsItemPoll", fields: [newsItemId], references: [id], onDelete: Cascade)
+  newsItemId String?      @unique
   Image      Image[]
 }
 
 model Blog {
   id             String       @id @default(cuid())
-  title          String
-  content        String
-  titlePunch     String?
+  title          String // Idioma base
+  content        String // Idioma base
+  titlePunch     String? // Idioma base
   slug           String       @unique
+  seoDescription String? // Idioma base
+  baseLanguage   String       @default("es")
   imagenSeoId    String? // Relación a imagen SEO
   imagenSeo      Image?       @relation("BlogImagenSeo", fields: [imagenSeoId], references: [id])
-  seoDescription String? // Descripción SEO
   dateNews       DateTime
   imagenCardId   String? // Relación a imagen de tarjeta
   imagenCard     Image?       @relation("BlogImagenCard", fields: [imagenCardId], references: [id])
@@ -203,11 +221,12 @@ model Blog {
 }
 
 model Tag {
-  id          String    @id @default(cuid())
-  name        String    @unique
-  slug        String    @unique
-  description String? // Descripción SEO
-  blogs       BlogTag[]
+  id           String    @id @default(cuid())
+  name         String    @unique // Idioma base
+  slug         String    @unique
+  description  String? // Idioma base
+  baseLanguage String    @default("es")
+  blogs        BlogTag[]
 }
 
 model BlogTag {
@@ -244,26 +263,32 @@ model BlogAuthor {
 }
 
 model PollOption {
-  id     String @id @default(uuid())
-  text   String
-  pollId String
-  poll   Poll   @relation(fields: [pollId], references: [id])
-  votes  Vote[]
+  id           String @id @default(uuid())
+  text         String // Idioma base
+  baseLanguage String @default("es")
+  pollId       String
+  poll         Poll   @relation(fields: [pollId], references: [id])
+  votes        Vote[]
 }
 
 model Author {
-  id          String        @id @default(cuid())
-  name        String        @unique
-  link        String?
-  description String?
-  twitter     String?
-  instagram   String?
-  facebook    String?
-  linkedin    String?
+  id             String  @id @default(cuid())
+  name           String  @unique
+  link           String?
+  description    String?
+  twitter        String?
+  instagram      String?
+  facebook       String?
+  linkedin       String?
+  profilePicture String? // URL directa como fallback
+  // Nueva relación con Image
+  profileImageId String? @unique
+  profileImage   Image?  @relation("AuthorProfileImage", fields: [profileImageId], references: [id])
+
   blogAuthors BlogAuthor[]
   userId      String?       @unique
   user        User?         @relation(fields: [userId], references: [id])
-  socialMedia SocialMedia[] // También los autores pueden tener redes sociales
+  socialMedia SocialMedia[]
 }
 
 model SocialMedia {
@@ -282,32 +307,31 @@ model SocialMedia {
   authorId String?
   author   Author? @relation(fields: [authorId], references: [id], onDelete: Cascade)
 
-  // En el futuro podrías agregar más relaciones como:
-  // companyId String?
-  // company   Company? @relation(fields: [companyId], references: [id], onDelete: Cascade)
-
   @@unique([userId, platform]) // Un usuario solo puede tener una cuenta por plataforma
   @@unique([authorId, platform]) // Un autor solo puede tener una cuenta por plataforma
   @@index([platform])
 }
 
 model Image {
-  id             String    @id @default(cuid())
-  url            String
-  publicId       String
-  alt            String?
-  createdAt      DateTime  @default(now())
-  user           User?     @relation(fields: [userId], references: [id])
-  userId         String?
-  category       Category? @relation(fields: [categoryId], references: [id])
-  categoryId     String?
-  newsItem       NewsItem? @relation(fields: [newsItemId], references: [id])
-  newsItemId     String?
-  blog           Blog?     @relation(fields: [blogId], references: [id])
-  blogId         String?
-  poll           Poll?     @relation(fields: [pollId], references: [id])
-  pollId         String?
+  id                 String    @id @default(cuid())
+  url                String
+  publicId           String
+  alt                String?
+  language           String?   @default("es")
+  createdAt          DateTime  @default(now())
+  user               User?     @relation(fields: [userId], references: [id])
+  userId             String?
+  category           Category? @relation(fields: [categoryId], references: [id])
+  categoryId         String?
+  newsItem           NewsItem? @relation(fields: [newsItemId], references: [id])
+  newsItemId         String?
+  blog               Blog?     @relation(fields: [blogId], references: [id])
+  blogId             String?
+  poll               Poll?     @relation(fields: [pollId], references: [id])
+  pollId             String?
   // Relaciones explícitas para imágenes SEO y de tarjeta de Blog
-  blogImagenSeo  Blog[]    @relation("BlogImagenSeo")
-  blogImagenCard Blog[]    @relation("BlogImagenCard")
+  blogImagenSeo      Blog[]    @relation("BlogImagenSeo")
+  blogImagenCard     Blog[]    @relation("BlogImagenCard")
+  // Nueva relación para imagen de perfil de Author
+  authorProfileImage Author?   @relation("AuthorProfileImage")
 }

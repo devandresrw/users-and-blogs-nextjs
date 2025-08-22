@@ -11,13 +11,9 @@ export function FloatingThemeToggle() {
   setMounted(true);
  }, []);
 
- // No renderizar nada hasta que esté montado
+ // ✅ No renderizar nada hasta que esté montado
  if (!mounted) {
-  return (
-   <div className="fixed bottom-4 right-4 p-3 rounded-full bg-gray-200 dark:bg-gray-800 shadow-lg">
-    <div className="w-6 h-6" />
-   </div>
-  );
+  return null;
  }
 
  return (

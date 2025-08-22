@@ -1,4 +1,4 @@
-export async function uploadAllBlogs(data: { blogsData: any }) {
+export async function uploadAllBlogs(data: { blogsData: any; language?: string }) {
  const res = await fetch("/api/blogs/import", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
@@ -6,4 +6,4 @@ export async function uploadAllBlogs(data: { blogsData: any }) {
  });
  if (!res.ok) throw new Error("Error en la importación");
  return res.json();
-}
+} 

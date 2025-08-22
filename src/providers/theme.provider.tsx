@@ -11,9 +11,9 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
  return (
   <NextThemesProvider
    attribute="class"
-   defaultTheme="system"
-   enableSystem={false} // Cambiar a false para evitar hidratación
-   disableTransitionOnChange={true}
+   defaultTheme="light" // ✅ Usar un tema fijo por defecto
+   enableSystem={false}
+   disableTransitionOnChange={false} // ✅ Permitir transiciones después de hidratación
    storageKey="theme"
   >
    {children}
