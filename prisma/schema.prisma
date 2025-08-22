@@ -129,14 +129,12 @@ model Vote {
 }
 
 model Category {
-  id   String @id @default(uuid())
-  name String
-  slug String @unique
-
-  polls        Poll[]
-  Image        Image[]
-  Blog         Blog[]
-  BlogCategory BlogCategory[]
+  id    String  @id @default(uuid())
+  name  String
+  slug  String  @unique
+  polls Poll[]
+  Image Image[]
+  Blog  Blog[]
 }
 
 model NewsItem {
@@ -179,28 +177,29 @@ model Poll {
 }
 
 model Blog {
-  id             String         @id @default(cuid())
+  id             String       @id @default(cuid())
   title          String
   content        String
-  slug           String         @unique
+  titlePunch     String?
+  slug           String       @unique
   imagenSeoId    String? // Relación a imagen SEO
-  imagenSeo      Image?         @relation("BlogImagenSeo", fields: [imagenSeoId], references: [id])
+  imagenSeo      Image?       @relation("BlogImagenSeo", fields: [imagenSeoId], references: [id])
   seoDescription String? // Descripción SEO
   dateNews       DateTime
   imagenCardId   String? // Relación a imagen de tarjeta
-  imagenCard     Image?         @relation("BlogImagenCard", fields: [imagenCardId], references: [id])
-  newsItem       NewsItem?      @relation("NewsItemBlog", fields: [newsItemId], references: [id], onDelete: Cascade)
-  newsItemId     String?        @unique
+  imagenCard     Image?       @relation("BlogImagenCard", fields: [imagenCardId], references: [id])
+  newsItem       NewsItem?    @relation("NewsItemBlog", fields: [newsItemId], references: [id], onDelete: Cascade)
+  newsItemId     String?      @unique
   Image          Image[]
   readTime       Int? // minutos
-  views          Int            @default(0)
+  views          Int          @default(0)
+  dateCreated    DateTime     @default(now())
   // Relaciones
   blogAuthors    BlogAuthor[]
   likes          BlogLike[]
   tags           BlogTag[] // Relación muchos a muchos con Tag
-  categories     BlogCategory[] // Relación muchos a muchos con Category
-  Category       Category?      @relation(fields: [categoryId], references: [id])
   categoryId     String?
+  Category       Category?    @relation(fields: [categoryId], references: [id])
 }
 
 model Tag {
@@ -219,16 +218,6 @@ model BlogTag {
   tagId  String
 
   @@unique([blogId, tagId])
-}
-
-model BlogCategory {
-  id         String   @id @default(cuid())
-  blog       Blog     @relation(fields: [blogId], references: [id], onDelete: Cascade)
-  blogId     String
-  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  categoryId String
-
-  @@unique([blogId, categoryId])
 }
 
 model BlogLike {

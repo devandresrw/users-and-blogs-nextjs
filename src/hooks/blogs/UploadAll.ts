@@ -1,4 +1,4 @@
-export async function uploadAllBlogs(data: any) {
+export async function uploadAllBlogs(data: { blogsData: any }) {
  const res = await fetch("/api/blogs/import", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
