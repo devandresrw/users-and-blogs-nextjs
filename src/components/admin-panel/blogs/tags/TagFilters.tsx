@@ -10,12 +10,6 @@ interface TagFiltersProps {
   availableLanguages: string[]
 }
 
-// Mapeo de códigos de idioma a nombres legibles
-const languageNames: Record<string, string> = {
-  'es': 'Español',
-  'en': 'English'
-}
-
 export function TagFilters({
   searchQuery,
   onSearchChange,
@@ -49,7 +43,7 @@ export function TagFilters({
             <option value="all">Todos los idiomas</option>
             {availableLanguages.map((lang) => (
               <option key={lang} value={lang}>
-                {languageNames[lang] || lang.toUpperCase()}
+                {lang.toUpperCase()}
               </option>
             ))}
           </select>

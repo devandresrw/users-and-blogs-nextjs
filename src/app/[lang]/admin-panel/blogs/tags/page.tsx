@@ -8,11 +8,7 @@ export default async function TagsPage() {
   ])
 
   const tags = tagsResult.success ? tagsResult.data : []
-  const fetchedLanguages = languagesResult.success ? languagesResult.data : []
-  
-  // Asegurar que siempre tengamos español e inglés disponibles
-  const defaultLanguages = ['es', 'en']
-  const availableLanguages = Array.from(new Set([...defaultLanguages, ...fetchedLanguages]))
+  const availableLanguages = languagesResult.success ? languagesResult.data : ['es']
 
   return (
     <div className="container mx-auto p-6">
@@ -21,11 +17,11 @@ export default async function TagsPage() {
           Gestión de Tags
         </h1>
         <p className="text-gray-600 dark:text-gray-400 mt-2">
-          Administra las etiquetas para categorizar tus blogs en español e inglés
+          Administra las etiquetas para categorizar tus blogs
         </p>
       </div>
-      
-      <WrapperTags 
+
+      <WrapperTags
         initialTags={tags}
         availableLanguages={availableLanguages}
       />

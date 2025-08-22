@@ -25,12 +25,6 @@ interface TagProps {
   onDelete: () => void
 }
 
-// Mapeo de códigos de idioma a nombres legibles
-const languageNames: Record<string, string> = {
-  'es': 'ES',
-  'en': 'EN'
-}
-
 export function Tag({ tag, onEdit, onDelete }: TagProps) {
   const blogCount = tag._count?.blogs || tag.blogs?.length || 0
 
@@ -44,7 +38,7 @@ export function Tag({ tag, onEdit, onDelete }: TagProps) {
             {tag.name}
           </h3>
         </div>
-        
+
         <div className="flex space-x-1">
           <button
             onClick={onEdit}
@@ -81,11 +75,9 @@ export function Tag({ tag, onEdit, onDelete }: TagProps) {
       <div className="flex justify-between items-center text-xs text-gray-500 dark:text-gray-400">
         <div className="flex items-center space-x-1">
           <Globe className="w-3 h-3" />
-          <span className="font-medium">
-            {languageNames[tag.baseLanguage] || tag.baseLanguage.toUpperCase()}
-          </span>
+          <span>{tag.baseLanguage.toUpperCase()}</span>
         </div>
-        
+
         <div className="flex items-center space-x-1">
           <FileText className="w-3 h-3" />
           <span>{blogCount} blog{blogCount !== 1 ? 's' : ''}</span>

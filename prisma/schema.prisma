@@ -1,16 +1,17 @@
+generator zod {
+  provider = "zod-prisma-types"
+  output   = "../src/types/zood"
+}
+
 generator client {
   provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
+  // Eliminar previewFeatures = ["connectionLimit"] - no es válida
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-}
-
-generator zod {
-  provider = "zod-prisma-types"
-  output   = "../src/types/zood"
+  // Eliminar relationMode = "prisma" - no es necesario para PostgreSQL
 }
 
 // Modelo para manejar traducciones

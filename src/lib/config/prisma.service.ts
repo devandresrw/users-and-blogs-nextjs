@@ -1,15 +1,11 @@
-import { PrismaClient } from '@/generated/prisma';
+import { prisma } from './prisma-singleton'
 
 class PrismaService {
- public prisma: PrismaClient;
+  public prisma = prisma
 
- constructor() {
-  this.prisma = new PrismaClient();
- }
-
- async disconnect() {
-  await this.prisma.$disconnect();
- }
+  async disconnect() {
+    await this.prisma.$disconnect()
+  }
 }
 
-export default new PrismaService();
+export default new PrismaService()
