@@ -273,8 +273,8 @@ model PollOption {
 }
 
 model Author {
-  id             String  @id @default(cuid())
-  name           String  @unique
+  id             String        @id @default(cuid())
+  name           String        @unique
   link           String?
   description    String?
   twitter        String?
@@ -283,13 +283,12 @@ model Author {
   linkedin       String?
   profilePicture String? // URL directa como fallback
   // Nueva relación con Image
-  profileImageId String? @unique
-  profileImage   Image?  @relation("AuthorProfileImage", fields: [profileImageId], references: [id])
-
-  blogAuthors BlogAuthor[]
-  userId      String?       @unique
-  user        User?         @relation(fields: [userId], references: [id])
-  socialMedia SocialMedia[]
+  profileImageId String?       @unique
+  profileImage   Image?        @relation("AuthorProfileImage", fields: [profileImageId], references: [id])
+  blogAuthors    BlogAuthor[]
+  userId         String?       @unique
+  user           User?         @relation(fields: [userId], references: [id])
+  socialMedia    SocialMedia[]
 }
 
 model SocialMedia {

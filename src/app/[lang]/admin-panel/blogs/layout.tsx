@@ -1,12 +1,13 @@
 import Link from "next/link";
 
 const menuItems = [
- { href: "/admin-panel/blogs", label: "Gestión Blogs" },
- { href: "/admin-panel/blogs/categorys", label: "Categorías" },
- { href: "/admin-panel/blogs/tags", label: "Tags" },
  { href: "/admin-panel/blogs/create-single", label: "Crear Blog" },
  { href: "/admin-panel/blogs/edit", label: "Editar Blogs" },
+ { href: "/admin-panel/blogs", label: "Gestión Blogs" },
  { href: "/admin-panel/blogs/upload-all", label: "Subir Blogs" },
+ { href: "/admin-panel/blogs/categories", label: "Categorías" },
+ { href: "/admin-panel/blogs/tags", label: "Tags" },
+ { href: "/admin-panel/blogs/authors", label: "Authors" },
 ];
 
 export default function BlogsAdminLayout({ children }: { children: React.ReactNode }) {
