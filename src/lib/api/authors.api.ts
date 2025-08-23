@@ -1,4 +1,4 @@
-import { CreateAuthorData, UpdateAuthorData, Author, AuthorStats, AuthorValidation } from '@/hooks/blogs/authors/useAuthors'
+import { UpdateAuthorData, Author, AuthorStats, AuthorValidation } from '@/hooks/blogs/authors/useAuthors'
 
 const API_BASE = '/api/blogs/authors'
 
@@ -66,20 +66,18 @@ export async function validateAuthorBlogAssociation(authorId: string, blogId: st
 }
 
 // =============== MUTATIONS (POST/PUT/DELETE) ===============
-export async function createAuthor(data: CreateAuthorData): Promise<Author> {
+export async function createAuthor(formData: FormData): Promise<Author> {
  const response = await fetch(API_BASE, {
   method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify(data),
+  body: formData, // Enviar FormData directamente
  })
  return handleResponse<Author>(response)
 }
 
-export async function updateAuthor(data: UpdateAuthorData): Promise<Author> {
+export async function updateAuthor(formData: FormData): Promise<Author> {
  const response = await fetch(API_BASE, {
   method: 'PUT',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify(data),
+  body: formData, // Enviar FormData directamente
  })
  return handleResponse<Author>(response)
 }
