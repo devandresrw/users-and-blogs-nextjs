@@ -91,11 +91,13 @@ export async function GET(request: NextRequest) {
  }
 }
 
+// POST - CORREGIDO para manejar FormData
 export async function POST(request: NextRequest) {
  try {
-  const data = await request.json()
+  // Cambiar de request.json() a request.formData()
+  const formData = await request.formData()
 
-  const result = await authorsActions.createAuthor(data)
+  const result = await authorsActions.createAuthor(formData)
 
   if (!result.success) {
    return NextResponse.json({ error: result.error }, { status: 400 })
@@ -112,15 +114,18 @@ export async function POST(request: NextRequest) {
  }
 }
 
+// PUT - CORREGIDO para manejar FormData
 export async function PUT(request: NextRequest) {
  try {
-  const data = await request.json()
+  // Cambiar de request.json() a request.formData()
+  const formData = await request.formData()
 
-  if (!data.id) {
+  // Verificar que el ID esté presente en el FormData
+  if (!formData.get('id')) {
    return NextResponse.json({ error: 'ID es requerido' }, { status: 400 })
   }
 
-  const result = await authorsActions.updateAuthor(data)
+  const result = await authorsActions.updateAuthor(formData)
 
   if (!result.success) {
    return NextResponse.json({ error: result.error }, { status: 400 })

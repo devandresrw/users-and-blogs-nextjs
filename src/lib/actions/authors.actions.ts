@@ -6,18 +6,18 @@ import { uploadAuthorImage, updateAuthorImage, deleteImage } from '@/lib/images/
 import { writeFile, unlink } from 'fs/promises'
 import { join } from 'path'
 
-// Esquemas de validación
+// Esquemas de validación - CORREGIDOS
 const CreateAuthorSchema = z.object({
   name: z.string().min(1, 'El nombre es requerido').max(100, 'El nombre debe tener máximo 100 caracteres'),
-  link: z.string().url('Debe ser una URL válida').optional().or(z.literal('')),
-  description: z.string().max(500, 'La descripción debe tener máximo 500 caracteres').optional(),
-  twitter: z.string().max(100, 'El usuario de Twitter debe tener máximo 100 caracteres').optional(),
-  instagram: z.string().max(100, 'El usuario de Instagram debe tener máximo 100 caracteres').optional(),
-  facebook: z.string().max(100, 'El usuario de Facebook debe tener máximo 100 caracteres').optional(),
-  linkedin: z.string().max(100, 'El usuario de LinkedIn debe tener máximo 100 caracteres').optional(),
-  profilePicture: z.string().url('Debe ser una URL válida').optional().or(z.literal('')),
-  profileImageId: z.string().optional(),
-  userId: z.string().optional(),
+  link: z.string().optional().nullable().transform(val => val || undefined),
+  description: z.string().optional().nullable().transform(val => val || undefined),
+  twitter: z.string().optional().nullable().transform(val => val || undefined),
+  instagram: z.string().optional().nullable().transform(val => val || undefined),
+  facebook: z.string().optional().nullable().transform(val => val || undefined),
+  linkedin: z.string().optional().nullable().transform(val => val || undefined),
+  profilePicture: z.string().optional().nullable().transform(val => val || undefined),
+  profileImageId: z.string().optional().nullable().transform(val => val || undefined),
+  userId: z.string().optional().nullable().transform(val => val || undefined),
   // Nuevo campo para imagen como File
   imageFile: z.any().optional()
 })
@@ -25,15 +25,15 @@ const CreateAuthorSchema = z.object({
 const UpdateAuthorSchema = z.object({
   id: z.string(),
   name: z.string().min(1, 'El nombre es requerido').max(100, 'El nombre debe tener máximo 100 caracteres'),
-  link: z.string().url('Debe ser una URL válida').optional().or(z.literal('')),
-  description: z.string().max(500, 'La descripción debe tener máximo 500 caracteres').optional(),
-  twitter: z.string().max(100, 'El usuario de Twitter debe tener máximo 100 caracteres').optional(),
-  instagram: z.string().max(100, 'El usuario de Instagram debe tener máximo 100 caracteres').optional(),
-  facebook: z.string().max(100, 'El usuario de Facebook debe tener máximo 100 caracteres').optional(),
-  linkedin: z.string().max(100, 'El usuario de LinkedIn debe tener máximo 100 caracteres').optional(),
-  profilePicture: z.string().url('Debe ser una URL válida').optional().or(z.literal('')),
-  profileImageId: z.string().optional(),
-  userId: z.string().optional(),
+  link: z.string().optional().nullable().transform(val => val || undefined),
+  description: z.string().optional().nullable().transform(val => val || undefined),
+  twitter: z.string().optional().nullable().transform(val => val || undefined),
+  instagram: z.string().optional().nullable().transform(val => val || undefined),
+  facebook: z.string().optional().nullable().transform(val => val || undefined),
+  linkedin: z.string().optional().nullable().transform(val => val || undefined),
+  profilePicture: z.string().optional().nullable().transform(val => val || undefined),
+  profileImageId: z.string().optional().nullable().transform(val => val || undefined),
+  userId: z.string().optional().nullable().transform(val => val || undefined),
   // Nuevo campo para imagen como File
   imageFile: z.any().optional()
 })
@@ -87,23 +87,33 @@ async function processAuthorImage(imageFile: File, authorName: string): Promise<
   }
 }
 
+// Helper para limpiar FormData
+function cleanFormData(formData: FormData) {
+  const data: Record<string, any> = {};
+
+  for (const [key, value] of formData.entries()) {
+    // Si es un File, mantenerlo tal como está
+    if (value instanceof File) {
+      data[key] = value;
+    }
+    // Si es una string vacía, convertir a null
+    else if (typeof value === 'string') {
+      data[key] = value.trim() === '' ? null : value.trim();
+    }
+    // Para otros tipos, mantener tal como está
+    else {
+      data[key] = value;
+    }
+  }
+
+  return data;
+}
+
 // Crear autor
 export async function createAuthor(formData: FormData) {
   try {
-    // Extraer datos del FormData
-    const rawData = {
-      name: formData.get('name') as string,
-      link: formData.get('link') as string,
-      description: formData.get('description') as string,
-      twitter: formData.get('twitter') as string,
-      instagram: formData.get('instagram') as string,
-      facebook: formData.get('facebook') as string,
-      linkedin: formData.get('linkedin') as string,
-      profilePicture: formData.get('profilePicture') as string,
-      profileImageId: formData.get('profileImageId') as string,
-      userId: formData.get('userId') as string,
-      imageFile: formData.get('imageFile') as File
-    };
+    // Limpiar y extraer datos del FormData
+    const rawData = cleanFormData(formData);
 
     const validatedData = CreateAuthorSchema.parse(rawData);
 
@@ -147,15 +157,15 @@ export async function createAuthor(formData: FormData) {
     const author = await prismaService.prisma.author.create({
       data: {
         name: validatedData.name,
-        link: validatedData.link || null,
+        link: validatedData.link,
         description: validatedData.description,
         twitter: validatedData.twitter,
         instagram: validatedData.instagram,
         facebook: validatedData.facebook,
         linkedin: validatedData.linkedin,
-        profilePicture: validatedData.profilePicture || null,
-        profileImageId: imageData?.imageRecord.id || validatedData.profileImageId || null,
-        userId: validatedData.userId || null
+        profilePicture: validatedData.profilePicture,
+        profileImageId: imageData?.imageRecord.id || validatedData.profileImageId,
+        userId: validatedData.userId
       },
       include: {
         blogAuthors: {
@@ -204,21 +214,8 @@ export async function createAuthor(formData: FormData) {
 // Actualizar autor
 export async function updateAuthor(formData: FormData) {
   try {
-    // Extraer datos del FormData
-    const rawData = {
-      id: formData.get('id') as string,
-      name: formData.get('name') as string,
-      link: formData.get('link') as string,
-      description: formData.get('description') as string,
-      twitter: formData.get('twitter') as string,
-      instagram: formData.get('instagram') as string,
-      facebook: formData.get('facebook') as string,
-      linkedin: formData.get('linkedin') as string,
-      profilePicture: formData.get('profilePicture') as string,
-      profileImageId: formData.get('profileImageId') as string,
-      userId: formData.get('userId') as string,
-      imageFile: formData.get('imageFile') as File
-    };
+    // Limpiar y extraer datos del FormData
+    const rawData = cleanFormData(formData);
 
     const validatedData = UpdateAuthorSchema.parse(rawData);
 
@@ -298,15 +295,15 @@ export async function updateAuthor(formData: FormData) {
       where: { id: validatedData.id },
       data: {
         name: validatedData.name,
-        link: validatedData.link || null,
+        link: validatedData.link,
         description: validatedData.description,
         twitter: validatedData.twitter,
         instagram: validatedData.instagram,
         facebook: validatedData.facebook,
         linkedin: validatedData.linkedin,
-        profilePicture: validatedData.profilePicture || null,
+        profilePicture: validatedData.profilePicture,
         profileImageId: imageData?.imageRecord.id || existingAuthor.profileImageId,
-        userId: validatedData.userId || null
+        userId: validatedData.userId
       },
       include: {
         blogAuthors: {
@@ -430,7 +427,6 @@ export async function deleteAuthor(id: string) {
   }
 }
 
-// ...resto de las funciones existentes sin cambios...
 export async function getAllAuthors(includeBlogs = false, includeUser = false) {
   try {
     const authors = await prismaService.prisma.author.findMany({

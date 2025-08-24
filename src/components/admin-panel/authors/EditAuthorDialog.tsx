@@ -1,10 +1,10 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Upload, X } from 'lucide-react'
 import {
  Dialog,
  DialogContent,
@@ -25,7 +25,8 @@ import {
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
-import { Author, useUpdateAuthor, UpdateAuthorData } from '@/hooks/blogs/authors/useAuthors'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Author, useUpdateAuthor } from '@/hooks/blogs/authors/useAuthors'
 
 const editAuthorSchema = z.object({
  name: z.string().min(1, 'El nombre es requerido').max(100, 'El nombre debe tener máximo 100 caracteres'),
@@ -48,6 +49,8 @@ interface EditAuthorDialogProps {
 }
 
 export default function EditAuthorDialog({ author, open, onOpenChange, onSuccess }: EditAuthorDialogProps) {
+ const [selectedImage, setSelectedImage] = useState<File | null>(null)
+ const [imagePreview, setImagePreview] = useState<string>('')
  const updateAuthorMutation = useUpdateAuthor()
 
  const form = useForm<FormData>({
@@ -77,32 +80,92 @@ export default function EditAuthorDialog({ author, open, onOpenChange, onSuccess
     linkedin: author.linkedin || '',
     profilePicture: author.profilePicture || '',
    })
+
+   // Reset image state cuando cambia el autor
+   setSelectedImage(null)
+   setImagePreview('')
   }
  }, [author, form])
 
- const onSubmit = async (data: FormData) => {
-  try {
-   const cleanData: UpdateAuthorData = {
-    id: author.id,
-    ...data,
-    link: data.link || undefined,
-    description: data.description || undefined,
-    twitter: data.twitter || undefined,
-    instagram: data.instagram || undefined,
-    facebook: data.facebook || undefined,
-    linkedin: data.linkedin || undefined,
-    profilePicture: data.profilePicture || undefined,
+ const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const file = event.target.files?.[0]
+  if (file) {
+   // Validar tipo de archivo
+   if (!file.type.startsWith('image/')) {
+    alert('Por favor selecciona un archivo de imagen válido')
+    return
    }
 
-   await updateAuthorMutation.mutateAsync(cleanData)
+   // Validar tamaño (máximo 5MB)
+   if (file.size > 5 * 1024 * 1024) {
+    alert('La imagen debe ser menor a 5MB')
+    return
+   }
+
+   setSelectedImage(file)
+
+   // Crear preview
+   const reader = new FileReader()
+   reader.onload = (e) => {
+    setImagePreview(e.target?.result as string)
+   }
+   reader.readAsDataURL(file)
+  }
+ }
+
+ const removeImage = () => {
+  setSelectedImage(null)
+  setImagePreview('')
+ }
+
+ const onSubmit = async (data: FormData) => {
+  try {
+   // Crear FormData para enviar archivo
+   const formData = new FormData()
+
+   // IMPORTANTE: Agregar el ID del autor
+   formData.append('id', author.id)
+
+   // Agregar campos de texto
+   Object.entries(data).forEach(([key, value]) => {
+    if (value) {
+     formData.append(key, value)
+    }
+   })
+
+   // Agregar imagen si existe
+   if (selectedImage) {
+    formData.append('imageFile', selectedImage)
+   }
+
+   await updateAuthorMutation.mutateAsync(formData)
+
+   // Reset image state
+   setSelectedImage(null)
+   setImagePreview('')
    onSuccess()
   } catch (error) {
    // Error is handled by the mutation
   }
  }
 
+ const handleDialogClose = () => {
+  form.reset()
+  setSelectedImage(null)
+  setImagePreview('')
+  onOpenChange(false)
+ }
+
+ // Obtener imagen actual del autor
+ const getCurrentImageUrl = () => {
+  if (imagePreview) return imagePreview
+  if (author.profileImage?.url) return author.profileImage.url
+  if (author.profilePicture) return author.profilePicture
+  return ''
+ }
+
  return (
-  <Dialog open={open} onOpenChange={onOpenChange}>
+  <Dialog open={open} onOpenChange={handleDialogClose}>
    <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
     <DialogHeader>
      <DialogTitle>Editar Autor</DialogTitle>
@@ -113,6 +176,57 @@ export default function EditAuthorDialog({ author, open, onOpenChange, onSuccess
 
     <Form {...form}>
      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      {/* Imagen de Perfil */}
+      <div className="space-y-2">
+       <FormLabel>Foto de Perfil</FormLabel>
+       <div className="flex items-center gap-4">
+        <Avatar className="h-20 w-20">
+         <AvatarImage src={getCurrentImageUrl()} alt="Preview" />
+         <AvatarFallback>
+          {author.name?.slice(0, 2).toUpperCase() || 'AU'}
+         </AvatarFallback>
+        </Avatar>
+
+        <div className="flex flex-col gap-2">
+         <div className="flex gap-2">
+          <Button
+           type="button"
+           variant="outline"
+           size="sm"
+           onClick={() => document.getElementById('image-upload-edit')?.click()}
+          >
+           <Upload className="h-4 w-4 mr-2" />
+           {selectedImage ? 'Cambiar' : 'Subir'} Imagen
+          </Button>
+
+          {(selectedImage || getCurrentImageUrl()) && (
+           <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={removeImage}
+           >
+            <X className="h-4 w-4 mr-2" />
+            Quitar
+           </Button>
+          )}
+         </div>
+
+         <input
+          id="image-upload-edit"
+          type="file"
+          accept="image/*"
+          onChange={handleImageChange}
+          className="hidden"
+         />
+
+         <p className="text-xs text-muted-foreground">
+          Máximo 5MB. Formatos: JPG, PNG, WEBP
+         </p>
+        </div>
+       </div>
+      </div>
+
       <FormField
        control={form.control}
        name="name"
@@ -172,7 +286,7 @@ export default function EditAuthorDialog({ author, open, onOpenChange, onSuccess
        name="profilePicture"
        render={({ field }) => (
         <FormItem>
-         <FormLabel>Foto de Perfil</FormLabel>
+         <FormLabel>URL de Imagen (Alternativa)</FormLabel>
          <FormControl>
           <Input
            placeholder="https://ejemplo.com/imagen.jpg"
@@ -181,7 +295,7 @@ export default function EditAuthorDialog({ author, open, onOpenChange, onSuccess
           />
          </FormControl>
          <FormDescription>
-          URL de la imagen de perfil
+          Solo si no subes una imagen arriba
          </FormDescription>
          <FormMessage />
         </FormItem>
@@ -250,7 +364,7 @@ export default function EditAuthorDialog({ author, open, onOpenChange, onSuccess
        <Button
         type="button"
         variant="outline"
-        onClick={() => onOpenChange(false)}
+        onClick={handleDialogClose}
         disabled={updateAuthorMutation.isPending}
        >
         Cancelar

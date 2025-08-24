@@ -102,16 +102,22 @@ export default function CreateAuthorDialog({ open, onOpenChange, onSuccess }: Cr
    // Crear FormData para enviar archivo
    const formData = new FormData()
 
-   // Agregar campos de texto
+   // Agregar campos de texto solo si no están vacíos
    Object.entries(data).forEach(([key, value]) => {
-    if (value) {
-     formData.append(key, value)
+    if (value && value.trim() !== '') {
+     formData.append(key, value.trim())
     }
    })
 
    // Agregar imagen si existe
    if (selectedImage) {
     formData.append('imageFile', selectedImage)
+   }
+
+   // Debug: Ver qué se está enviando
+   console.log('FormData being sent:')
+   for (const [key, value] of formData.entries()) {
+    console.log(`${key}:`, typeof value === 'string' ? value : `File: ${(value as File).name}`)
    }
 
    await createAuthorMutation.mutateAsync(formData)
@@ -122,6 +128,7 @@ export default function CreateAuthorDialog({ open, onOpenChange, onSuccess }: Cr
    setImagePreview('')
    onSuccess()
   } catch (error) {
+   console.error('Error in form submit:', error)
    // Error is handled by the mutation
   }
  }

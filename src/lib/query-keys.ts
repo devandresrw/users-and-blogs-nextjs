@@ -48,3 +48,41 @@ export const authorKeys = {
     [...authorKeys.all, 'validation', { authorId, blogId }] as const,
   byUser: (userId: string) => [...authorKeys.all, 'byUser', userId] as const,
 }
+
+export const blogManagementKeys = {
+  all: ['blog-management'] as const,
+  lists: () => [...blogManagementKeys.all, 'list'] as const,
+  list: (params?: {
+    lang?: string;
+    page?: number;
+    limit?: number;
+    status?: 'translated' | 'untranslated' | 'all';
+    targetLanguage?: string;
+  }) => [...blogManagementKeys.lists(), params] as const,
+
+  // Para casos específicos de uso
+  translationStatus: (params: {
+    targetLanguage: string;
+    lang?: string;
+    page?: number;
+    limit?: number;
+  }) => [...blogManagementKeys.all, 'translation-status', params] as const,
+
+  untranslated: (params: {
+    targetLanguage: string;
+    lang?: string;
+    page?: number;
+    limit?: number;
+  }) => [...blogManagementKeys.all, 'untranslated', params] as const,
+
+  translated: (params: {
+    targetLanguage: string;
+    lang?: string;
+    page?: number;
+    limit?: number;
+  }) => [...blogManagementKeys.all, 'translated', params] as const,
+
+  // Para estadísticas
+  stats: (params?: { lang?: string; targetLanguage?: string }) =>
+    [...blogManagementKeys.all, 'stats', params] as const,
+}

@@ -195,30 +195,31 @@ model Poll {
 }
 
 model Blog {
-  id             String       @id @default(cuid())
-  title          String // Idioma base
-  content        String // Idioma base
-  titlePunch     String? // Idioma base
-  slug           String       @unique
-  seoDescription String? // Idioma base
-  baseLanguage   String       @default("es")
-  imagenSeoId    String? // Relación a imagen SEO
-  imagenSeo      Image?       @relation("BlogImagenSeo", fields: [imagenSeoId], references: [id])
-  dateNews       DateTime
-  imagenCardId   String? // Relación a imagen de tarjeta
-  imagenCard     Image?       @relation("BlogImagenCard", fields: [imagenCardId], references: [id])
-  newsItem       NewsItem?    @relation("NewsItemBlog", fields: [newsItemId], references: [id], onDelete: Cascade)
-  newsItemId     String?      @unique
-  Image          Image[]
-  readTime       Int? // minutos
-  views          Int          @default(0)
-  dateCreated    DateTime     @default(now())
+  id               String             @id @default(cuid())
+  title            String // Idioma base
+  content          String // Idioma base
+  titlePunch       String? // Idioma base
+  slug             String             @unique
+  seoDescription   String? // Idioma base
+  baseLanguage     String             @default("es")
+  imagenSeoId      String? // Relación a imagen SEO
+  imagenSeo        Image?             @relation("BlogImagenSeo", fields: [imagenSeoId], references: [id])
+  dateNews         DateTime
+  imagenCardId     String? // Relación a imagen de tarjeta
+  imagenCard       Image?             @relation("BlogImagenCard", fields: [imagenCardId], references: [id])
+  newsItem         NewsItem?          @relation("NewsItemBlog", fields: [newsItemId], references: [id], onDelete: Cascade)
+  newsItemId       String?            @unique
+  Image            Image[]
+  readTime         Int? // minutos
+  views            Int                @default(0)
+  dateCreated      DateTime           @default(now())
   // Relaciones
-  blogAuthors    BlogAuthor[]
-  likes          BlogLike[]
-  tags           BlogTag[] // Relación muchos a muchos con Tag
-  categoryId     String?
-  Category       Category?    @relation(fields: [categoryId], references: [id])
+  blogAuthors      BlogAuthor[]
+  likes            BlogLike[]
+  tags             BlogTag[] // Relación muchos a muchos con Tag
+  categoryId       String?
+  Category         Category?          @relation(fields: [categoryId], references: [id])
+  TranslationQueue TranslationQueue[]
 }
 
 model Tag {
@@ -261,6 +262,26 @@ model BlogAuthor {
   author Author @relation(fields: [authorId], references: [id], onDelete: Cascade)
 
   @@unique([blogId, authorId])
+}
+
+// Agregar al final del schema.prisma
+model TranslationQueue {
+  id             String    @id @default(cuid())
+  blogId         String
+  targetLanguage String
+  status         String    @default("pending") // pending, processing, completed, failed
+  retryCount     Int       @default(0)
+  errorMessage   String?
+  priority       Int       @default(0) // Mayor número = mayor prioridad
+  createdAt      DateTime  @default(now())
+  processedAt    DateTime?
+  completedAt    DateTime?
+
+  blog Blog @relation(fields: [blogId], references: [id], onDelete: Cascade)
+
+  @@unique([blogId, targetLanguage])
+  @@index([status, priority, createdAt])
+  @@map("translation_queue")
 }
 
 model PollOption {

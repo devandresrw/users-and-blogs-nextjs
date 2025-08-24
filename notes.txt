@@ -1,0 +1,6 @@
+Funcion gestion blogs
+
+Traducir...
+Asignar Tags
+Asignar Categories
+Asignar Author	
