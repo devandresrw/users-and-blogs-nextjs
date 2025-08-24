@@ -22,7 +22,10 @@ import {
  Clock,
  CheckCircle,
  XCircle,
- AlertCircle
+ AlertCircle,
+ Info,
+ Bug,
+ Zap
 } from 'lucide-react'
 import {
  useTranslationQueue,
@@ -35,7 +38,7 @@ type TranslationQueueManagerProps = {
  onClearSelection?: () => void
 }
 
-// Idiomas disponibles
+// Idiomas disponibles (sin español para evitar traducir ES -> ES)
 const AVAILABLE_LANGUAGES = [
  { code: 'en', name: 'Inglés', flag: '🇺🇸' },
  { code: 'fr', name: 'Francés', flag: '🇫🇷' },
@@ -45,7 +48,6 @@ const AVAILABLE_LANGUAGES = [
  { code: 'ja', name: 'Japonés', flag: '🇯🇵' },
  { code: 'ko', name: 'Coreano', flag: '🇰🇷' },
  { code: 'zh', name: 'Chino', flag: '🇨🇳' },
- { code: 'ar', name: 'Árabe', flag: '🇸🇦' },
 ]
 
 export default function TranslationQueueManager({
@@ -54,12 +56,14 @@ export default function TranslationQueueManager({
 }: TranslationQueueManagerProps) {
  const [selectedLanguage, setSelectedLanguage] = useState<string>('')
  const [priority, setPriority] = useState<number>(0)
+ const [debugMode, setDebugMode] = useState<boolean>(false)
 
  // Queries y mutaciones
  const {
   data: queueData,
   isLoading: queueLoading,
-  error: queueError
+  error: queueError,
+  refetch: refetchQueue
  } = useTranslationQueue()
 
  const addJobsMutation = useAddTranslationJobs()
@@ -76,7 +80,58 @@ export default function TranslationQueueManager({
  const pendingJobs = (stats?.pending || 0) + (stats?.processing || 0)
  const estimatedMinutes = Math.ceil(pendingJobs / 5) // 5 traducciones por minuto
 
- // Manejar adición de trabajos
+ // NUEVO: Test de DeepL API
+ const testDeepLAPI = async () => {
+  try {
+   console.log('🧪 Probando API de DeepL...')
+   const response = await fetch('/api/translation/test', { method: 'POST' })
+   const result = await response.json()
+   console.log('📡 Resultado del test:', result)
+   alert(`Test DeepL: ${result.success ? '✅ Éxito' : '❌ Falló'}\nTraducción: ${result.details?.translated || 'N/A'}`)
+  } catch (error) {
+   console.error('❌ Error en test:', error)
+   alert('Error al probar DeepL API')
+  }
+ }
+
+ // NUEVO: Forzar procesamiento inmediato
+ const forceProcessQueue = async () => {
+  try {
+   console.log('⚡ Forzando procesamiento de cola...')
+   const response = await fetch('/api/blogs/translate/process', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' }
+   })
+   const result = await response.json()
+   console.log('🔄 Resultado del procesamiento:', result)
+
+   if (result.success) {
+    alert('✅ Procesamiento iniciado')
+    // Actualizar datos después de 2 segundos
+    setTimeout(() => refetchQueue(), 2000)
+   } else {
+    alert('❌ Error al iniciar procesamiento')
+   }
+  } catch (error) {
+   console.error('❌ Error forzando procesamiento:', error)
+   alert('Error al forzar procesamiento')
+  }
+ }
+
+ // NUEVO: Ver trabajos en base de datos
+ const debugQueue = async () => {
+  try {
+   console.log('🔍 Debuggeando cola...')
+   const response = await fetch('/api/blogs/translate?debug=true')
+   const result = await response.json()
+   console.log('🐛 Debug info:', result)
+   setDebugMode(!debugMode)
+  } catch (error) {
+   console.error('❌ Error en debug:', error)
+  }
+ }
+
+ // Manejar adición de trabajos con más logging
  const handleAddJobs = async () => {
   if (selectedBlogs.length === 0) {
    alert('Selecciona al menos un blog')
@@ -88,27 +143,51 @@ export default function TranslationQueueManager({
    return
   }
 
+  console.log('🚀 Agregando trabajos:', {
+   blogIds: selectedBlogs,
+   targetLanguage: selectedLanguage,
+   priority,
+   count: selectedBlogs.length
+  })
+
   try {
-   await addJobsMutation.mutateAsync({
+   const result = await addJobsMutation.mutateAsync({
     blogIds: selectedBlogs,
     targetLanguage: selectedLanguage,
     priority
    })
 
+   console.log('✅ Trabajos agregados:', result)
+
    // Limpiar selección si está disponible
    onClearSelection?.()
    setSelectedLanguage('')
+
+   // Actualizar la cola
+   setTimeout(() => refetchQueue(), 1000)
+
   } catch (error) {
-   console.error('Error agregando trabajos:', error)
+   console.error('❌ Error agregando trabajos:', error)
   }
  }
 
  // Manejar inicio de procesamiento
  const handleStartProcessing = async () => {
+  console.log('▶️ Iniciando procesamiento...')
   try {
-   await startProcessMutation.mutateAsync()
+   const result = await startProcessMutation.mutateAsync()
+   console.log('🎯 Procesamiento iniciado:', result)
+
+   // Actualizar datos cada 3 segundos mientras haya trabajos pendientes
+   const interval = setInterval(() => {
+    refetchQueue()
+    if ((stats?.pending || 0) === 0 && (stats?.processing || 0) === 0) {
+     clearInterval(interval)
+    }
+   }, 3000)
+
   } catch (error) {
-   console.error('Error iniciando procesamiento:', error)
+   console.error('❌ Error iniciando procesamiento:', error)
   }
  }
 
@@ -129,12 +208,15 @@ export default function TranslationQueueManager({
 
  return (
   <div className="space-y-6">
-   {/* Header */}
+   {/* Header con debugging */}
    <Card className="p-6">
     <div className="flex items-center justify-between mb-6">
      <div className="flex items-center space-x-2">
       <Languages className="h-5 w-5 text-primary" />
       <h3 className="text-lg font-semibold">Cola de Traducción</h3>
+      <Badge variant="outline" className="text-xs">
+       DeepL Activo
+      </Badge>
      </div>
 
      <div className="flex items-center space-x-2">
@@ -150,6 +232,59 @@ export default function TranslationQueueManager({
        </Badge>
       )}
      </div>
+    </div>
+
+    {/* NUEVO: Panel de debugging */}
+    <div className="mb-6 p-4 bg-gray-50 rounded-lg border">
+     <h4 className="text-sm font-medium mb-3 flex items-center">
+      <Bug className="h-4 w-4 mr-1" />
+      Herramientas de Debug
+     </h4>
+     <div className="flex flex-wrap gap-2">
+      <Button
+       onClick={testDeepLAPI}
+       variant="outline"
+       size="sm"
+      >
+       🧪 Test DeepL API
+      </Button>
+
+      <Button
+       onClick={forceProcessQueue}
+       variant="outline"
+       size="sm"
+       className="bg-orange-50"
+      >
+       <Zap className="h-3 w-3 mr-1" />
+       Forzar Procesamiento
+      </Button>
+
+      <Button
+       onClick={debugQueue}
+       variant="outline"
+       size="sm"
+      >
+       <Bug className="h-3 w-3 mr-1" />
+       Debug Cola
+      </Button>
+
+      <Button
+       onClick={() => refetchQueue()}
+       variant="outline"
+       size="sm"
+      >
+       <RotateCcw className="h-3 w-3 mr-1" />
+       Actualizar
+      </Button>
+     </div>
+
+     {debugMode && (
+      <div className="mt-3 p-2 bg-gray-100 rounded text-xs font-mono">
+       <div>📊 Stats: {JSON.stringify(stats, null, 2)}</div>
+       <div>🔢 Active Jobs: {activeJobs.length}</div>
+       <div>📝 Selected Blogs: {selectedBlogs.length}</div>
+      </div>
+     )}
     </div>
 
     {/* Estadísticas principales */}
@@ -276,8 +411,32 @@ export default function TranslationQueueManager({
       </div>
      </div>
 
-     {/* Botón de procesamiento */}
-     <div className="flex space-x-2">
+     {/* Vista previa de traducción */}
+     {selectedBlogs.length > 0 && (
+      <div className="mt-4 p-4 bg-muted/30 rounded-lg border-l-4 border-blue-500">
+       <div className="flex items-start space-x-2">
+        <Info className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+        <div>
+         <h5 className="text-sm font-medium mb-2 text-blue-900">Vista previa de traducción:</h5>
+         <div className="text-sm text-blue-800 space-y-1">
+          <div>• <strong>{selectedBlogs.length}</strong> blogs serán traducidos</div>
+          <div>• Las <strong>categorías asociadas</strong> también serán traducidas automáticamente</div>
+          <div>• Se verificará si las categorías ya están traducidas para <strong>evitar duplicados</strong></div>
+          <div>• Campos traducidos: <strong>Título, Contenido, Título Punch, SEO Description</strong></div>
+          {selectedLanguage && (
+           <div>• Idioma objetivo: <strong>{AVAILABLE_LANGUAGES.find(l => l.code === selectedLanguage)?.name}</strong> {AVAILABLE_LANGUAGES.find(l => l.code === selectedLanguage)?.flag}</div>
+          )}
+          <div className="mt-2 text-xs opacity-75">
+           ⚡ Procesamiento: ~5 traducciones por minuto usando DeepL API
+          </div>
+         </div>
+        </div>
+       </div>
+      </div>
+     )}
+
+     {/* Botones de procesamiento */}
+     <div className="flex space-x-2 mt-4">
       <Button
        onClick={handleStartProcessing}
        disabled={startProcessMutation.isPending || (stats?.pending || 0) === 0}
@@ -288,17 +447,19 @@ export default function TranslationQueueManager({
       </Button>
 
       <Button
-       onClick={() => window.location.reload()}
-       variant="ghost"
-       size="sm"
+       onClick={forceProcessQueue}
+       disabled={startProcessMutation.isPending || (stats?.pending || 0) === 0}
+       variant="default"
+       className="bg-orange-600 hover:bg-orange-700"
       >
-       <RotateCcw className="h-4 w-4 mr-2" />
-       Actualizar
+       <Zap className="h-4 w-4 mr-2" />
+       Forzar Ahora
       </Button>
      </div>
     </div>
    </Card>
 
+   {/* Rest of the component remains the same... */}
    {/* Trabajos activos */}
    {activeJobs.length > 0 && (
     <Card className="p-6">
@@ -319,6 +480,9 @@ export default function TranslationQueueManager({
          </div>
          <div className="text-xs text-muted-foreground mt-1">
           Traduciendo a: {AVAILABLE_LANGUAGES.find(l => l.code === job.targetLanguage)?.name || job.targetLanguage}
+          {job.blog?.Category?.name && (
+           <span className="ml-2">• Categoría: {job.blog.Category.name}</span>
+          )}
          </div>
         </div>
 
@@ -367,7 +531,5 @@ export default function TranslationQueueManager({
     </Alert>
    )}
   </div>
-
-
  )
 }

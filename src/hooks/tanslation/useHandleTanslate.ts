@@ -1,7 +1,7 @@
 // src/hooks/tanslation/useHandleTanslate.ts
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
-// Tipos
+// Tipos actualizados
 type TranslationStats = {
  pending: number
  processing: number
@@ -19,6 +19,10 @@ type ActiveJob = {
  blog: {
   title: string
   slug: string
+  Category?: {  // AGREGADO
+   id: string
+   name: string
+  } | null
  }
 }
 

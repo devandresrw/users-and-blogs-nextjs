@@ -1,6 +1,61 @@
 'use server'
 import prismaService from '@/lib/config/prisma.service'
 
+export type BlogManagementItem = {
+ id: string;
+ title: string;
+ slug: string;
+ content: string;
+ titlePunch: string | null;
+ seoDescription: string | null;
+ baseLanguage: string;
+ dateCreated: string;
+ dateNews: string | null;
+ views: number;
+ readTime: number | null;
+
+ author: {
+  id: string;
+  name: string;
+  profilePicture: string | null;
+ } | null;
+
+ category: {
+  id: string;
+  name: string;
+  slug: string;
+  isTranslated?: boolean; // NUEVO
+  baseLanguage?: string;  // NUEVO
+ } | null;
+
+ tags: Array<{
+  id: string;
+  name: string;
+  slug: string;
+ }>;
+
+ images: {
+  seo: {
+   id: string;
+   url: string;
+   alt: string | null;
+  } | null;
+  card: {
+   id: string;
+   url: string;
+   alt: string | null;
+  } | null;
+ };
+
+ translations: {
+  availableLanguages: string[];
+  totalLanguages: number;
+  hasTargetTranslation: boolean;
+  translationStatus: 'translated' | 'untranslated' | 'unknown';
+  targetLanguage?: string;
+ };
+};
+
 // Función auxiliar para obtener traducciones
 async function getTranslations(entityType: string, entityId: string, language: string) {
  const translations = await prismaService.prisma.translation.findMany({
@@ -35,59 +90,7 @@ async function getBlogTranslationLanguages(blogId: string) {
  return translations.map(t => t.language);
 }
 
-// Tipos para la respuesta
-export type BlogManagementItem = {
- id: string;
- title: string;
- slug: string;
- content: string;
- titlePunch: string | null;
- seoDescription: string | null;
- baseLanguage: string;
- dateCreated: string;
- dateNews: string | null;
- views: number;
- readTime: number | null;
 
- author: {
-  id: string;
-  name: string;
-  profilePicture: string | null;
- } | null;
-
- category: {
-  id: string;
-  name: string;
-  slug: string;
- } | null;
-
- tags: Array<{
-  id: string;
-  name: string;
-  slug: string;
- }>;
-
- images: {
-  seo: {
-   id: string;
-   url: string;
-   alt: string | null;
-  } | null;
-  card: {
-   id: string;
-   url: string;
-   alt: string | null;
-  } | null;
- };
-
- translations: {
-  availableLanguages: string[];
-  totalLanguages: number;
-  hasTargetTranslation: boolean;
-  translationStatus: 'translated' | 'untranslated' | 'unknown';
-  targetLanguage?: string;
- };
-};
 
 export type BlogManagementData = {
  blogs: BlogManagementItem[];
@@ -121,6 +124,7 @@ export type BlogManagementResponse = {
  error: string;
 };
 
+// Función actualizada
 export async function getBlogsForManagement(params: {
  lang?: string;
  page?: number;
@@ -145,7 +149,7 @@ export async function getBlogsForManagement(params: {
    baseLanguage: lang
   };
 
-  // Obtener blogs con toda la información necesaria
+  // Obtener blogs con información de categoría actualizada
   const blogs = await prismaService.prisma.blog.findMany({
    where: baseWhere,
    include: {
@@ -164,7 +168,8 @@ export async function getBlogsForManagement(params: {
      select: {
       id: true,
       name: true,
-      slug: true
+      slug: true,
+      baseLanguage: true // AGREGADO
      }
     },
     tags: {
@@ -227,6 +232,42 @@ export async function getBlogsForManagement(params: {
      translatedContent = await getTranslations('blog', blog.id, lang);
     }
 
+    // NUEVO: Obtener traducción de categoría si existe
+    let categoryTranslated = false;
+    let translatedCategoryName = blog.Category?.name;
+
+    if (blog.Category && targetLanguage && targetLanguage !== blog.Category.baseLanguage) {
+     const categoryTranslation = await prismaService.prisma.translation.findFirst({
+      where: {
+       entityType: 'category',
+       entityId: blog.Category.id,
+       language: targetLanguage,
+       field: 'name'
+      }
+     });
+
+     if (categoryTranslation) {
+      categoryTranslated = true;
+      translatedCategoryName = categoryTranslation.value;
+     }
+    }
+
+    // También verificar traducción de categoría para el idioma de consulta actual
+    if (blog.Category && lang !== blog.Category.baseLanguage) {
+     const currentLangCategoryTranslation = await prismaService.prisma.translation.findFirst({
+      where: {
+       entityType: 'category',
+       entityId: blog.Category.id,
+       language: lang,
+       field: 'name'
+      }
+     });
+
+     if (currentLangCategoryTranslation) {
+      translatedCategoryName = currentLangCategoryTranslation.value;
+     }
+    }
+
     return {
      id: blog.id,
      title: translatedContent?.title || blog.title,
@@ -247,11 +288,13 @@ export async function getBlogsForManagement(params: {
       profilePicture: blog.blogAuthors[0].author.profilePicture
      } : null,
 
-     // Información de categoría
+     // ACTUALIZADO: Información de categoría con traducción
      category: blog.Category ? {
       id: blog.Category.id,
-      name: blog.Category.name,
-      slug: blog.Category.slug
+      name: translatedCategoryName || blog.Category.name,
+      slug: blog.Category.slug,
+      isTranslated: categoryTranslated,
+      baseLanguage: blog.Category.baseLanguage
      } : null,
 
      // Tags

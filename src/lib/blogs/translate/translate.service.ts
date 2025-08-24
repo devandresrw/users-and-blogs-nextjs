@@ -41,17 +41,30 @@ export class TranslationService {
  private static readonly DEEPL_API_URL = 'https://api-free.deepl.com/v2/translate' // Cambiar a 'https://api.deepl.com/v2/translate' si tienes plan pro
  private static readonly DEEPL_API_KEY = process.env.DEEPL_API_KEY
 
- // Mapeo de códigos de idioma
- private static readonly LANGUAGE_MAP: Record<string, string> = {
+ // ✅ CORREGIDO: Mapeo de códigos de idioma para SOURCE (más simple)
+ private static readonly SOURCE_LANGUAGE_MAP: Record<string, string> = {
   'es': 'ES',
-  'en': 'EN-US',
+  'en': 'EN',     // ✅ Para source_lang usar 'EN'
   'fr': 'FR',
   'de': 'DE',
   'it': 'IT',
-  'pt': 'PT-BR',
+  'pt': 'PT',     // ✅ Para source_lang usar 'PT'
   'ja': 'JA',
   'zh': 'ZH',
-  'ar': 'AR' // Nota: DeepL puede no soportar árabe, verificar disponibilidad
+  'ar': 'AR'
+ }
+
+ // ✅ CORREGIDO: Mapeo de códigos de idioma para TARGET (más específico)
+ private static readonly TARGET_LANGUAGE_MAP: Record<string, string> = {
+  'es': 'ES',
+  'en': 'EN-US',  // ✅ Para target_lang podemos usar 'EN-US'
+  'fr': 'FR',
+  'de': 'DE',
+  'it': 'IT',
+  'pt': 'PT-BR',  // ✅ Para portugués brasileño
+  'ja': 'JA',
+  'zh': 'ZH',
+  'ar': 'AR'
  }
 
  // ================== GESTIÓN DE COLA ==================
@@ -65,6 +78,12 @@ export class TranslationService {
   priority = 0
  }: BatchTranslationRequest): Promise<{ success: boolean; added: number; existing: number }> {
   try {
+   console.log('🔄 Agregando trabajos de traducción:', {
+    blogIds: blogIds.length,
+    targetLanguage,
+    priority
+   })
+
    let added = 0
    let existing = 0
 
@@ -81,6 +100,8 @@ export class TranslationService {
 
     if (existingJob) {
      existing++
+     console.log(`⚠️ Trabajo ya existe para blog ${blogId} -> ${targetLanguage}`)
+
      // Si falló, reiniciar
      if (existingJob.status === 'failed' && existingJob.retryCount < this.MAX_RETRIES) {
       await prismaService.prisma.translationQueue.update({
@@ -92,6 +113,7 @@ export class TranslationService {
        }
       })
       added++
+      console.log(`🔄 Trabajo fallido reiniciado: ${existingJob.id}`)
      }
     } else {
      // Verificar si ya está traducido
@@ -105,7 +127,7 @@ export class TranslationService {
      })
 
      if (!existingTranslation) {
-      await prismaService.prisma.translationQueue.create({
+      const newJob = await prismaService.prisma.translationQueue.create({
        data: {
         blogId,
         targetLanguage,
@@ -114,15 +136,18 @@ export class TranslationService {
        }
       })
       added++
+      console.log(`✅ Nuevo trabajo agregado: ${newJob.id}`)
      } else {
       existing++
+      console.log(`ℹ️ Blog ${blogId} ya traducido a ${targetLanguage}`)
      }
     }
    }
 
+   console.log(`📊 Resumen: ${added} agregados, ${existing} existentes`)
    return { success: true, added, existing }
   } catch (error) {
-   console.error('Error adding translation jobs:', error)
+   console.error('❌ Error adding translation jobs:', error)
    throw new Error('Failed to add translation jobs')
   }
  }
@@ -190,29 +215,35 @@ export class TranslationService {
   */
  static async processQueue(): Promise<void> {
   try {
+   console.log('🚀 Iniciando procesamiento de cola...')
    const jobs = await this.getNextJobs()
 
    if (jobs.length === 0) {
-    console.log('No hay trabajos pendientes en la cola')
+    console.log('ℹ️ No hay trabajos pendientes en la cola')
     return
    }
 
-   console.log(`Procesando ${jobs.length} trabajos de traducción...`)
+   console.log(`⚡ Procesando ${jobs.length} trabajos de traducción...`)
 
    // Procesar trabajos secuencialmente para respetar rate limiting
    for (const job of jobs) {
     try {
+     console.log(`🔄 Procesando trabajo: ${job.id} (${job.blogId} -> ${job.targetLanguage})`)
      await this.processJob(job)
+
      // Esperar entre traducciones para respetar rate limiting
      if (jobs.indexOf(job) < jobs.length - 1) {
+      console.log(`⏸️ Esperando ${this.PROCESSING_DELAY / 1000}s antes del siguiente trabajo...`)
       await this.delay(this.PROCESSING_DELAY)
      }
     } catch (error) {
-     console.error(`Error procesando trabajo ${job.id}:`, error)
+     console.error(`❌ Error procesando trabajo ${job.id}:`, error)
     }
    }
+
+   console.log('🎉 Procesamiento de cola completado')
   } catch (error) {
-   console.error('Error en processQueue:', error)
+   console.error('💥 Error en processQueue:', error)
   }
  }
 
@@ -221,6 +252,8 @@ export class TranslationService {
   */
  private static async processJob(job: any): Promise<void> {
   try {
+   console.log(`🎯 Iniciando procesamiento de trabajo: ${job.id}`)
+
    // Marcar como procesando
    await this.markJobAsProcessing(job.id)
 
@@ -232,10 +265,12 @@ export class TranslationService {
 
    // 1. Traducir la categoría si es necesaria
    if (blog.Category && blog.categoryId) {
+    console.log(`📁 Procesando categoría: ${blog.Category.name}`)
     await this.translateCategoryIfNeeded(blog.categoryId, blog.Category, job.targetLanguage)
    }
 
    // 2. Traducir el blog
+   console.log(`📝 Traduciendo blog: ${blog.title.substring(0, 50)}...`)
    const translatedContent = await this.translateBlogContent({
     title: blog.title,
     content: blog.content,
@@ -246,12 +281,13 @@ export class TranslationService {
    })
 
    // 3. Guardar las traducciones del blog
+   console.log(`💾 Guardando traducciones del blog...`)
    await this.saveBlogTranslations(job.blogId, job.targetLanguage, translatedContent)
 
    // 4. Marcar como completado
    await this.markJobAsCompleted(job.id)
 
-   console.log(`✅ Traducción completada: ${job.blogId} -> ${job.targetLanguage}`)
+   console.log(`✅ Traducción completada exitosamente: ${job.blogId} -> ${job.targetLanguage}`)
 
   } catch (error) {
    console.error(`❌ Error en traducción ${job.id}:`, error)
@@ -279,9 +315,11 @@ export class TranslationService {
    })
 
    if (existingTranslation) {
-    console.log(`Categoría ${categoryId} ya está traducida a ${targetLanguage}`)
+    console.log(`ℹ️ Categoría ${categoryId} ya está traducida a ${targetLanguage}`)
     return
    }
+
+   console.log(`🔄 Traduciendo categoría: ${category.name} (${category.baseLanguage} -> ${targetLanguage})`)
 
    // Traducir la categoría
    const translatedCategory = await this.translateCategoryContent({
@@ -293,10 +331,10 @@ export class TranslationService {
    // Guardar la traducción de la categoría
    await this.saveCategoryTranslations(categoryId, targetLanguage, translatedCategory)
 
-   console.log(`✅ Categoría traducida: ${categoryId} -> ${targetLanguage}`)
+   console.log(`✅ Categoría traducida exitosamente: ${categoryId} -> ${targetLanguage}`)
 
   } catch (error) {
-   console.error(`Error traduciendo categoría ${categoryId}:`, error)
+   console.error(`❌ Error traduciendo categoría ${categoryId}:`, error)
    // No fallar el trabajo completo si la categoría falla
   }
  }
@@ -320,12 +358,29 @@ export class TranslationService {
   toLanguage: string
  }): Promise<TranslationApiResponse> {
 
+  console.log('🌍 Iniciando traducción con DeepL:', {
+   fromLanguage,
+   toLanguage,
+   titleLength: title.length,
+   contentLength: content.length,
+   hasAPI: !!this.DEEPL_API_KEY
+  })
+
   if (!this.DEEPL_API_KEY) {
+   console.error('❌ DEEPL_API_KEY no está configurada')
    throw new Error('DEEPL_API_KEY no está configurada')
   }
 
-  const sourceLanguage = this.LANGUAGE_MAP[fromLanguage]
-  const targetLang = this.LANGUAGE_MAP[toLanguage]
+  // ✅ CORREGIDO: Usar mapeos diferentes para source y target
+  const sourceLanguage = this.SOURCE_LANGUAGE_MAP[fromLanguage]
+  const targetLang = this.TARGET_LANGUAGE_MAP[toLanguage]
+
+  console.log('🔄 Mapeo de idiomas:', {
+   fromLanguage,
+   sourceLanguage,
+   toLanguage,
+   targetLang
+  })
 
   if (!sourceLanguage || !targetLang) {
    throw new Error(`Idioma no soportado: ${fromLanguage} -> ${toLanguage}`)
@@ -337,31 +392,64 @@ export class TranslationService {
    if (titlePunch) textsToTranslate.push(titlePunch)
    if (seoDescription) textsToTranslate.push(seoDescription)
 
-   // Llamar a DeepL API
+   console.log('📝 Textos a traducir:', {
+    count: textsToTranslate.length,
+    lengths: textsToTranslate.map(t => t.length),
+    totalChars: textsToTranslate.join('').length
+   })
+
+   // ✅ CORREGIDO: Usar los mapeos correctos
+   const requestBody = new URLSearchParams({
+    text: textsToTranslate,
+    source_lang: sourceLanguage,  // ✅ Usar SOURCE_LANGUAGE_MAP
+    target_lang: targetLang,      // ✅ Usar TARGET_LANGUAGE_MAP
+    preserve_formatting: '1',
+    tag_handling: 'html'
+   } as any)
+
+   console.log('🚀 Enviando request a DeepL:', {
+    url: this.DEEPL_API_URL,
+    source_lang: sourceLanguage,
+    target_lang: targetLang,
+    textCount: textsToTranslate.length
+   })
+
    const response = await fetch(this.DEEPL_API_URL, {
     method: 'POST',
     headers: {
      'Authorization': `DeepL-Auth-Key ${this.DEEPL_API_KEY}`,
      'Content-Type': 'application/x-www-form-urlencoded',
     },
-    body: new URLSearchParams({
-     text: textsToTranslate,
-     source_lang: sourceLanguage,
-     target_lang: targetLang,
-     preserve_formatting: '1',
-     tag_handling: 'html'
-    } as any)
+    body: requestBody
+   })
+
+   console.log('📡 Respuesta de DeepL:', {
+    status: response.status,
+    statusText: response.statusText,
+    ok: response.ok
    })
 
    if (!response.ok) {
     const errorText = await response.text()
+    console.error('❌ Error de DeepL API:', {
+     status: response.status,
+     statusText: response.statusText,
+     errorText
+    })
     throw new Error(`DeepL API Error: ${response.status} - ${errorText}`)
    }
 
    const result = await response.json()
+   console.log('✅ Respuesta exitosa de DeepL:', {
+    translationsCount: result.translations?.length || 0,
+    hasTranslations: !!result.translations,
+    usage: result.usage || 'No usage info'
+   })
+
    const translations = result.translations
 
    if (!translations || translations.length < 2) {
+    console.error('❌ Respuesta inválida de DeepL:', result)
     throw new Error('Respuesta inválida de DeepL API')
    }
 
@@ -373,10 +461,17 @@ export class TranslationService {
     seoDescription: seoDescription && translations[titlePunch ? 3 : 2] ? translations[titlePunch ? 3 : 2].text : undefined
    }
 
+   console.log('🎯 Traducción completada:', {
+    originalTitle: title.substring(0, 50) + '...',
+    translatedTitle: translatedContent.title.substring(0, 50) + '...',
+    originalContentLength: content.length,
+    translatedContentLength: translatedContent.content.length
+   })
+
    return translatedContent
 
   } catch (error) {
-   console.error('Error en traducción con DeepL:', error)
+   console.error('💥 Error en traducción con DeepL:', error)
    throw error
   }
  }
@@ -398,8 +493,9 @@ export class TranslationService {
    throw new Error('DEEPL_API_KEY no está configurada')
   }
 
-  const sourceLanguage = this.LANGUAGE_MAP[fromLanguage]
-  const targetLang = this.LANGUAGE_MAP[toLanguage]
+  // ✅ CORREGIDO: Usar mapeos correctos
+  const sourceLanguage = this.SOURCE_LANGUAGE_MAP[fromLanguage]
+  const targetLang = this.TARGET_LANGUAGE_MAP[toLanguage]
 
   if (!sourceLanguage || !targetLang) {
    throw new Error(`Idioma no soportado: ${fromLanguage} -> ${toLanguage}`)
@@ -414,8 +510,8 @@ export class TranslationService {
     },
     body: new URLSearchParams({
      text: name,
-     source_lang: sourceLanguage,
-     target_lang: targetLang,
+     source_lang: sourceLanguage,  // ✅ Usar SOURCE_LANGUAGE_MAP
+     target_lang: targetLang,      // ✅ Usar TARGET_LANGUAGE_MAP
      preserve_formatting: '1'
     })
    })
@@ -437,7 +533,7 @@ export class TranslationService {
    }
 
   } catch (error) {
-   console.error('Error en traducción de categoría con DeepL:', error)
+   console.error('❌ Error en traducción de categoría con DeepL:', error)
    throw error
   }
  }
@@ -452,14 +548,14 @@ export class TranslationService {
  ): Promise<void> {
   const translationData = [
    {
-    entityType: 'blog',
+    entityType: 'blog' as const,
     entityId: blogId,
     language,
     field: 'title',
     value: translations.title
    },
    {
-    entityType: 'blog',
+    entityType: 'blog' as const,
     entityId: blogId,
     language,
     field: 'content',
@@ -470,7 +566,7 @@ export class TranslationService {
   // Agregar traducciones opcionales si existen
   if (translations.titlePunch) {
    translationData.push({
-    entityType: 'blog',
+    entityType: 'blog' as const,
     entityId: blogId,
     language,
     field: 'titlePunch',
@@ -480,13 +576,15 @@ export class TranslationService {
 
   if (translations.seoDescription) {
    translationData.push({
-    entityType: 'blog',
+    entityType: 'blog' as const,
     entityId: blogId,
     language,
     field: 'seoDescription',
     value: translations.seoDescription
    })
   }
+
+  console.log(`💾 Guardando ${translationData.length} traducciones para blog ${blogId}`)
 
   // Guardar todas las traducciones
   for (const translation of translationData) {
@@ -503,6 +601,8 @@ export class TranslationService {
     update: { value: translation.value }
    })
   }
+
+  console.log(`✅ Traducciones guardadas exitosamente para blog ${blogId}`)
  }
 
  /**
@@ -575,11 +675,11 @@ export class TranslationService {
  // ================== MÉTODOS PÚBLICOS ADICIONALES ==================
 
  /**
-  * Verificar idiomas disponibles en DeepL
+  * Verificar idiomas disponibles en DeepL - ACTUALIZADO
   */
  static async getAvailableLanguages(): Promise<string[]> {
   if (!this.DEEPL_API_KEY) {
-   return Object.keys(this.LANGUAGE_MAP)
+   return Object.keys(this.SOURCE_LANGUAGE_MAP)
   }
 
   try {
@@ -597,7 +697,7 @@ export class TranslationService {
    console.error('Error obteniendo idiomas de DeepL:', error)
   }
 
-  return Object.keys(this.LANGUAGE_MAP)
+  return Object.keys(this.SOURCE_LANGUAGE_MAP)
  }
 
  /**
@@ -652,6 +752,7 @@ export class TranslationService {
       slug: true,
       Category: {
        select: {
+        id: true,
         name: true
        }
       }
@@ -663,5 +764,37 @@ export class TranslationService {
     { createdAt: 'asc' }
    ]
   })
+ }
+
+ /**
+  * Forzar procesamiento inmediato (para testing/debugging)
+  */
+ static async forceProcessQueue(): Promise<{ success: boolean; processed: number; errors: number }> {
+  console.log('⚡ FORZANDO procesamiento inmediato de cola...')
+
+  let processed = 0
+  let errors = 0
+
+  try {
+   const jobs = await this.getNextJobs(10) // Procesar hasta 10 trabajos
+
+   for (const job of jobs) {
+    try {
+     console.log(`🔥 Procesando FORZADO: ${job.id}`)
+     await this.processJob(job)
+     processed++
+    } catch (error) {
+     console.error(`❌ Error en procesamiento forzado ${job.id}:`, error)
+     errors++
+    }
+   }
+
+   console.log(`🎯 Procesamiento forzado completado: ${processed} exitosos, ${errors} errores`)
+
+   return { success: true, processed, errors }
+  } catch (error) {
+   console.error('💥 Error en procesamiento forzado:', error)
+   return { success: false, processed, errors: errors + 1 }
+  }
  }
 }

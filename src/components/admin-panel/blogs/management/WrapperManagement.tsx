@@ -88,9 +88,49 @@ export default function WrapperManagement() {
     // Aquí implementarías la vista de detalles
   }
 
-  const handleBatchTranslate = () => {
-    console.log('Traducir seleccionados:', selectedBlogs)
-    // Aquí implementarías la traducción en lote
+  const handleBatchTranslate = async () => {
+    if (!filters.targetLanguage) {
+      alert('Selecciona un idioma objetivo en los filtros')
+      return
+    }
+
+    console.log('🚀 Iniciando traducción en lote:', {
+      selectedBlogs,
+      targetLanguage: filters.targetLanguage,
+      count: selectedBlogs.length
+    })
+
+    try {
+      // Usar el hook de traducción
+      const response = await fetch('/api/blogs/translate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          blogIds: selectedBlogs,
+          targetLanguage: filters.targetLanguage,
+          priority: 1 // Alta prioridad para traducciones manuales
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Error al agregar trabajos de traducción')
+      }
+
+      const result = await response.json()
+      console.log('✅ Trabajos agregados:', result)
+
+      // Limpiar selección
+      setSelectedBlogs([])
+
+      // Mostrar mensaje de éxito
+      alert(`${result.details.added} trabajos agregados a la cola de traducción`)
+
+    } catch (error) {
+      console.error('❌ Error en traducción:', error)
+      alert('Error al agregar trabajos de traducción')
+    }
   }
 
   // Loading state
@@ -123,7 +163,7 @@ export default function WrapperManagement() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-5xl">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
