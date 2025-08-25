@@ -1,17 +1,27 @@
-// src/app/api/blogs/translate/route.ts
 import { NextRequest, NextResponse } from 'next/server'
+import prismaService from '@/lib/config/prisma.service'
 import { TranslationService } from '@/lib/blogs/translate/translate.service'
 
-// POST: Agregar trabajos de traducción a la cola
 export async function POST(request: NextRequest) {
  try {
   const body = await request.json()
-  const { blogIds, targetLanguage, priority = 0 } = body
+  const { blogIds, targetLanguage, translateAll, priority = 0 } = body
 
-  // Validación
-  if (!blogIds || !Array.isArray(blogIds) || blogIds.length === 0) {
+  let idsToTranslate: string[] = []
+
+  if (translateAll) {
+   // Obtener todos los blogs originales (no traducciones)
+   const allBlogs = await prismaService.prisma.blog.findMany({
+    where: { isTranslation: false }
+   })
+   idsToTranslate = allBlogs.map(b => b.id)
+  } else if (Array.isArray(blogIds)) {
+   idsToTranslate = blogIds
+  }
+
+  if (!idsToTranslate.length) {
    return NextResponse.json(
-    { error: 'blogIds debe ser un array no vacío' },
+    { error: 'No hay blogs para traducir' },
     { status: 400 }
    )
   }
@@ -23,29 +33,19 @@ export async function POST(request: NextRequest) {
    )
   }
 
-  // Agregar trabajos a la cola
+  // Llama al servicio para crear traducciones
   const result = await TranslationService.addTranslationJobs({
-   blogIds,
+   blogIds: idsToTranslate,
    targetLanguage,
    priority
   })
 
   return NextResponse.json({
    success: true,
-   message: `${result.added} trabajos agregados a la cola`,
-   details: {
-    added: result.added,
-    existing: result.existing,
-    total: blogIds.length
-   }
+   ...result
   })
-
- } catch (error) {
-  console.error('Error en POST /api/blogs/translate:', error)
-  return NextResponse.json(
-   { error: 'Error interno del servidor' },
-   { status: 500 }
-  )
+ } catch (error: any) {
+  return NextResponse.json({ success: false, error: error.message }, { status: 500 })
  }
 }
 

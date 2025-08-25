@@ -1,7 +1,5 @@
-// src/lib/blogs/translate/translate.service.ts
 import prismaService from '@/lib/config/prisma.service'
 
-// Tipos para el servicio de traducción
 export type TranslationJobStatus = 'pending' | 'processing' | 'completed' | 'failed'
 
 export type TranslationJob = {
@@ -33,39 +31,37 @@ export type CategoryTranslationResponse = {
  name: string
 }
 
-// Clase principal del servicio de traducción
 export class TranslationService {
  private static readonly BATCH_SIZE = 5
- private static readonly PROCESSING_DELAY = 12000 // 12 segundos = 5 por minuto
+ private static readonly PROCESSING_DELAY = 12000
  private static readonly MAX_RETRIES = 3
- private static readonly DEEPL_API_URL = 'https://api-free.deepl.com/v2/translate' // Cambiar a 'https://api.deepl.com/v2/translate' si tienes plan pro
+ private static readonly DEEPL_API_URL = 'https://api-free.deepl.com/v2/translate'
  private static readonly DEEPL_API_KEY = process.env.DEEPL_API_KEY
 
- // ✅ CORREGIDO: Mapeo de códigos de idioma para SOURCE (más simple)
  private static readonly SOURCE_LANGUAGE_MAP: Record<string, string> = {
   'es': 'ES',
-  'en': 'EN',     // ✅ Para source_lang usar 'EN'
+  'en': 'EN',
   'fr': 'FR',
   'de': 'DE',
   'it': 'IT',
-  'pt': 'PT',     // ✅ Para source_lang usar 'PT'
+  'pt': 'PT',
   'ja': 'JA',
   'zh': 'ZH',
   'ar': 'AR'
  }
 
- // ✅ CORREGIDO: Mapeo de códigos de idioma para TARGET (más específico)
  private static readonly TARGET_LANGUAGE_MAP: Record<string, string> = {
   'es': 'ES',
-  'en': 'EN-US',  // ✅ Para target_lang podemos usar 'EN-US'
+  'en': 'EN-US',
   'fr': 'FR',
   'de': 'DE',
   'it': 'IT',
-  'pt': 'PT-BR',  // ✅ Para portugués brasileño
+  'pt': 'PT-BR',
   'ja': 'JA',
   'zh': 'ZH',
   'ar': 'AR'
  }
+
 
  // ================== GESTIÓN DE COLA ==================
 
@@ -76,80 +72,99 @@ export class TranslationService {
   blogIds,
   targetLanguage,
   priority = 0
- }: BatchTranslationRequest): Promise<{ success: boolean; added: number; existing: number }> {
-  try {
-   console.log('🔄 Agregando trabajos de traducción:', {
-    blogIds: blogIds.length,
-    targetLanguage,
-    priority
-   })
+ }: {
+  blogIds: string[]
+  targetLanguage: string
+  priority?: number
+ }): Promise<{ added: number; existing: number }> {
+  let added = 0
+  let existing = 0
 
-   let added = 0
-   let existing = 0
-
-   for (const blogId of blogIds) {
-    // Verificar si ya existe en la cola
-    const existingJob = await prismaService.prisma.translationQueue.findUnique({
-     where: {
-      blogId_targetLanguage: {
-       blogId,
-       targetLanguage
-      }
-     }
-    })
-
-    if (existingJob) {
-     existing++
-     console.log(`⚠️ Trabajo ya existe para blog ${blogId} -> ${targetLanguage}`)
-
-     // Si falló, reiniciar
-     if (existingJob.status === 'failed' && existingJob.retryCount < this.MAX_RETRIES) {
-      await prismaService.prisma.translationQueue.update({
-       where: { id: existingJob.id },
-       data: {
-        status: 'pending',
-        errorMessage: null,
-        priority
-       }
-      })
-      added++
-      console.log(`🔄 Trabajo fallido reiniciado: ${existingJob.id}`)
-     }
-    } else {
-     // Verificar si ya está traducido
-     const existingTranslation = await prismaService.prisma.translation.findFirst({
-      where: {
-       entityType: 'blog',
-       entityId: blogId,
-       language: targetLanguage,
-       field: 'title'
-      }
-     })
-
-     if (!existingTranslation) {
-      const newJob = await prismaService.prisma.translationQueue.create({
-       data: {
-        blogId,
-        targetLanguage,
-        priority,
-        status: 'pending'
-       }
-      })
-      added++
-      console.log(`✅ Nuevo trabajo agregado: ${newJob.id}`)
-     } else {
-      existing++
-      console.log(`ℹ️ Blog ${blogId} ya traducido a ${targetLanguage}`)
-     }
+  for (const blogId of blogIds) {
+   const original = await prismaService.prisma.blog.findUnique({
+    where: { id: blogId },
+    include: {
+     blogAuthors: true,
+     tags: true,
+     Category: true
     }
+   })
+   if (!original) continue
+
+   const exists = await prismaService.prisma.blog.findFirst({
+    where: {
+     originalBlogId: blogId,
+     baseLanguage: targetLanguage
+    }
+   })
+   if (exists) {
+    existing++
+    continue
    }
 
-   console.log(`📊 Resumen: ${added} agregados, ${existing} existentes`)
-   return { success: true, added, existing }
-  } catch (error) {
-   console.error('❌ Error adding translation jobs:', error)
-   throw new Error('Failed to add translation jobs')
+   const translatedContent = await this.translateBlogContent({
+    title: original.title,
+    content: original.content,
+    titlePunch: original.titlePunch,
+    seoDescription: original.seoDescription,
+    fromLanguage: original.baseLanguage,
+    toLanguage: targetLanguage
+   })
+
+   const translatedBlog = await prismaService.prisma.blog.create({
+    data: {
+     title: translatedContent.title,
+     content: translatedContent.content,
+     titlePunch: translatedContent.titlePunch,
+     seoDescription: translatedContent.seoDescription,
+     baseLanguage: targetLanguage,
+     isTranslation: true,
+     originalBlogId: blogId,
+     slug: original.slug + '-' + targetLanguage,
+     dateNews: original.dateNews,
+     readTime: original.readTime,
+     categoryId: original.categoryId,
+     blogAuthors: {
+      create: original.blogAuthors.map(ba => ({
+       authorId: ba.authorId
+      }))
+     },
+     tags: {
+      create: original.tags.map(bt => ({
+       tagId: bt.tagId
+      }))
+     }
+    }
+   })
+
+   // Actualizar tabla Translation
+   let translation = await prismaService.prisma.translation.findUnique({
+    where: {
+     originalEntityId_entityType: {
+      originalEntityId: blogId,
+      entityType: 'blog'
+     }
+    }
+   })
+   if (translation) {
+    await prismaService.prisma.translation.update({
+     where: { id: translation.id },
+     data: {
+      translatedIds: { push: translatedBlog.id }
+     }
+    })
+   } else {
+    await prismaService.prisma.translation.create({
+     data: {
+      originalEntityId: blogId,
+      entityType: 'blog',
+      translatedIds: [translatedBlog.id]
+     }
+    })
+   }
+   added++
   }
+  return { added, existing }
  }
 
  /**
@@ -282,7 +297,6 @@ export class TranslationService {
 
    // 3. Guardar las traducciones del blog
    console.log(`💾 Guardando traducciones del blog...`)
-   await this.saveBlogTranslations(job.blogId, job.targetLanguage, translatedContent)
 
    // 4. Marcar como completado
    await this.markJobAsCompleted(job.id)
@@ -304,38 +318,63 @@ export class TranslationService {
   targetLanguage: string
  ): Promise<void> {
   try {
-   // Verificar si la categoría ya está traducida
-   const existingTranslation = await prismaService.prisma.translation.findFirst({
+   const existingCategory = await prismaService.prisma.category.findFirst({
     where: {
-     entityType: 'category',
-     entityId: categoryId,
-     language: targetLanguage,
-     field: 'name'
+     originalCategoryId: categoryId,
+     baseLanguage: targetLanguage
     }
    })
 
-   if (existingTranslation) {
+   if (existingCategory) {
     console.log(`ℹ️ Categoría ${categoryId} ya está traducida a ${targetLanguage}`)
     return
    }
 
-   console.log(`🔄 Traduciendo categoría: ${category.name} (${category.baseLanguage} -> ${targetLanguage})`)
-
-   // Traducir la categoría
    const translatedCategory = await this.translateCategoryContent({
     name: category.name,
     fromLanguage: category.baseLanguage,
     toLanguage: targetLanguage
    })
 
-   // Guardar la traducción de la categoría
-   await this.saveCategoryTranslations(categoryId, targetLanguage, translatedCategory)
+   const newCategory = await prismaService.prisma.category.create({
+    data: {
+     name: translatedCategory.name,
+     slug: category.slug + '-' + targetLanguage,
+     baseLanguage: targetLanguage,
+     isTranslation: true,
+     originalCategoryId: categoryId
+    }
+   })
+
+   let translation = await prismaService.prisma.translation.findUnique({
+    where: {
+     originalEntityId_entityType: {
+      originalEntityId: categoryId,
+      entityType: 'category'
+     }
+    }
+   })
+   if (translation) {
+    await prismaService.prisma.translation.update({
+     where: { id: translation.id },
+     data: {
+      translatedIds: { push: newCategory.id }
+     }
+    })
+   } else {
+    await prismaService.prisma.translation.create({
+     data: {
+      originalEntityId: categoryId,
+      entityType: 'category',
+      translatedIds: [newCategory.id]
+     }
+    })
+   }
 
    console.log(`✅ Categoría traducida exitosamente: ${categoryId} -> ${targetLanguage}`)
 
   } catch (error) {
    console.error(`❌ Error traduciendo categoría ${categoryId}:`, error)
-   // No fallar el trabajo completo si la categoría falla
   }
  }
 
@@ -357,6 +396,7 @@ export class TranslationService {
   fromLanguage: string
   toLanguage: string
  }): Promise<TranslationApiResponse> {
+
 
   console.log('🌍 Iniciando traducción con DeepL:', {
    fromLanguage,
@@ -541,99 +581,12 @@ export class TranslationService {
  /**
   * Guardar las traducciones del blog en la base de datos
   */
- private static async saveBlogTranslations(
-  blogId: string,
-  language: string,
-  translations: TranslationApiResponse
- ): Promise<void> {
-  const translationData = [
-   {
-    entityType: 'blog' as const,
-    entityId: blogId,
-    language,
-    field: 'title',
-    value: translations.title
-   },
-   {
-    entityType: 'blog' as const,
-    entityId: blogId,
-    language,
-    field: 'content',
-    value: translations.content
-   }
-  ]
 
-  // Agregar traducciones opcionales si existen
-  if (translations.titlePunch) {
-   translationData.push({
-    entityType: 'blog' as const,
-    entityId: blogId,
-    language,
-    field: 'titlePunch',
-    value: translations.titlePunch
-   })
-  }
-
-  if (translations.seoDescription) {
-   translationData.push({
-    entityType: 'blog' as const,
-    entityId: blogId,
-    language,
-    field: 'seoDescription',
-    value: translations.seoDescription
-   })
-  }
-
-  console.log(`💾 Guardando ${translationData.length} traducciones para blog ${blogId}`)
-
-  // Guardar todas las traducciones
-  for (const translation of translationData) {
-   await prismaService.prisma.translation.upsert({
-    where: {
-     entityType_entityId_language_field: {
-      entityType: translation.entityType,
-      entityId: translation.entityId,
-      language: translation.language,
-      field: translation.field
-     }
-    },
-    create: translation,
-    update: { value: translation.value }
-   })
-  }
-
-  console.log(`✅ Traducciones guardadas exitosamente para blog ${blogId}`)
- }
 
  /**
   * Guardar las traducciones de categoría en la base de datos
   */
- private static async saveCategoryTranslations(
-  categoryId: string,
-  language: string,
-  translations: CategoryTranslationResponse
- ): Promise<void> {
-  await prismaService.prisma.translation.upsert({
-   where: {
-    entityType_entityId_language_field: {
-     entityType: 'category',
-     entityId: categoryId,
-     language,
-     field: 'name'
-    }
-   },
-   create: {
-    entityType: 'category',
-    entityId: categoryId,
-    language,
-    field: 'name',
-    value: translations.name
-   },
-   update: {
-    value: translations.name
-   }
-  })
- }
+
 
  // ================== UTILIDADES DE ESTADO ==================
 

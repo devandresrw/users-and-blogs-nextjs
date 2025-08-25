@@ -133,6 +133,28 @@ export default function WrapperManagement() {
     }
   }
 
+  const handleTranslateAll = async () => {
+    // Llama a tu endpoint para traducir todos los blogs
+    try {
+      const res = await fetch('/api/blogs/translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          translateAll: true, // Nuevo flag
+          targetLanguage: filters.targetLanguage // o el idioma que elijas
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert('Traducción masiva enviada correctamente');
+      } else {
+        alert('Error: ' + data.error);
+      }
+    } catch (e) {
+      alert('Error enviando traducción masiva');
+    }
+  };
+
   // Loading state
   if (isLoading) {
     return (
@@ -304,6 +326,12 @@ export default function WrapperManagement() {
           </div>
         </Card>
       )}
+      <Button
+        onClick={handleTranslateAll}
+        variant="default"
+      >
+        Traducir TODOS los blogs
+      </Button>
     </div>
   )
 }

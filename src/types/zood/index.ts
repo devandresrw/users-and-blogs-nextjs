@@ -12,7 +12,15 @@ import type { Prisma } from '@prisma/client';
 
 export const TransactionIsolationLevelSchema = z.enum(['ReadUncommitted','ReadCommitted','RepeatableRead','Serializable']);
 
-export const TranslationScalarFieldEnumSchema = z.enum(['id','entityType','entityId','language','field','value','createdAt','updatedAt']);
+export const TranslationScalarFieldEnumSchema = z.enum(['id','originalEntityId','entityType','translatedIds','createdAt','updatedAt']);
+
+export const BlogScalarFieldEnumSchema = z.enum(['id','title','content','titlePunch','slug','seoDescription','baseLanguage','isTranslation','originalBlogId','imagenSeoId','dateNews','imagenCardId','newsItemId','readTime','views','dateCreated','categoryId']);
+
+export const CategoryScalarFieldEnumSchema = z.enum(['id','name','slug','baseLanguage','isTranslation','originalCategoryId']);
+
+export const TagScalarFieldEnumSchema = z.enum(['id','name','slug','description','baseLanguage','isTranslation','originalTagId']);
+
+export const PollScalarFieldEnumSchema = z.enum(['id','question','slug','description','baseLanguage','isTranslation','originalPollId','startDate','endDate','createdAt','Archived','isPublic','ArchivedAt','Deleted','DeletedAt','categoryId','newsItemId']);
 
 export const UserScalarFieldEnumSchema = z.enum(['id','name','email','emailVerified','image','cloudinaryImageId','password','provider','providerId','isActive','role','createdAt','description','interests']);
 
@@ -28,15 +36,7 @@ export const VerificationTokenScalarFieldEnumSchema = z.enum(['identifier','toke
 
 export const VoteScalarFieldEnumSchema = z.enum(['id','hashedIp','anonymousId','createdAt','pollId','pollOptionId','userId']);
 
-export const CategoryScalarFieldEnumSchema = z.enum(['id','name','slug','baseLanguage']);
-
 export const NewsItemScalarFieldEnumSchema = z.enum(['id','title','content','baseLanguage','createdAt','pollId','blogId']);
-
-export const PollScalarFieldEnumSchema = z.enum(['id','question','slug','description','baseLanguage','startDate','endDate','createdAt','Archived','isPublic','ArchivedAt','Deleted','DeletedAt','categoryId','newsItemId']);
-
-export const BlogScalarFieldEnumSchema = z.enum(['id','title','content','titlePunch','slug','seoDescription','baseLanguage','imagenSeoId','dateNews','imagenCardId','newsItemId','readTime','views','dateCreated','categoryId']);
-
-export const TagScalarFieldEnumSchema = z.enum(['id','name','slug','description','baseLanguage']);
 
 export const BlogTagScalarFieldEnumSchema = z.enum(['id','blogId','tagId']);
 
@@ -74,16 +74,97 @@ export type RoleType = `${z.infer<typeof RoleSchema>}`
 
 export const TranslationSchema = z.object({
   id: z.string().cuid(),
+  originalEntityId: z.string(),
   entityType: z.string(),
-  entityId: z.string(),
-  language: z.string(),
-  field: z.string(),
-  value: z.string(),
+  translatedIds: z.string().array(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
 })
 
 export type Translation = z.infer<typeof TranslationSchema>
+
+/////////////////////////////////////////
+// BLOG SCHEMA
+/////////////////////////////////////////
+
+export const BlogSchema = z.object({
+  id: z.string().cuid(),
+  title: z.string(),
+  content: z.string(),
+  titlePunch: z.string().nullable(),
+  slug: z.string(),
+  seoDescription: z.string().nullable(),
+  baseLanguage: z.string(),
+  isTranslation: z.boolean(),
+  originalBlogId: z.string().nullable(),
+  imagenSeoId: z.string().nullable(),
+  dateNews: z.coerce.date(),
+  imagenCardId: z.string().nullable(),
+  newsItemId: z.string().nullable(),
+  readTime: z.number().int().nullable(),
+  views: z.number().int(),
+  dateCreated: z.coerce.date(),
+  categoryId: z.string().nullable(),
+})
+
+export type Blog = z.infer<typeof BlogSchema>
+
+/////////////////////////////////////////
+// CATEGORY SCHEMA
+/////////////////////////////////////////
+
+export const CategorySchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  slug: z.string(),
+  baseLanguage: z.string(),
+  isTranslation: z.boolean(),
+  originalCategoryId: z.string().nullable(),
+})
+
+export type Category = z.infer<typeof CategorySchema>
+
+/////////////////////////////////////////
+// TAG SCHEMA
+/////////////////////////////////////////
+
+export const TagSchema = z.object({
+  id: z.string().cuid(),
+  name: z.string(),
+  slug: z.string(),
+  description: z.string().nullable(),
+  baseLanguage: z.string(),
+  isTranslation: z.boolean(),
+  originalTagId: z.string().nullable(),
+})
+
+export type Tag = z.infer<typeof TagSchema>
+
+/////////////////////////////////////////
+// POLL SCHEMA
+/////////////////////////////////////////
+
+export const PollSchema = z.object({
+  id: z.string().uuid(),
+  question: z.string(),
+  slug: z.string(),
+  description: z.string().nullable(),
+  baseLanguage: z.string(),
+  isTranslation: z.boolean(),
+  originalPollId: z.string().nullable(),
+  startDate: z.coerce.date(),
+  endDate: z.coerce.date(),
+  createdAt: z.coerce.date(),
+  Archived: z.boolean(),
+  isPublic: z.boolean(),
+  ArchivedAt: z.coerce.date().nullable(),
+  Deleted: z.boolean(),
+  DeletedAt: z.coerce.date().nullable(),
+  categoryId: z.string(),
+  newsItemId: z.string().nullable(),
+})
+
+export type Poll = z.infer<typeof PollSchema>
 
 /////////////////////////////////////////
 // USER SCHEMA
@@ -208,19 +289,6 @@ export const VoteSchema = z.object({
 export type Vote = z.infer<typeof VoteSchema>
 
 /////////////////////////////////////////
-// CATEGORY SCHEMA
-/////////////////////////////////////////
-
-export const CategorySchema = z.object({
-  id: z.string().uuid(),
-  name: z.string(),
-  slug: z.string(),
-  baseLanguage: z.string(),
-})
-
-export type Category = z.infer<typeof CategorySchema>
-
-/////////////////////////////////////////
 // NEWS ITEM SCHEMA
 /////////////////////////////////////////
 
@@ -235,68 +303,6 @@ export const NewsItemSchema = z.object({
 })
 
 export type NewsItem = z.infer<typeof NewsItemSchema>
-
-/////////////////////////////////////////
-// POLL SCHEMA
-/////////////////////////////////////////
-
-export const PollSchema = z.object({
-  id: z.string().uuid(),
-  question: z.string(),
-  slug: z.string(),
-  description: z.string().nullable(),
-  baseLanguage: z.string(),
-  startDate: z.coerce.date(),
-  endDate: z.coerce.date(),
-  createdAt: z.coerce.date(),
-  Archived: z.boolean(),
-  isPublic: z.boolean(),
-  ArchivedAt: z.coerce.date().nullable(),
-  Deleted: z.boolean(),
-  DeletedAt: z.coerce.date().nullable(),
-  categoryId: z.string(),
-  newsItemId: z.string().nullable(),
-})
-
-export type Poll = z.infer<typeof PollSchema>
-
-/////////////////////////////////////////
-// BLOG SCHEMA
-/////////////////////////////////////////
-
-export const BlogSchema = z.object({
-  id: z.string().cuid(),
-  title: z.string(),
-  content: z.string(),
-  titlePunch: z.string().nullable(),
-  slug: z.string(),
-  seoDescription: z.string().nullable(),
-  baseLanguage: z.string(),
-  imagenSeoId: z.string().nullable(),
-  dateNews: z.coerce.date(),
-  imagenCardId: z.string().nullable(),
-  newsItemId: z.string().nullable(),
-  readTime: z.number().int().nullable(),
-  views: z.number().int(),
-  dateCreated: z.coerce.date(),
-  categoryId: z.string().nullable(),
-})
-
-export type Blog = z.infer<typeof BlogSchema>
-
-/////////////////////////////////////////
-// TAG SCHEMA
-/////////////////////////////////////////
-
-export const TagSchema = z.object({
-  id: z.string().cuid(),
-  name: z.string(),
-  slug: z.string(),
-  description: z.string().nullable(),
-  baseLanguage: z.string(),
-})
-
-export type Tag = z.infer<typeof TagSchema>
 
 /////////////////////////////////////////
 // BLOG TAG SCHEMA
@@ -439,13 +445,218 @@ export type Image = z.infer<typeof ImageSchema>
 
 export const TranslationSelectSchema: z.ZodType<Prisma.TranslationSelect> = z.object({
   id: z.boolean().optional(),
+  originalEntityId: z.boolean().optional(),
   entityType: z.boolean().optional(),
-  entityId: z.boolean().optional(),
-  language: z.boolean().optional(),
-  field: z.boolean().optional(),
-  value: z.boolean().optional(),
+  translatedIds: z.boolean().optional(),
   createdAt: z.boolean().optional(),
   updatedAt: z.boolean().optional(),
+}).strict()
+
+// BLOG
+//------------------------------------------------------
+
+export const BlogIncludeSchema: z.ZodType<Prisma.BlogInclude> = z.object({
+  originalBlog: z.union([z.boolean(),z.lazy(() => BlogArgsSchema)]).optional(),
+  translations: z.union([z.boolean(),z.lazy(() => BlogFindManyArgsSchema)]).optional(),
+  imagenSeo: z.union([z.boolean(),z.lazy(() => ImageArgsSchema)]).optional(),
+  imagenCard: z.union([z.boolean(),z.lazy(() => ImageArgsSchema)]).optional(),
+  newsItem: z.union([z.boolean(),z.lazy(() => NewsItemArgsSchema)]).optional(),
+  Image: z.union([z.boolean(),z.lazy(() => ImageFindManyArgsSchema)]).optional(),
+  blogAuthors: z.union([z.boolean(),z.lazy(() => BlogAuthorFindManyArgsSchema)]).optional(),
+  likes: z.union([z.boolean(),z.lazy(() => BlogLikeFindManyArgsSchema)]).optional(),
+  tags: z.union([z.boolean(),z.lazy(() => BlogTagFindManyArgsSchema)]).optional(),
+  Category: z.union([z.boolean(),z.lazy(() => CategoryArgsSchema)]).optional(),
+  TranslationQueue: z.union([z.boolean(),z.lazy(() => TranslationQueueFindManyArgsSchema)]).optional(),
+  _count: z.union([z.boolean(),z.lazy(() => BlogCountOutputTypeArgsSchema)]).optional(),
+}).strict()
+
+export const BlogArgsSchema: z.ZodType<Prisma.BlogDefaultArgs> = z.object({
+  select: z.lazy(() => BlogSelectSchema).optional(),
+  include: z.lazy(() => BlogIncludeSchema).optional(),
+}).strict();
+
+export const BlogCountOutputTypeArgsSchema: z.ZodType<Prisma.BlogCountOutputTypeDefaultArgs> = z.object({
+  select: z.lazy(() => BlogCountOutputTypeSelectSchema).nullish(),
+}).strict();
+
+export const BlogCountOutputTypeSelectSchema: z.ZodType<Prisma.BlogCountOutputTypeSelect> = z.object({
+  translations: z.boolean().optional(),
+  Image: z.boolean().optional(),
+  blogAuthors: z.boolean().optional(),
+  likes: z.boolean().optional(),
+  tags: z.boolean().optional(),
+  TranslationQueue: z.boolean().optional(),
+}).strict();
+
+export const BlogSelectSchema: z.ZodType<Prisma.BlogSelect> = z.object({
+  id: z.boolean().optional(),
+  title: z.boolean().optional(),
+  content: z.boolean().optional(),
+  titlePunch: z.boolean().optional(),
+  slug: z.boolean().optional(),
+  seoDescription: z.boolean().optional(),
+  baseLanguage: z.boolean().optional(),
+  isTranslation: z.boolean().optional(),
+  originalBlogId: z.boolean().optional(),
+  imagenSeoId: z.boolean().optional(),
+  dateNews: z.boolean().optional(),
+  imagenCardId: z.boolean().optional(),
+  newsItemId: z.boolean().optional(),
+  readTime: z.boolean().optional(),
+  views: z.boolean().optional(),
+  dateCreated: z.boolean().optional(),
+  categoryId: z.boolean().optional(),
+  originalBlog: z.union([z.boolean(),z.lazy(() => BlogArgsSchema)]).optional(),
+  translations: z.union([z.boolean(),z.lazy(() => BlogFindManyArgsSchema)]).optional(),
+  imagenSeo: z.union([z.boolean(),z.lazy(() => ImageArgsSchema)]).optional(),
+  imagenCard: z.union([z.boolean(),z.lazy(() => ImageArgsSchema)]).optional(),
+  newsItem: z.union([z.boolean(),z.lazy(() => NewsItemArgsSchema)]).optional(),
+  Image: z.union([z.boolean(),z.lazy(() => ImageFindManyArgsSchema)]).optional(),
+  blogAuthors: z.union([z.boolean(),z.lazy(() => BlogAuthorFindManyArgsSchema)]).optional(),
+  likes: z.union([z.boolean(),z.lazy(() => BlogLikeFindManyArgsSchema)]).optional(),
+  tags: z.union([z.boolean(),z.lazy(() => BlogTagFindManyArgsSchema)]).optional(),
+  Category: z.union([z.boolean(),z.lazy(() => CategoryArgsSchema)]).optional(),
+  TranslationQueue: z.union([z.boolean(),z.lazy(() => TranslationQueueFindManyArgsSchema)]).optional(),
+  _count: z.union([z.boolean(),z.lazy(() => BlogCountOutputTypeArgsSchema)]).optional(),
+}).strict()
+
+// CATEGORY
+//------------------------------------------------------
+
+export const CategoryIncludeSchema: z.ZodType<Prisma.CategoryInclude> = z.object({
+  originalCategory: z.union([z.boolean(),z.lazy(() => CategoryArgsSchema)]).optional(),
+  translations: z.union([z.boolean(),z.lazy(() => CategoryFindManyArgsSchema)]).optional(),
+  polls: z.union([z.boolean(),z.lazy(() => PollFindManyArgsSchema)]).optional(),
+  Image: z.union([z.boolean(),z.lazy(() => ImageFindManyArgsSchema)]).optional(),
+  Blog: z.union([z.boolean(),z.lazy(() => BlogFindManyArgsSchema)]).optional(),
+  _count: z.union([z.boolean(),z.lazy(() => CategoryCountOutputTypeArgsSchema)]).optional(),
+}).strict()
+
+export const CategoryArgsSchema: z.ZodType<Prisma.CategoryDefaultArgs> = z.object({
+  select: z.lazy(() => CategorySelectSchema).optional(),
+  include: z.lazy(() => CategoryIncludeSchema).optional(),
+}).strict();
+
+export const CategoryCountOutputTypeArgsSchema: z.ZodType<Prisma.CategoryCountOutputTypeDefaultArgs> = z.object({
+  select: z.lazy(() => CategoryCountOutputTypeSelectSchema).nullish(),
+}).strict();
+
+export const CategoryCountOutputTypeSelectSchema: z.ZodType<Prisma.CategoryCountOutputTypeSelect> = z.object({
+  translations: z.boolean().optional(),
+  polls: z.boolean().optional(),
+  Image: z.boolean().optional(),
+  Blog: z.boolean().optional(),
+}).strict();
+
+export const CategorySelectSchema: z.ZodType<Prisma.CategorySelect> = z.object({
+  id: z.boolean().optional(),
+  name: z.boolean().optional(),
+  slug: z.boolean().optional(),
+  baseLanguage: z.boolean().optional(),
+  isTranslation: z.boolean().optional(),
+  originalCategoryId: z.boolean().optional(),
+  originalCategory: z.union([z.boolean(),z.lazy(() => CategoryArgsSchema)]).optional(),
+  translations: z.union([z.boolean(),z.lazy(() => CategoryFindManyArgsSchema)]).optional(),
+  polls: z.union([z.boolean(),z.lazy(() => PollFindManyArgsSchema)]).optional(),
+  Image: z.union([z.boolean(),z.lazy(() => ImageFindManyArgsSchema)]).optional(),
+  Blog: z.union([z.boolean(),z.lazy(() => BlogFindManyArgsSchema)]).optional(),
+  _count: z.union([z.boolean(),z.lazy(() => CategoryCountOutputTypeArgsSchema)]).optional(),
+}).strict()
+
+// TAG
+//------------------------------------------------------
+
+export const TagIncludeSchema: z.ZodType<Prisma.TagInclude> = z.object({
+  originalTag: z.union([z.boolean(),z.lazy(() => TagArgsSchema)]).optional(),
+  translations: z.union([z.boolean(),z.lazy(() => TagFindManyArgsSchema)]).optional(),
+  blogs: z.union([z.boolean(),z.lazy(() => BlogTagFindManyArgsSchema)]).optional(),
+  _count: z.union([z.boolean(),z.lazy(() => TagCountOutputTypeArgsSchema)]).optional(),
+}).strict()
+
+export const TagArgsSchema: z.ZodType<Prisma.TagDefaultArgs> = z.object({
+  select: z.lazy(() => TagSelectSchema).optional(),
+  include: z.lazy(() => TagIncludeSchema).optional(),
+}).strict();
+
+export const TagCountOutputTypeArgsSchema: z.ZodType<Prisma.TagCountOutputTypeDefaultArgs> = z.object({
+  select: z.lazy(() => TagCountOutputTypeSelectSchema).nullish(),
+}).strict();
+
+export const TagCountOutputTypeSelectSchema: z.ZodType<Prisma.TagCountOutputTypeSelect> = z.object({
+  translations: z.boolean().optional(),
+  blogs: z.boolean().optional(),
+}).strict();
+
+export const TagSelectSchema: z.ZodType<Prisma.TagSelect> = z.object({
+  id: z.boolean().optional(),
+  name: z.boolean().optional(),
+  slug: z.boolean().optional(),
+  description: z.boolean().optional(),
+  baseLanguage: z.boolean().optional(),
+  isTranslation: z.boolean().optional(),
+  originalTagId: z.boolean().optional(),
+  originalTag: z.union([z.boolean(),z.lazy(() => TagArgsSchema)]).optional(),
+  translations: z.union([z.boolean(),z.lazy(() => TagFindManyArgsSchema)]).optional(),
+  blogs: z.union([z.boolean(),z.lazy(() => BlogTagFindManyArgsSchema)]).optional(),
+  _count: z.union([z.boolean(),z.lazy(() => TagCountOutputTypeArgsSchema)]).optional(),
+}).strict()
+
+// POLL
+//------------------------------------------------------
+
+export const PollIncludeSchema: z.ZodType<Prisma.PollInclude> = z.object({
+  originalPoll: z.union([z.boolean(),z.lazy(() => PollArgsSchema)]).optional(),
+  translations: z.union([z.boolean(),z.lazy(() => PollFindManyArgsSchema)]).optional(),
+  category: z.union([z.boolean(),z.lazy(() => CategoryArgsSchema)]).optional(),
+  options: z.union([z.boolean(),z.lazy(() => PollOptionFindManyArgsSchema)]).optional(),
+  Vote: z.union([z.boolean(),z.lazy(() => VoteFindManyArgsSchema)]).optional(),
+  newsItem: z.union([z.boolean(),z.lazy(() => NewsItemArgsSchema)]).optional(),
+  Image: z.union([z.boolean(),z.lazy(() => ImageFindManyArgsSchema)]).optional(),
+  _count: z.union([z.boolean(),z.lazy(() => PollCountOutputTypeArgsSchema)]).optional(),
+}).strict()
+
+export const PollArgsSchema: z.ZodType<Prisma.PollDefaultArgs> = z.object({
+  select: z.lazy(() => PollSelectSchema).optional(),
+  include: z.lazy(() => PollIncludeSchema).optional(),
+}).strict();
+
+export const PollCountOutputTypeArgsSchema: z.ZodType<Prisma.PollCountOutputTypeDefaultArgs> = z.object({
+  select: z.lazy(() => PollCountOutputTypeSelectSchema).nullish(),
+}).strict();
+
+export const PollCountOutputTypeSelectSchema: z.ZodType<Prisma.PollCountOutputTypeSelect> = z.object({
+  translations: z.boolean().optional(),
+  options: z.boolean().optional(),
+  Vote: z.boolean().optional(),
+  Image: z.boolean().optional(),
+}).strict();
+
+export const PollSelectSchema: z.ZodType<Prisma.PollSelect> = z.object({
+  id: z.boolean().optional(),
+  question: z.boolean().optional(),
+  slug: z.boolean().optional(),
+  description: z.boolean().optional(),
+  baseLanguage: z.boolean().optional(),
+  isTranslation: z.boolean().optional(),
+  originalPollId: z.boolean().optional(),
+  startDate: z.boolean().optional(),
+  endDate: z.boolean().optional(),
+  createdAt: z.boolean().optional(),
+  Archived: z.boolean().optional(),
+  isPublic: z.boolean().optional(),
+  ArchivedAt: z.boolean().optional(),
+  Deleted: z.boolean().optional(),
+  DeletedAt: z.boolean().optional(),
+  categoryId: z.boolean().optional(),
+  newsItemId: z.boolean().optional(),
+  originalPoll: z.union([z.boolean(),z.lazy(() => PollArgsSchema)]).optional(),
+  translations: z.union([z.boolean(),z.lazy(() => PollFindManyArgsSchema)]).optional(),
+  category: z.union([z.boolean(),z.lazy(() => CategoryArgsSchema)]).optional(),
+  options: z.union([z.boolean(),z.lazy(() => PollOptionFindManyArgsSchema)]).optional(),
+  Vote: z.union([z.boolean(),z.lazy(() => VoteFindManyArgsSchema)]).optional(),
+  newsItem: z.union([z.boolean(),z.lazy(() => NewsItemArgsSchema)]).optional(),
+  Image: z.union([z.boolean(),z.lazy(() => ImageFindManyArgsSchema)]).optional(),
+  _count: z.union([z.boolean(),z.lazy(() => PollCountOutputTypeArgsSchema)]).optional(),
 }).strict()
 
 // USER
@@ -646,42 +857,6 @@ export const VoteSelectSchema: z.ZodType<Prisma.VoteSelect> = z.object({
   user: z.union([z.boolean(),z.lazy(() => UserArgsSchema)]).optional(),
 }).strict()
 
-// CATEGORY
-//------------------------------------------------------
-
-export const CategoryIncludeSchema: z.ZodType<Prisma.CategoryInclude> = z.object({
-  polls: z.union([z.boolean(),z.lazy(() => PollFindManyArgsSchema)]).optional(),
-  Image: z.union([z.boolean(),z.lazy(() => ImageFindManyArgsSchema)]).optional(),
-  Blog: z.union([z.boolean(),z.lazy(() => BlogFindManyArgsSchema)]).optional(),
-  _count: z.union([z.boolean(),z.lazy(() => CategoryCountOutputTypeArgsSchema)]).optional(),
-}).strict()
-
-export const CategoryArgsSchema: z.ZodType<Prisma.CategoryDefaultArgs> = z.object({
-  select: z.lazy(() => CategorySelectSchema).optional(),
-  include: z.lazy(() => CategoryIncludeSchema).optional(),
-}).strict();
-
-export const CategoryCountOutputTypeArgsSchema: z.ZodType<Prisma.CategoryCountOutputTypeDefaultArgs> = z.object({
-  select: z.lazy(() => CategoryCountOutputTypeSelectSchema).nullish(),
-}).strict();
-
-export const CategoryCountOutputTypeSelectSchema: z.ZodType<Prisma.CategoryCountOutputTypeSelect> = z.object({
-  polls: z.boolean().optional(),
-  Image: z.boolean().optional(),
-  Blog: z.boolean().optional(),
-}).strict();
-
-export const CategorySelectSchema: z.ZodType<Prisma.CategorySelect> = z.object({
-  id: z.boolean().optional(),
-  name: z.boolean().optional(),
-  slug: z.boolean().optional(),
-  baseLanguage: z.boolean().optional(),
-  polls: z.union([z.boolean(),z.lazy(() => PollFindManyArgsSchema)]).optional(),
-  Image: z.union([z.boolean(),z.lazy(() => ImageFindManyArgsSchema)]).optional(),
-  Blog: z.union([z.boolean(),z.lazy(() => BlogFindManyArgsSchema)]).optional(),
-  _count: z.union([z.boolean(),z.lazy(() => CategoryCountOutputTypeArgsSchema)]).optional(),
-}).strict()
-
 // NEWS ITEM
 //------------------------------------------------------
 
@@ -717,149 +892,6 @@ export const NewsItemSelectSchema: z.ZodType<Prisma.NewsItemSelect> = z.object({
   blog: z.union([z.boolean(),z.lazy(() => BlogArgsSchema)]).optional(),
   Image: z.union([z.boolean(),z.lazy(() => ImageFindManyArgsSchema)]).optional(),
   _count: z.union([z.boolean(),z.lazy(() => NewsItemCountOutputTypeArgsSchema)]).optional(),
-}).strict()
-
-// POLL
-//------------------------------------------------------
-
-export const PollIncludeSchema: z.ZodType<Prisma.PollInclude> = z.object({
-  category: z.union([z.boolean(),z.lazy(() => CategoryArgsSchema)]).optional(),
-  options: z.union([z.boolean(),z.lazy(() => PollOptionFindManyArgsSchema)]).optional(),
-  Vote: z.union([z.boolean(),z.lazy(() => VoteFindManyArgsSchema)]).optional(),
-  newsItem: z.union([z.boolean(),z.lazy(() => NewsItemArgsSchema)]).optional(),
-  Image: z.union([z.boolean(),z.lazy(() => ImageFindManyArgsSchema)]).optional(),
-  _count: z.union([z.boolean(),z.lazy(() => PollCountOutputTypeArgsSchema)]).optional(),
-}).strict()
-
-export const PollArgsSchema: z.ZodType<Prisma.PollDefaultArgs> = z.object({
-  select: z.lazy(() => PollSelectSchema).optional(),
-  include: z.lazy(() => PollIncludeSchema).optional(),
-}).strict();
-
-export const PollCountOutputTypeArgsSchema: z.ZodType<Prisma.PollCountOutputTypeDefaultArgs> = z.object({
-  select: z.lazy(() => PollCountOutputTypeSelectSchema).nullish(),
-}).strict();
-
-export const PollCountOutputTypeSelectSchema: z.ZodType<Prisma.PollCountOutputTypeSelect> = z.object({
-  options: z.boolean().optional(),
-  Vote: z.boolean().optional(),
-  Image: z.boolean().optional(),
-}).strict();
-
-export const PollSelectSchema: z.ZodType<Prisma.PollSelect> = z.object({
-  id: z.boolean().optional(),
-  question: z.boolean().optional(),
-  slug: z.boolean().optional(),
-  description: z.boolean().optional(),
-  baseLanguage: z.boolean().optional(),
-  startDate: z.boolean().optional(),
-  endDate: z.boolean().optional(),
-  createdAt: z.boolean().optional(),
-  Archived: z.boolean().optional(),
-  isPublic: z.boolean().optional(),
-  ArchivedAt: z.boolean().optional(),
-  Deleted: z.boolean().optional(),
-  DeletedAt: z.boolean().optional(),
-  categoryId: z.boolean().optional(),
-  newsItemId: z.boolean().optional(),
-  category: z.union([z.boolean(),z.lazy(() => CategoryArgsSchema)]).optional(),
-  options: z.union([z.boolean(),z.lazy(() => PollOptionFindManyArgsSchema)]).optional(),
-  Vote: z.union([z.boolean(),z.lazy(() => VoteFindManyArgsSchema)]).optional(),
-  newsItem: z.union([z.boolean(),z.lazy(() => NewsItemArgsSchema)]).optional(),
-  Image: z.union([z.boolean(),z.lazy(() => ImageFindManyArgsSchema)]).optional(),
-  _count: z.union([z.boolean(),z.lazy(() => PollCountOutputTypeArgsSchema)]).optional(),
-}).strict()
-
-// BLOG
-//------------------------------------------------------
-
-export const BlogIncludeSchema: z.ZodType<Prisma.BlogInclude> = z.object({
-  imagenSeo: z.union([z.boolean(),z.lazy(() => ImageArgsSchema)]).optional(),
-  imagenCard: z.union([z.boolean(),z.lazy(() => ImageArgsSchema)]).optional(),
-  newsItem: z.union([z.boolean(),z.lazy(() => NewsItemArgsSchema)]).optional(),
-  Image: z.union([z.boolean(),z.lazy(() => ImageFindManyArgsSchema)]).optional(),
-  blogAuthors: z.union([z.boolean(),z.lazy(() => BlogAuthorFindManyArgsSchema)]).optional(),
-  likes: z.union([z.boolean(),z.lazy(() => BlogLikeFindManyArgsSchema)]).optional(),
-  tags: z.union([z.boolean(),z.lazy(() => BlogTagFindManyArgsSchema)]).optional(),
-  Category: z.union([z.boolean(),z.lazy(() => CategoryArgsSchema)]).optional(),
-  TranslationQueue: z.union([z.boolean(),z.lazy(() => TranslationQueueFindManyArgsSchema)]).optional(),
-  _count: z.union([z.boolean(),z.lazy(() => BlogCountOutputTypeArgsSchema)]).optional(),
-}).strict()
-
-export const BlogArgsSchema: z.ZodType<Prisma.BlogDefaultArgs> = z.object({
-  select: z.lazy(() => BlogSelectSchema).optional(),
-  include: z.lazy(() => BlogIncludeSchema).optional(),
-}).strict();
-
-export const BlogCountOutputTypeArgsSchema: z.ZodType<Prisma.BlogCountOutputTypeDefaultArgs> = z.object({
-  select: z.lazy(() => BlogCountOutputTypeSelectSchema).nullish(),
-}).strict();
-
-export const BlogCountOutputTypeSelectSchema: z.ZodType<Prisma.BlogCountOutputTypeSelect> = z.object({
-  Image: z.boolean().optional(),
-  blogAuthors: z.boolean().optional(),
-  likes: z.boolean().optional(),
-  tags: z.boolean().optional(),
-  TranslationQueue: z.boolean().optional(),
-}).strict();
-
-export const BlogSelectSchema: z.ZodType<Prisma.BlogSelect> = z.object({
-  id: z.boolean().optional(),
-  title: z.boolean().optional(),
-  content: z.boolean().optional(),
-  titlePunch: z.boolean().optional(),
-  slug: z.boolean().optional(),
-  seoDescription: z.boolean().optional(),
-  baseLanguage: z.boolean().optional(),
-  imagenSeoId: z.boolean().optional(),
-  dateNews: z.boolean().optional(),
-  imagenCardId: z.boolean().optional(),
-  newsItemId: z.boolean().optional(),
-  readTime: z.boolean().optional(),
-  views: z.boolean().optional(),
-  dateCreated: z.boolean().optional(),
-  categoryId: z.boolean().optional(),
-  imagenSeo: z.union([z.boolean(),z.lazy(() => ImageArgsSchema)]).optional(),
-  imagenCard: z.union([z.boolean(),z.lazy(() => ImageArgsSchema)]).optional(),
-  newsItem: z.union([z.boolean(),z.lazy(() => NewsItemArgsSchema)]).optional(),
-  Image: z.union([z.boolean(),z.lazy(() => ImageFindManyArgsSchema)]).optional(),
-  blogAuthors: z.union([z.boolean(),z.lazy(() => BlogAuthorFindManyArgsSchema)]).optional(),
-  likes: z.union([z.boolean(),z.lazy(() => BlogLikeFindManyArgsSchema)]).optional(),
-  tags: z.union([z.boolean(),z.lazy(() => BlogTagFindManyArgsSchema)]).optional(),
-  Category: z.union([z.boolean(),z.lazy(() => CategoryArgsSchema)]).optional(),
-  TranslationQueue: z.union([z.boolean(),z.lazy(() => TranslationQueueFindManyArgsSchema)]).optional(),
-  _count: z.union([z.boolean(),z.lazy(() => BlogCountOutputTypeArgsSchema)]).optional(),
-}).strict()
-
-// TAG
-//------------------------------------------------------
-
-export const TagIncludeSchema: z.ZodType<Prisma.TagInclude> = z.object({
-  blogs: z.union([z.boolean(),z.lazy(() => BlogTagFindManyArgsSchema)]).optional(),
-  _count: z.union([z.boolean(),z.lazy(() => TagCountOutputTypeArgsSchema)]).optional(),
-}).strict()
-
-export const TagArgsSchema: z.ZodType<Prisma.TagDefaultArgs> = z.object({
-  select: z.lazy(() => TagSelectSchema).optional(),
-  include: z.lazy(() => TagIncludeSchema).optional(),
-}).strict();
-
-export const TagCountOutputTypeArgsSchema: z.ZodType<Prisma.TagCountOutputTypeDefaultArgs> = z.object({
-  select: z.lazy(() => TagCountOutputTypeSelectSchema).nullish(),
-}).strict();
-
-export const TagCountOutputTypeSelectSchema: z.ZodType<Prisma.TagCountOutputTypeSelect> = z.object({
-  blogs: z.boolean().optional(),
-}).strict();
-
-export const TagSelectSchema: z.ZodType<Prisma.TagSelect> = z.object({
-  id: z.boolean().optional(),
-  name: z.boolean().optional(),
-  slug: z.boolean().optional(),
-  description: z.boolean().optional(),
-  baseLanguage: z.boolean().optional(),
-  blogs: z.union([z.boolean(),z.lazy(() => BlogTagFindManyArgsSchema)]).optional(),
-  _count: z.union([z.boolean(),z.lazy(() => TagCountOutputTypeArgsSchema)]).optional(),
 }).strict()
 
 // BLOG TAG
@@ -1122,22 +1154,18 @@ export const TranslationWhereInputSchema: z.ZodType<Prisma.TranslationWhereInput
   OR: z.lazy(() => TranslationWhereInputSchema).array().optional(),
   NOT: z.union([ z.lazy(() => TranslationWhereInputSchema),z.lazy(() => TranslationWhereInputSchema).array() ]).optional(),
   id: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  originalEntityId: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
   entityType: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  entityId: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  language: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  field: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  value: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  translatedIds: z.lazy(() => StringNullableListFilterSchema).optional(),
   createdAt: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
   updatedAt: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
 }).strict();
 
 export const TranslationOrderByWithRelationInputSchema: z.ZodType<Prisma.TranslationOrderByWithRelationInput> = z.object({
   id: z.lazy(() => SortOrderSchema).optional(),
+  originalEntityId: z.lazy(() => SortOrderSchema).optional(),
   entityType: z.lazy(() => SortOrderSchema).optional(),
-  entityId: z.lazy(() => SortOrderSchema).optional(),
-  language: z.lazy(() => SortOrderSchema).optional(),
-  field: z.lazy(() => SortOrderSchema).optional(),
-  value: z.lazy(() => SortOrderSchema).optional(),
+  translatedIds: z.lazy(() => SortOrderSchema).optional(),
   createdAt: z.lazy(() => SortOrderSchema).optional(),
   updatedAt: z.lazy(() => SortOrderSchema).optional()
 }).strict();
@@ -1145,37 +1173,33 @@ export const TranslationOrderByWithRelationInputSchema: z.ZodType<Prisma.Transla
 export const TranslationWhereUniqueInputSchema: z.ZodType<Prisma.TranslationWhereUniqueInput> = z.union([
   z.object({
     id: z.string().cuid(),
-    entityType_entityId_language_field: z.lazy(() => TranslationEntityTypeEntityIdLanguageFieldCompoundUniqueInputSchema)
+    originalEntityId_entityType: z.lazy(() => TranslationOriginalEntityIdEntityTypeCompoundUniqueInputSchema)
   }),
   z.object({
     id: z.string().cuid(),
   }),
   z.object({
-    entityType_entityId_language_field: z.lazy(() => TranslationEntityTypeEntityIdLanguageFieldCompoundUniqueInputSchema),
+    originalEntityId_entityType: z.lazy(() => TranslationOriginalEntityIdEntityTypeCompoundUniqueInputSchema),
   }),
 ])
 .and(z.object({
   id: z.string().cuid().optional(),
-  entityType_entityId_language_field: z.lazy(() => TranslationEntityTypeEntityIdLanguageFieldCompoundUniqueInputSchema).optional(),
+  originalEntityId_entityType: z.lazy(() => TranslationOriginalEntityIdEntityTypeCompoundUniqueInputSchema).optional(),
   AND: z.union([ z.lazy(() => TranslationWhereInputSchema),z.lazy(() => TranslationWhereInputSchema).array() ]).optional(),
   OR: z.lazy(() => TranslationWhereInputSchema).array().optional(),
   NOT: z.union([ z.lazy(() => TranslationWhereInputSchema),z.lazy(() => TranslationWhereInputSchema).array() ]).optional(),
+  originalEntityId: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
   entityType: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  entityId: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  language: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  field: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  value: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  translatedIds: z.lazy(() => StringNullableListFilterSchema).optional(),
   createdAt: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
   updatedAt: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
 }).strict());
 
 export const TranslationOrderByWithAggregationInputSchema: z.ZodType<Prisma.TranslationOrderByWithAggregationInput> = z.object({
   id: z.lazy(() => SortOrderSchema).optional(),
+  originalEntityId: z.lazy(() => SortOrderSchema).optional(),
   entityType: z.lazy(() => SortOrderSchema).optional(),
-  entityId: z.lazy(() => SortOrderSchema).optional(),
-  language: z.lazy(() => SortOrderSchema).optional(),
-  field: z.lazy(() => SortOrderSchema).optional(),
-  value: z.lazy(() => SortOrderSchema).optional(),
+  translatedIds: z.lazy(() => SortOrderSchema).optional(),
   createdAt: z.lazy(() => SortOrderSchema).optional(),
   updatedAt: z.lazy(() => SortOrderSchema).optional(),
   _count: z.lazy(() => TranslationCountOrderByAggregateInputSchema).optional(),
@@ -1188,13 +1212,530 @@ export const TranslationScalarWhereWithAggregatesInputSchema: z.ZodType<Prisma.T
   OR: z.lazy(() => TranslationScalarWhereWithAggregatesInputSchema).array().optional(),
   NOT: z.union([ z.lazy(() => TranslationScalarWhereWithAggregatesInputSchema),z.lazy(() => TranslationScalarWhereWithAggregatesInputSchema).array() ]).optional(),
   id: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
+  originalEntityId: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
   entityType: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
-  entityId: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
-  language: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
-  field: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
-  value: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
+  translatedIds: z.lazy(() => StringNullableListFilterSchema).optional(),
   createdAt: z.union([ z.lazy(() => DateTimeWithAggregatesFilterSchema),z.coerce.date() ]).optional(),
   updatedAt: z.union([ z.lazy(() => DateTimeWithAggregatesFilterSchema),z.coerce.date() ]).optional(),
+}).strict();
+
+export const BlogWhereInputSchema: z.ZodType<Prisma.BlogWhereInput> = z.object({
+  AND: z.union([ z.lazy(() => BlogWhereInputSchema),z.lazy(() => BlogWhereInputSchema).array() ]).optional(),
+  OR: z.lazy(() => BlogWhereInputSchema).array().optional(),
+  NOT: z.union([ z.lazy(() => BlogWhereInputSchema),z.lazy(() => BlogWhereInputSchema).array() ]).optional(),
+  id: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  title: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  content: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  titlePunch: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
+  slug: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  seoDescription: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
+  baseLanguage: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  isTranslation: z.union([ z.lazy(() => BoolFilterSchema),z.boolean() ]).optional(),
+  originalBlogId: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
+  imagenSeoId: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
+  dateNews: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
+  imagenCardId: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
+  newsItemId: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
+  readTime: z.union([ z.lazy(() => IntNullableFilterSchema),z.number() ]).optional().nullable(),
+  views: z.union([ z.lazy(() => IntFilterSchema),z.number() ]).optional(),
+  dateCreated: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
+  categoryId: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
+  originalBlog: z.union([ z.lazy(() => BlogNullableScalarRelationFilterSchema),z.lazy(() => BlogWhereInputSchema) ]).optional().nullable(),
+  translations: z.lazy(() => BlogListRelationFilterSchema).optional(),
+  imagenSeo: z.union([ z.lazy(() => ImageNullableScalarRelationFilterSchema),z.lazy(() => ImageWhereInputSchema) ]).optional().nullable(),
+  imagenCard: z.union([ z.lazy(() => ImageNullableScalarRelationFilterSchema),z.lazy(() => ImageWhereInputSchema) ]).optional().nullable(),
+  newsItem: z.union([ z.lazy(() => NewsItemNullableScalarRelationFilterSchema),z.lazy(() => NewsItemWhereInputSchema) ]).optional().nullable(),
+  Image: z.lazy(() => ImageListRelationFilterSchema).optional(),
+  blogAuthors: z.lazy(() => BlogAuthorListRelationFilterSchema).optional(),
+  likes: z.lazy(() => BlogLikeListRelationFilterSchema).optional(),
+  tags: z.lazy(() => BlogTagListRelationFilterSchema).optional(),
+  Category: z.union([ z.lazy(() => CategoryNullableScalarRelationFilterSchema),z.lazy(() => CategoryWhereInputSchema) ]).optional().nullable(),
+  TranslationQueue: z.lazy(() => TranslationQueueListRelationFilterSchema).optional()
+}).strict();
+
+export const BlogOrderByWithRelationInputSchema: z.ZodType<Prisma.BlogOrderByWithRelationInput> = z.object({
+  id: z.lazy(() => SortOrderSchema).optional(),
+  title: z.lazy(() => SortOrderSchema).optional(),
+  content: z.lazy(() => SortOrderSchema).optional(),
+  titlePunch: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
+  slug: z.lazy(() => SortOrderSchema).optional(),
+  seoDescription: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
+  baseLanguage: z.lazy(() => SortOrderSchema).optional(),
+  isTranslation: z.lazy(() => SortOrderSchema).optional(),
+  originalBlogId: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
+  imagenSeoId: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
+  dateNews: z.lazy(() => SortOrderSchema).optional(),
+  imagenCardId: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
+  newsItemId: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
+  readTime: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
+  views: z.lazy(() => SortOrderSchema).optional(),
+  dateCreated: z.lazy(() => SortOrderSchema).optional(),
+  categoryId: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
+  originalBlog: z.lazy(() => BlogOrderByWithRelationInputSchema).optional(),
+  translations: z.lazy(() => BlogOrderByRelationAggregateInputSchema).optional(),
+  imagenSeo: z.lazy(() => ImageOrderByWithRelationInputSchema).optional(),
+  imagenCard: z.lazy(() => ImageOrderByWithRelationInputSchema).optional(),
+  newsItem: z.lazy(() => NewsItemOrderByWithRelationInputSchema).optional(),
+  Image: z.lazy(() => ImageOrderByRelationAggregateInputSchema).optional(),
+  blogAuthors: z.lazy(() => BlogAuthorOrderByRelationAggregateInputSchema).optional(),
+  likes: z.lazy(() => BlogLikeOrderByRelationAggregateInputSchema).optional(),
+  tags: z.lazy(() => BlogTagOrderByRelationAggregateInputSchema).optional(),
+  Category: z.lazy(() => CategoryOrderByWithRelationInputSchema).optional(),
+  TranslationQueue: z.lazy(() => TranslationQueueOrderByRelationAggregateInputSchema).optional()
+}).strict();
+
+export const BlogWhereUniqueInputSchema: z.ZodType<Prisma.BlogWhereUniqueInput> = z.union([
+  z.object({
+    id: z.string().cuid(),
+    slug: z.string(),
+    newsItemId: z.string()
+  }),
+  z.object({
+    id: z.string().cuid(),
+    slug: z.string(),
+  }),
+  z.object({
+    id: z.string().cuid(),
+    newsItemId: z.string(),
+  }),
+  z.object({
+    id: z.string().cuid(),
+  }),
+  z.object({
+    slug: z.string(),
+    newsItemId: z.string(),
+  }),
+  z.object({
+    slug: z.string(),
+  }),
+  z.object({
+    newsItemId: z.string(),
+  }),
+])
+.and(z.object({
+  id: z.string().cuid().optional(),
+  slug: z.string().optional(),
+  newsItemId: z.string().optional(),
+  AND: z.union([ z.lazy(() => BlogWhereInputSchema),z.lazy(() => BlogWhereInputSchema).array() ]).optional(),
+  OR: z.lazy(() => BlogWhereInputSchema).array().optional(),
+  NOT: z.union([ z.lazy(() => BlogWhereInputSchema),z.lazy(() => BlogWhereInputSchema).array() ]).optional(),
+  title: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  content: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  titlePunch: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
+  seoDescription: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
+  baseLanguage: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  isTranslation: z.union([ z.lazy(() => BoolFilterSchema),z.boolean() ]).optional(),
+  originalBlogId: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
+  imagenSeoId: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
+  dateNews: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
+  imagenCardId: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
+  readTime: z.union([ z.lazy(() => IntNullableFilterSchema),z.number().int() ]).optional().nullable(),
+  views: z.union([ z.lazy(() => IntFilterSchema),z.number().int() ]).optional(),
+  dateCreated: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
+  categoryId: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
+  originalBlog: z.union([ z.lazy(() => BlogNullableScalarRelationFilterSchema),z.lazy(() => BlogWhereInputSchema) ]).optional().nullable(),
+  translations: z.lazy(() => BlogListRelationFilterSchema).optional(),
+  imagenSeo: z.union([ z.lazy(() => ImageNullableScalarRelationFilterSchema),z.lazy(() => ImageWhereInputSchema) ]).optional().nullable(),
+  imagenCard: z.union([ z.lazy(() => ImageNullableScalarRelationFilterSchema),z.lazy(() => ImageWhereInputSchema) ]).optional().nullable(),
+  newsItem: z.union([ z.lazy(() => NewsItemNullableScalarRelationFilterSchema),z.lazy(() => NewsItemWhereInputSchema) ]).optional().nullable(),
+  Image: z.lazy(() => ImageListRelationFilterSchema).optional(),
+  blogAuthors: z.lazy(() => BlogAuthorListRelationFilterSchema).optional(),
+  likes: z.lazy(() => BlogLikeListRelationFilterSchema).optional(),
+  tags: z.lazy(() => BlogTagListRelationFilterSchema).optional(),
+  Category: z.union([ z.lazy(() => CategoryNullableScalarRelationFilterSchema),z.lazy(() => CategoryWhereInputSchema) ]).optional().nullable(),
+  TranslationQueue: z.lazy(() => TranslationQueueListRelationFilterSchema).optional()
+}).strict());
+
+export const BlogOrderByWithAggregationInputSchema: z.ZodType<Prisma.BlogOrderByWithAggregationInput> = z.object({
+  id: z.lazy(() => SortOrderSchema).optional(),
+  title: z.lazy(() => SortOrderSchema).optional(),
+  content: z.lazy(() => SortOrderSchema).optional(),
+  titlePunch: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
+  slug: z.lazy(() => SortOrderSchema).optional(),
+  seoDescription: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
+  baseLanguage: z.lazy(() => SortOrderSchema).optional(),
+  isTranslation: z.lazy(() => SortOrderSchema).optional(),
+  originalBlogId: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
+  imagenSeoId: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
+  dateNews: z.lazy(() => SortOrderSchema).optional(),
+  imagenCardId: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
+  newsItemId: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
+  readTime: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
+  views: z.lazy(() => SortOrderSchema).optional(),
+  dateCreated: z.lazy(() => SortOrderSchema).optional(),
+  categoryId: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
+  _count: z.lazy(() => BlogCountOrderByAggregateInputSchema).optional(),
+  _avg: z.lazy(() => BlogAvgOrderByAggregateInputSchema).optional(),
+  _max: z.lazy(() => BlogMaxOrderByAggregateInputSchema).optional(),
+  _min: z.lazy(() => BlogMinOrderByAggregateInputSchema).optional(),
+  _sum: z.lazy(() => BlogSumOrderByAggregateInputSchema).optional()
+}).strict();
+
+export const BlogScalarWhereWithAggregatesInputSchema: z.ZodType<Prisma.BlogScalarWhereWithAggregatesInput> = z.object({
+  AND: z.union([ z.lazy(() => BlogScalarWhereWithAggregatesInputSchema),z.lazy(() => BlogScalarWhereWithAggregatesInputSchema).array() ]).optional(),
+  OR: z.lazy(() => BlogScalarWhereWithAggregatesInputSchema).array().optional(),
+  NOT: z.union([ z.lazy(() => BlogScalarWhereWithAggregatesInputSchema),z.lazy(() => BlogScalarWhereWithAggregatesInputSchema).array() ]).optional(),
+  id: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
+  title: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
+  content: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
+  titlePunch: z.union([ z.lazy(() => StringNullableWithAggregatesFilterSchema),z.string() ]).optional().nullable(),
+  slug: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
+  seoDescription: z.union([ z.lazy(() => StringNullableWithAggregatesFilterSchema),z.string() ]).optional().nullable(),
+  baseLanguage: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
+  isTranslation: z.union([ z.lazy(() => BoolWithAggregatesFilterSchema),z.boolean() ]).optional(),
+  originalBlogId: z.union([ z.lazy(() => StringNullableWithAggregatesFilterSchema),z.string() ]).optional().nullable(),
+  imagenSeoId: z.union([ z.lazy(() => StringNullableWithAggregatesFilterSchema),z.string() ]).optional().nullable(),
+  dateNews: z.union([ z.lazy(() => DateTimeWithAggregatesFilterSchema),z.coerce.date() ]).optional(),
+  imagenCardId: z.union([ z.lazy(() => StringNullableWithAggregatesFilterSchema),z.string() ]).optional().nullable(),
+  newsItemId: z.union([ z.lazy(() => StringNullableWithAggregatesFilterSchema),z.string() ]).optional().nullable(),
+  readTime: z.union([ z.lazy(() => IntNullableWithAggregatesFilterSchema),z.number() ]).optional().nullable(),
+  views: z.union([ z.lazy(() => IntWithAggregatesFilterSchema),z.number() ]).optional(),
+  dateCreated: z.union([ z.lazy(() => DateTimeWithAggregatesFilterSchema),z.coerce.date() ]).optional(),
+  categoryId: z.union([ z.lazy(() => StringNullableWithAggregatesFilterSchema),z.string() ]).optional().nullable(),
+}).strict();
+
+export const CategoryWhereInputSchema: z.ZodType<Prisma.CategoryWhereInput> = z.object({
+  AND: z.union([ z.lazy(() => CategoryWhereInputSchema),z.lazy(() => CategoryWhereInputSchema).array() ]).optional(),
+  OR: z.lazy(() => CategoryWhereInputSchema).array().optional(),
+  NOT: z.union([ z.lazy(() => CategoryWhereInputSchema),z.lazy(() => CategoryWhereInputSchema).array() ]).optional(),
+  id: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  name: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  slug: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  baseLanguage: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  isTranslation: z.union([ z.lazy(() => BoolFilterSchema),z.boolean() ]).optional(),
+  originalCategoryId: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
+  originalCategory: z.union([ z.lazy(() => CategoryNullableScalarRelationFilterSchema),z.lazy(() => CategoryWhereInputSchema) ]).optional().nullable(),
+  translations: z.lazy(() => CategoryListRelationFilterSchema).optional(),
+  polls: z.lazy(() => PollListRelationFilterSchema).optional(),
+  Image: z.lazy(() => ImageListRelationFilterSchema).optional(),
+  Blog: z.lazy(() => BlogListRelationFilterSchema).optional()
+}).strict();
+
+export const CategoryOrderByWithRelationInputSchema: z.ZodType<Prisma.CategoryOrderByWithRelationInput> = z.object({
+  id: z.lazy(() => SortOrderSchema).optional(),
+  name: z.lazy(() => SortOrderSchema).optional(),
+  slug: z.lazy(() => SortOrderSchema).optional(),
+  baseLanguage: z.lazy(() => SortOrderSchema).optional(),
+  isTranslation: z.lazy(() => SortOrderSchema).optional(),
+  originalCategoryId: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
+  originalCategory: z.lazy(() => CategoryOrderByWithRelationInputSchema).optional(),
+  translations: z.lazy(() => CategoryOrderByRelationAggregateInputSchema).optional(),
+  polls: z.lazy(() => PollOrderByRelationAggregateInputSchema).optional(),
+  Image: z.lazy(() => ImageOrderByRelationAggregateInputSchema).optional(),
+  Blog: z.lazy(() => BlogOrderByRelationAggregateInputSchema).optional()
+}).strict();
+
+export const CategoryWhereUniqueInputSchema: z.ZodType<Prisma.CategoryWhereUniqueInput> = z.union([
+  z.object({
+    id: z.string().uuid(),
+    slug: z.string()
+  }),
+  z.object({
+    id: z.string().uuid(),
+  }),
+  z.object({
+    slug: z.string(),
+  }),
+])
+.and(z.object({
+  id: z.string().uuid().optional(),
+  slug: z.string().optional(),
+  AND: z.union([ z.lazy(() => CategoryWhereInputSchema),z.lazy(() => CategoryWhereInputSchema).array() ]).optional(),
+  OR: z.lazy(() => CategoryWhereInputSchema).array().optional(),
+  NOT: z.union([ z.lazy(() => CategoryWhereInputSchema),z.lazy(() => CategoryWhereInputSchema).array() ]).optional(),
+  name: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  baseLanguage: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  isTranslation: z.union([ z.lazy(() => BoolFilterSchema),z.boolean() ]).optional(),
+  originalCategoryId: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
+  originalCategory: z.union([ z.lazy(() => CategoryNullableScalarRelationFilterSchema),z.lazy(() => CategoryWhereInputSchema) ]).optional().nullable(),
+  translations: z.lazy(() => CategoryListRelationFilterSchema).optional(),
+  polls: z.lazy(() => PollListRelationFilterSchema).optional(),
+  Image: z.lazy(() => ImageListRelationFilterSchema).optional(),
+  Blog: z.lazy(() => BlogListRelationFilterSchema).optional()
+}).strict());
+
+export const CategoryOrderByWithAggregationInputSchema: z.ZodType<Prisma.CategoryOrderByWithAggregationInput> = z.object({
+  id: z.lazy(() => SortOrderSchema).optional(),
+  name: z.lazy(() => SortOrderSchema).optional(),
+  slug: z.lazy(() => SortOrderSchema).optional(),
+  baseLanguage: z.lazy(() => SortOrderSchema).optional(),
+  isTranslation: z.lazy(() => SortOrderSchema).optional(),
+  originalCategoryId: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
+  _count: z.lazy(() => CategoryCountOrderByAggregateInputSchema).optional(),
+  _max: z.lazy(() => CategoryMaxOrderByAggregateInputSchema).optional(),
+  _min: z.lazy(() => CategoryMinOrderByAggregateInputSchema).optional()
+}).strict();
+
+export const CategoryScalarWhereWithAggregatesInputSchema: z.ZodType<Prisma.CategoryScalarWhereWithAggregatesInput> = z.object({
+  AND: z.union([ z.lazy(() => CategoryScalarWhereWithAggregatesInputSchema),z.lazy(() => CategoryScalarWhereWithAggregatesInputSchema).array() ]).optional(),
+  OR: z.lazy(() => CategoryScalarWhereWithAggregatesInputSchema).array().optional(),
+  NOT: z.union([ z.lazy(() => CategoryScalarWhereWithAggregatesInputSchema),z.lazy(() => CategoryScalarWhereWithAggregatesInputSchema).array() ]).optional(),
+  id: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
+  name: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
+  slug: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
+  baseLanguage: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
+  isTranslation: z.union([ z.lazy(() => BoolWithAggregatesFilterSchema),z.boolean() ]).optional(),
+  originalCategoryId: z.union([ z.lazy(() => StringNullableWithAggregatesFilterSchema),z.string() ]).optional().nullable(),
+}).strict();
+
+export const TagWhereInputSchema: z.ZodType<Prisma.TagWhereInput> = z.object({
+  AND: z.union([ z.lazy(() => TagWhereInputSchema),z.lazy(() => TagWhereInputSchema).array() ]).optional(),
+  OR: z.lazy(() => TagWhereInputSchema).array().optional(),
+  NOT: z.union([ z.lazy(() => TagWhereInputSchema),z.lazy(() => TagWhereInputSchema).array() ]).optional(),
+  id: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  name: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  slug: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  description: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
+  baseLanguage: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  isTranslation: z.union([ z.lazy(() => BoolFilterSchema),z.boolean() ]).optional(),
+  originalTagId: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
+  originalTag: z.union([ z.lazy(() => TagNullableScalarRelationFilterSchema),z.lazy(() => TagWhereInputSchema) ]).optional().nullable(),
+  translations: z.lazy(() => TagListRelationFilterSchema).optional(),
+  blogs: z.lazy(() => BlogTagListRelationFilterSchema).optional()
+}).strict();
+
+export const TagOrderByWithRelationInputSchema: z.ZodType<Prisma.TagOrderByWithRelationInput> = z.object({
+  id: z.lazy(() => SortOrderSchema).optional(),
+  name: z.lazy(() => SortOrderSchema).optional(),
+  slug: z.lazy(() => SortOrderSchema).optional(),
+  description: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
+  baseLanguage: z.lazy(() => SortOrderSchema).optional(),
+  isTranslation: z.lazy(() => SortOrderSchema).optional(),
+  originalTagId: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
+  originalTag: z.lazy(() => TagOrderByWithRelationInputSchema).optional(),
+  translations: z.lazy(() => TagOrderByRelationAggregateInputSchema).optional(),
+  blogs: z.lazy(() => BlogTagOrderByRelationAggregateInputSchema).optional()
+}).strict();
+
+export const TagWhereUniqueInputSchema: z.ZodType<Prisma.TagWhereUniqueInput> = z.union([
+  z.object({
+    id: z.string().cuid(),
+    name: z.string(),
+    slug: z.string()
+  }),
+  z.object({
+    id: z.string().cuid(),
+    name: z.string(),
+  }),
+  z.object({
+    id: z.string().cuid(),
+    slug: z.string(),
+  }),
+  z.object({
+    id: z.string().cuid(),
+  }),
+  z.object({
+    name: z.string(),
+    slug: z.string(),
+  }),
+  z.object({
+    name: z.string(),
+  }),
+  z.object({
+    slug: z.string(),
+  }),
+])
+.and(z.object({
+  id: z.string().cuid().optional(),
+  name: z.string().optional(),
+  slug: z.string().optional(),
+  AND: z.union([ z.lazy(() => TagWhereInputSchema),z.lazy(() => TagWhereInputSchema).array() ]).optional(),
+  OR: z.lazy(() => TagWhereInputSchema).array().optional(),
+  NOT: z.union([ z.lazy(() => TagWhereInputSchema),z.lazy(() => TagWhereInputSchema).array() ]).optional(),
+  description: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
+  baseLanguage: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  isTranslation: z.union([ z.lazy(() => BoolFilterSchema),z.boolean() ]).optional(),
+  originalTagId: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
+  originalTag: z.union([ z.lazy(() => TagNullableScalarRelationFilterSchema),z.lazy(() => TagWhereInputSchema) ]).optional().nullable(),
+  translations: z.lazy(() => TagListRelationFilterSchema).optional(),
+  blogs: z.lazy(() => BlogTagListRelationFilterSchema).optional()
+}).strict());
+
+export const TagOrderByWithAggregationInputSchema: z.ZodType<Prisma.TagOrderByWithAggregationInput> = z.object({
+  id: z.lazy(() => SortOrderSchema).optional(),
+  name: z.lazy(() => SortOrderSchema).optional(),
+  slug: z.lazy(() => SortOrderSchema).optional(),
+  description: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
+  baseLanguage: z.lazy(() => SortOrderSchema).optional(),
+  isTranslation: z.lazy(() => SortOrderSchema).optional(),
+  originalTagId: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
+  _count: z.lazy(() => TagCountOrderByAggregateInputSchema).optional(),
+  _max: z.lazy(() => TagMaxOrderByAggregateInputSchema).optional(),
+  _min: z.lazy(() => TagMinOrderByAggregateInputSchema).optional()
+}).strict();
+
+export const TagScalarWhereWithAggregatesInputSchema: z.ZodType<Prisma.TagScalarWhereWithAggregatesInput> = z.object({
+  AND: z.union([ z.lazy(() => TagScalarWhereWithAggregatesInputSchema),z.lazy(() => TagScalarWhereWithAggregatesInputSchema).array() ]).optional(),
+  OR: z.lazy(() => TagScalarWhereWithAggregatesInputSchema).array().optional(),
+  NOT: z.union([ z.lazy(() => TagScalarWhereWithAggregatesInputSchema),z.lazy(() => TagScalarWhereWithAggregatesInputSchema).array() ]).optional(),
+  id: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
+  name: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
+  slug: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
+  description: z.union([ z.lazy(() => StringNullableWithAggregatesFilterSchema),z.string() ]).optional().nullable(),
+  baseLanguage: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
+  isTranslation: z.union([ z.lazy(() => BoolWithAggregatesFilterSchema),z.boolean() ]).optional(),
+  originalTagId: z.union([ z.lazy(() => StringNullableWithAggregatesFilterSchema),z.string() ]).optional().nullable(),
+}).strict();
+
+export const PollWhereInputSchema: z.ZodType<Prisma.PollWhereInput> = z.object({
+  AND: z.union([ z.lazy(() => PollWhereInputSchema),z.lazy(() => PollWhereInputSchema).array() ]).optional(),
+  OR: z.lazy(() => PollWhereInputSchema).array().optional(),
+  NOT: z.union([ z.lazy(() => PollWhereInputSchema),z.lazy(() => PollWhereInputSchema).array() ]).optional(),
+  id: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  question: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  slug: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  description: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
+  baseLanguage: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  isTranslation: z.union([ z.lazy(() => BoolFilterSchema),z.boolean() ]).optional(),
+  originalPollId: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
+  startDate: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
+  endDate: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
+  createdAt: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
+  Archived: z.union([ z.lazy(() => BoolFilterSchema),z.boolean() ]).optional(),
+  isPublic: z.union([ z.lazy(() => BoolFilterSchema),z.boolean() ]).optional(),
+  ArchivedAt: z.union([ z.lazy(() => DateTimeNullableFilterSchema),z.coerce.date() ]).optional().nullable(),
+  Deleted: z.union([ z.lazy(() => BoolFilterSchema),z.boolean() ]).optional(),
+  DeletedAt: z.union([ z.lazy(() => DateTimeNullableFilterSchema),z.coerce.date() ]).optional().nullable(),
+  categoryId: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  newsItemId: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
+  originalPoll: z.union([ z.lazy(() => PollNullableScalarRelationFilterSchema),z.lazy(() => PollWhereInputSchema) ]).optional().nullable(),
+  translations: z.lazy(() => PollListRelationFilterSchema).optional(),
+  category: z.union([ z.lazy(() => CategoryScalarRelationFilterSchema),z.lazy(() => CategoryWhereInputSchema) ]).optional(),
+  options: z.lazy(() => PollOptionListRelationFilterSchema).optional(),
+  Vote: z.lazy(() => VoteListRelationFilterSchema).optional(),
+  newsItem: z.union([ z.lazy(() => NewsItemNullableScalarRelationFilterSchema),z.lazy(() => NewsItemWhereInputSchema) ]).optional().nullable(),
+  Image: z.lazy(() => ImageListRelationFilterSchema).optional()
+}).strict();
+
+export const PollOrderByWithRelationInputSchema: z.ZodType<Prisma.PollOrderByWithRelationInput> = z.object({
+  id: z.lazy(() => SortOrderSchema).optional(),
+  question: z.lazy(() => SortOrderSchema).optional(),
+  slug: z.lazy(() => SortOrderSchema).optional(),
+  description: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
+  baseLanguage: z.lazy(() => SortOrderSchema).optional(),
+  isTranslation: z.lazy(() => SortOrderSchema).optional(),
+  originalPollId: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
+  startDate: z.lazy(() => SortOrderSchema).optional(),
+  endDate: z.lazy(() => SortOrderSchema).optional(),
+  createdAt: z.lazy(() => SortOrderSchema).optional(),
+  Archived: z.lazy(() => SortOrderSchema).optional(),
+  isPublic: z.lazy(() => SortOrderSchema).optional(),
+  ArchivedAt: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
+  Deleted: z.lazy(() => SortOrderSchema).optional(),
+  DeletedAt: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
+  categoryId: z.lazy(() => SortOrderSchema).optional(),
+  newsItemId: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
+  originalPoll: z.lazy(() => PollOrderByWithRelationInputSchema).optional(),
+  translations: z.lazy(() => PollOrderByRelationAggregateInputSchema).optional(),
+  category: z.lazy(() => CategoryOrderByWithRelationInputSchema).optional(),
+  options: z.lazy(() => PollOptionOrderByRelationAggregateInputSchema).optional(),
+  Vote: z.lazy(() => VoteOrderByRelationAggregateInputSchema).optional(),
+  newsItem: z.lazy(() => NewsItemOrderByWithRelationInputSchema).optional(),
+  Image: z.lazy(() => ImageOrderByRelationAggregateInputSchema).optional()
+}).strict();
+
+export const PollWhereUniqueInputSchema: z.ZodType<Prisma.PollWhereUniqueInput> = z.union([
+  z.object({
+    id: z.string().uuid(),
+    slug: z.string(),
+    newsItemId: z.string()
+  }),
+  z.object({
+    id: z.string().uuid(),
+    slug: z.string(),
+  }),
+  z.object({
+    id: z.string().uuid(),
+    newsItemId: z.string(),
+  }),
+  z.object({
+    id: z.string().uuid(),
+  }),
+  z.object({
+    slug: z.string(),
+    newsItemId: z.string(),
+  }),
+  z.object({
+    slug: z.string(),
+  }),
+  z.object({
+    newsItemId: z.string(),
+  }),
+])
+.and(z.object({
+  id: z.string().uuid().optional(),
+  slug: z.string().optional(),
+  newsItemId: z.string().optional(),
+  AND: z.union([ z.lazy(() => PollWhereInputSchema),z.lazy(() => PollWhereInputSchema).array() ]).optional(),
+  OR: z.lazy(() => PollWhereInputSchema).array().optional(),
+  NOT: z.union([ z.lazy(() => PollWhereInputSchema),z.lazy(() => PollWhereInputSchema).array() ]).optional(),
+  question: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  description: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
+  baseLanguage: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  isTranslation: z.union([ z.lazy(() => BoolFilterSchema),z.boolean() ]).optional(),
+  originalPollId: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
+  startDate: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
+  endDate: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
+  createdAt: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
+  Archived: z.union([ z.lazy(() => BoolFilterSchema),z.boolean() ]).optional(),
+  isPublic: z.union([ z.lazy(() => BoolFilterSchema),z.boolean() ]).optional(),
+  ArchivedAt: z.union([ z.lazy(() => DateTimeNullableFilterSchema),z.coerce.date() ]).optional().nullable(),
+  Deleted: z.union([ z.lazy(() => BoolFilterSchema),z.boolean() ]).optional(),
+  DeletedAt: z.union([ z.lazy(() => DateTimeNullableFilterSchema),z.coerce.date() ]).optional().nullable(),
+  categoryId: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  originalPoll: z.union([ z.lazy(() => PollNullableScalarRelationFilterSchema),z.lazy(() => PollWhereInputSchema) ]).optional().nullable(),
+  translations: z.lazy(() => PollListRelationFilterSchema).optional(),
+  category: z.union([ z.lazy(() => CategoryScalarRelationFilterSchema),z.lazy(() => CategoryWhereInputSchema) ]).optional(),
+  options: z.lazy(() => PollOptionListRelationFilterSchema).optional(),
+  Vote: z.lazy(() => VoteListRelationFilterSchema).optional(),
+  newsItem: z.union([ z.lazy(() => NewsItemNullableScalarRelationFilterSchema),z.lazy(() => NewsItemWhereInputSchema) ]).optional().nullable(),
+  Image: z.lazy(() => ImageListRelationFilterSchema).optional()
+}).strict());
+
+export const PollOrderByWithAggregationInputSchema: z.ZodType<Prisma.PollOrderByWithAggregationInput> = z.object({
+  id: z.lazy(() => SortOrderSchema).optional(),
+  question: z.lazy(() => SortOrderSchema).optional(),
+  slug: z.lazy(() => SortOrderSchema).optional(),
+  description: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
+  baseLanguage: z.lazy(() => SortOrderSchema).optional(),
+  isTranslation: z.lazy(() => SortOrderSchema).optional(),
+  originalPollId: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
+  startDate: z.lazy(() => SortOrderSchema).optional(),
+  endDate: z.lazy(() => SortOrderSchema).optional(),
+  createdAt: z.lazy(() => SortOrderSchema).optional(),
+  Archived: z.lazy(() => SortOrderSchema).optional(),
+  isPublic: z.lazy(() => SortOrderSchema).optional(),
+  ArchivedAt: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
+  Deleted: z.lazy(() => SortOrderSchema).optional(),
+  DeletedAt: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
+  categoryId: z.lazy(() => SortOrderSchema).optional(),
+  newsItemId: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
+  _count: z.lazy(() => PollCountOrderByAggregateInputSchema).optional(),
+  _max: z.lazy(() => PollMaxOrderByAggregateInputSchema).optional(),
+  _min: z.lazy(() => PollMinOrderByAggregateInputSchema).optional()
+}).strict();
+
+export const PollScalarWhereWithAggregatesInputSchema: z.ZodType<Prisma.PollScalarWhereWithAggregatesInput> = z.object({
+  AND: z.union([ z.lazy(() => PollScalarWhereWithAggregatesInputSchema),z.lazy(() => PollScalarWhereWithAggregatesInputSchema).array() ]).optional(),
+  OR: z.lazy(() => PollScalarWhereWithAggregatesInputSchema).array().optional(),
+  NOT: z.union([ z.lazy(() => PollScalarWhereWithAggregatesInputSchema),z.lazy(() => PollScalarWhereWithAggregatesInputSchema).array() ]).optional(),
+  id: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
+  question: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
+  slug: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
+  description: z.union([ z.lazy(() => StringNullableWithAggregatesFilterSchema),z.string() ]).optional().nullable(),
+  baseLanguage: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
+  isTranslation: z.union([ z.lazy(() => BoolWithAggregatesFilterSchema),z.boolean() ]).optional(),
+  originalPollId: z.union([ z.lazy(() => StringNullableWithAggregatesFilterSchema),z.string() ]).optional().nullable(),
+  startDate: z.union([ z.lazy(() => DateTimeWithAggregatesFilterSchema),z.coerce.date() ]).optional(),
+  endDate: z.union([ z.lazy(() => DateTimeWithAggregatesFilterSchema),z.coerce.date() ]).optional(),
+  createdAt: z.union([ z.lazy(() => DateTimeWithAggregatesFilterSchema),z.coerce.date() ]).optional(),
+  Archived: z.union([ z.lazy(() => BoolWithAggregatesFilterSchema),z.boolean() ]).optional(),
+  isPublic: z.union([ z.lazy(() => BoolWithAggregatesFilterSchema),z.boolean() ]).optional(),
+  ArchivedAt: z.union([ z.lazy(() => DateTimeNullableWithAggregatesFilterSchema),z.coerce.date() ]).optional().nullable(),
+  Deleted: z.union([ z.lazy(() => BoolWithAggregatesFilterSchema),z.boolean() ]).optional(),
+  DeletedAt: z.union([ z.lazy(() => DateTimeNullableWithAggregatesFilterSchema),z.coerce.date() ]).optional().nullable(),
+  categoryId: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
+  newsItemId: z.union([ z.lazy(() => StringNullableWithAggregatesFilterSchema),z.string() ]).optional().nullable(),
 }).strict();
 
 export const UserWhereInputSchema: z.ZodType<Prisma.UserWhereInput> = z.object({
@@ -1802,74 +2343,6 @@ export const VoteScalarWhereWithAggregatesInputSchema: z.ZodType<Prisma.VoteScal
   userId: z.union([ z.lazy(() => StringNullableWithAggregatesFilterSchema),z.string() ]).optional().nullable(),
 }).strict();
 
-export const CategoryWhereInputSchema: z.ZodType<Prisma.CategoryWhereInput> = z.object({
-  AND: z.union([ z.lazy(() => CategoryWhereInputSchema),z.lazy(() => CategoryWhereInputSchema).array() ]).optional(),
-  OR: z.lazy(() => CategoryWhereInputSchema).array().optional(),
-  NOT: z.union([ z.lazy(() => CategoryWhereInputSchema),z.lazy(() => CategoryWhereInputSchema).array() ]).optional(),
-  id: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  name: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  slug: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  baseLanguage: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  polls: z.lazy(() => PollListRelationFilterSchema).optional(),
-  Image: z.lazy(() => ImageListRelationFilterSchema).optional(),
-  Blog: z.lazy(() => BlogListRelationFilterSchema).optional()
-}).strict();
-
-export const CategoryOrderByWithRelationInputSchema: z.ZodType<Prisma.CategoryOrderByWithRelationInput> = z.object({
-  id: z.lazy(() => SortOrderSchema).optional(),
-  name: z.lazy(() => SortOrderSchema).optional(),
-  slug: z.lazy(() => SortOrderSchema).optional(),
-  baseLanguage: z.lazy(() => SortOrderSchema).optional(),
-  polls: z.lazy(() => PollOrderByRelationAggregateInputSchema).optional(),
-  Image: z.lazy(() => ImageOrderByRelationAggregateInputSchema).optional(),
-  Blog: z.lazy(() => BlogOrderByRelationAggregateInputSchema).optional()
-}).strict();
-
-export const CategoryWhereUniqueInputSchema: z.ZodType<Prisma.CategoryWhereUniqueInput> = z.union([
-  z.object({
-    id: z.string().uuid(),
-    slug: z.string()
-  }),
-  z.object({
-    id: z.string().uuid(),
-  }),
-  z.object({
-    slug: z.string(),
-  }),
-])
-.and(z.object({
-  id: z.string().uuid().optional(),
-  slug: z.string().optional(),
-  AND: z.union([ z.lazy(() => CategoryWhereInputSchema),z.lazy(() => CategoryWhereInputSchema).array() ]).optional(),
-  OR: z.lazy(() => CategoryWhereInputSchema).array().optional(),
-  NOT: z.union([ z.lazy(() => CategoryWhereInputSchema),z.lazy(() => CategoryWhereInputSchema).array() ]).optional(),
-  name: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  baseLanguage: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  polls: z.lazy(() => PollListRelationFilterSchema).optional(),
-  Image: z.lazy(() => ImageListRelationFilterSchema).optional(),
-  Blog: z.lazy(() => BlogListRelationFilterSchema).optional()
-}).strict());
-
-export const CategoryOrderByWithAggregationInputSchema: z.ZodType<Prisma.CategoryOrderByWithAggregationInput> = z.object({
-  id: z.lazy(() => SortOrderSchema).optional(),
-  name: z.lazy(() => SortOrderSchema).optional(),
-  slug: z.lazy(() => SortOrderSchema).optional(),
-  baseLanguage: z.lazy(() => SortOrderSchema).optional(),
-  _count: z.lazy(() => CategoryCountOrderByAggregateInputSchema).optional(),
-  _max: z.lazy(() => CategoryMaxOrderByAggregateInputSchema).optional(),
-  _min: z.lazy(() => CategoryMinOrderByAggregateInputSchema).optional()
-}).strict();
-
-export const CategoryScalarWhereWithAggregatesInputSchema: z.ZodType<Prisma.CategoryScalarWhereWithAggregatesInput> = z.object({
-  AND: z.union([ z.lazy(() => CategoryScalarWhereWithAggregatesInputSchema),z.lazy(() => CategoryScalarWhereWithAggregatesInputSchema).array() ]).optional(),
-  OR: z.lazy(() => CategoryScalarWhereWithAggregatesInputSchema).array().optional(),
-  NOT: z.union([ z.lazy(() => CategoryScalarWhereWithAggregatesInputSchema),z.lazy(() => CategoryScalarWhereWithAggregatesInputSchema).array() ]).optional(),
-  id: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
-  name: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
-  slug: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
-  baseLanguage: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
-}).strict();
-
 export const NewsItemWhereInputSchema: z.ZodType<Prisma.NewsItemWhereInput> = z.object({
   AND: z.union([ z.lazy(() => NewsItemWhereInputSchema),z.lazy(() => NewsItemWhereInputSchema).array() ]).optional(),
   OR: z.lazy(() => NewsItemWhereInputSchema).array().optional(),
@@ -1967,393 +2440,6 @@ export const NewsItemScalarWhereWithAggregatesInputSchema: z.ZodType<Prisma.News
   createdAt: z.union([ z.lazy(() => DateTimeWithAggregatesFilterSchema),z.coerce.date() ]).optional(),
   pollId: z.union([ z.lazy(() => StringNullableWithAggregatesFilterSchema),z.string() ]).optional().nullable(),
   blogId: z.union([ z.lazy(() => StringNullableWithAggregatesFilterSchema),z.string() ]).optional().nullable(),
-}).strict();
-
-export const PollWhereInputSchema: z.ZodType<Prisma.PollWhereInput> = z.object({
-  AND: z.union([ z.lazy(() => PollWhereInputSchema),z.lazy(() => PollWhereInputSchema).array() ]).optional(),
-  OR: z.lazy(() => PollWhereInputSchema).array().optional(),
-  NOT: z.union([ z.lazy(() => PollWhereInputSchema),z.lazy(() => PollWhereInputSchema).array() ]).optional(),
-  id: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  question: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  slug: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  description: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
-  baseLanguage: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  startDate: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
-  endDate: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
-  createdAt: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
-  Archived: z.union([ z.lazy(() => BoolFilterSchema),z.boolean() ]).optional(),
-  isPublic: z.union([ z.lazy(() => BoolFilterSchema),z.boolean() ]).optional(),
-  ArchivedAt: z.union([ z.lazy(() => DateTimeNullableFilterSchema),z.coerce.date() ]).optional().nullable(),
-  Deleted: z.union([ z.lazy(() => BoolFilterSchema),z.boolean() ]).optional(),
-  DeletedAt: z.union([ z.lazy(() => DateTimeNullableFilterSchema),z.coerce.date() ]).optional().nullable(),
-  categoryId: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  newsItemId: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
-  category: z.union([ z.lazy(() => CategoryScalarRelationFilterSchema),z.lazy(() => CategoryWhereInputSchema) ]).optional(),
-  options: z.lazy(() => PollOptionListRelationFilterSchema).optional(),
-  Vote: z.lazy(() => VoteListRelationFilterSchema).optional(),
-  newsItem: z.union([ z.lazy(() => NewsItemNullableScalarRelationFilterSchema),z.lazy(() => NewsItemWhereInputSchema) ]).optional().nullable(),
-  Image: z.lazy(() => ImageListRelationFilterSchema).optional()
-}).strict();
-
-export const PollOrderByWithRelationInputSchema: z.ZodType<Prisma.PollOrderByWithRelationInput> = z.object({
-  id: z.lazy(() => SortOrderSchema).optional(),
-  question: z.lazy(() => SortOrderSchema).optional(),
-  slug: z.lazy(() => SortOrderSchema).optional(),
-  description: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
-  baseLanguage: z.lazy(() => SortOrderSchema).optional(),
-  startDate: z.lazy(() => SortOrderSchema).optional(),
-  endDate: z.lazy(() => SortOrderSchema).optional(),
-  createdAt: z.lazy(() => SortOrderSchema).optional(),
-  Archived: z.lazy(() => SortOrderSchema).optional(),
-  isPublic: z.lazy(() => SortOrderSchema).optional(),
-  ArchivedAt: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
-  Deleted: z.lazy(() => SortOrderSchema).optional(),
-  DeletedAt: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
-  categoryId: z.lazy(() => SortOrderSchema).optional(),
-  newsItemId: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
-  category: z.lazy(() => CategoryOrderByWithRelationInputSchema).optional(),
-  options: z.lazy(() => PollOptionOrderByRelationAggregateInputSchema).optional(),
-  Vote: z.lazy(() => VoteOrderByRelationAggregateInputSchema).optional(),
-  newsItem: z.lazy(() => NewsItemOrderByWithRelationInputSchema).optional(),
-  Image: z.lazy(() => ImageOrderByRelationAggregateInputSchema).optional()
-}).strict();
-
-export const PollWhereUniqueInputSchema: z.ZodType<Prisma.PollWhereUniqueInput> = z.union([
-  z.object({
-    id: z.string().uuid(),
-    slug: z.string(),
-    newsItemId: z.string()
-  }),
-  z.object({
-    id: z.string().uuid(),
-    slug: z.string(),
-  }),
-  z.object({
-    id: z.string().uuid(),
-    newsItemId: z.string(),
-  }),
-  z.object({
-    id: z.string().uuid(),
-  }),
-  z.object({
-    slug: z.string(),
-    newsItemId: z.string(),
-  }),
-  z.object({
-    slug: z.string(),
-  }),
-  z.object({
-    newsItemId: z.string(),
-  }),
-])
-.and(z.object({
-  id: z.string().uuid().optional(),
-  slug: z.string().optional(),
-  newsItemId: z.string().optional(),
-  AND: z.union([ z.lazy(() => PollWhereInputSchema),z.lazy(() => PollWhereInputSchema).array() ]).optional(),
-  OR: z.lazy(() => PollWhereInputSchema).array().optional(),
-  NOT: z.union([ z.lazy(() => PollWhereInputSchema),z.lazy(() => PollWhereInputSchema).array() ]).optional(),
-  question: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  description: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
-  baseLanguage: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  startDate: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
-  endDate: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
-  createdAt: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
-  Archived: z.union([ z.lazy(() => BoolFilterSchema),z.boolean() ]).optional(),
-  isPublic: z.union([ z.lazy(() => BoolFilterSchema),z.boolean() ]).optional(),
-  ArchivedAt: z.union([ z.lazy(() => DateTimeNullableFilterSchema),z.coerce.date() ]).optional().nullable(),
-  Deleted: z.union([ z.lazy(() => BoolFilterSchema),z.boolean() ]).optional(),
-  DeletedAt: z.union([ z.lazy(() => DateTimeNullableFilterSchema),z.coerce.date() ]).optional().nullable(),
-  categoryId: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  category: z.union([ z.lazy(() => CategoryScalarRelationFilterSchema),z.lazy(() => CategoryWhereInputSchema) ]).optional(),
-  options: z.lazy(() => PollOptionListRelationFilterSchema).optional(),
-  Vote: z.lazy(() => VoteListRelationFilterSchema).optional(),
-  newsItem: z.union([ z.lazy(() => NewsItemNullableScalarRelationFilterSchema),z.lazy(() => NewsItemWhereInputSchema) ]).optional().nullable(),
-  Image: z.lazy(() => ImageListRelationFilterSchema).optional()
-}).strict());
-
-export const PollOrderByWithAggregationInputSchema: z.ZodType<Prisma.PollOrderByWithAggregationInput> = z.object({
-  id: z.lazy(() => SortOrderSchema).optional(),
-  question: z.lazy(() => SortOrderSchema).optional(),
-  slug: z.lazy(() => SortOrderSchema).optional(),
-  description: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
-  baseLanguage: z.lazy(() => SortOrderSchema).optional(),
-  startDate: z.lazy(() => SortOrderSchema).optional(),
-  endDate: z.lazy(() => SortOrderSchema).optional(),
-  createdAt: z.lazy(() => SortOrderSchema).optional(),
-  Archived: z.lazy(() => SortOrderSchema).optional(),
-  isPublic: z.lazy(() => SortOrderSchema).optional(),
-  ArchivedAt: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
-  Deleted: z.lazy(() => SortOrderSchema).optional(),
-  DeletedAt: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
-  categoryId: z.lazy(() => SortOrderSchema).optional(),
-  newsItemId: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
-  _count: z.lazy(() => PollCountOrderByAggregateInputSchema).optional(),
-  _max: z.lazy(() => PollMaxOrderByAggregateInputSchema).optional(),
-  _min: z.lazy(() => PollMinOrderByAggregateInputSchema).optional()
-}).strict();
-
-export const PollScalarWhereWithAggregatesInputSchema: z.ZodType<Prisma.PollScalarWhereWithAggregatesInput> = z.object({
-  AND: z.union([ z.lazy(() => PollScalarWhereWithAggregatesInputSchema),z.lazy(() => PollScalarWhereWithAggregatesInputSchema).array() ]).optional(),
-  OR: z.lazy(() => PollScalarWhereWithAggregatesInputSchema).array().optional(),
-  NOT: z.union([ z.lazy(() => PollScalarWhereWithAggregatesInputSchema),z.lazy(() => PollScalarWhereWithAggregatesInputSchema).array() ]).optional(),
-  id: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
-  question: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
-  slug: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
-  description: z.union([ z.lazy(() => StringNullableWithAggregatesFilterSchema),z.string() ]).optional().nullable(),
-  baseLanguage: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
-  startDate: z.union([ z.lazy(() => DateTimeWithAggregatesFilterSchema),z.coerce.date() ]).optional(),
-  endDate: z.union([ z.lazy(() => DateTimeWithAggregatesFilterSchema),z.coerce.date() ]).optional(),
-  createdAt: z.union([ z.lazy(() => DateTimeWithAggregatesFilterSchema),z.coerce.date() ]).optional(),
-  Archived: z.union([ z.lazy(() => BoolWithAggregatesFilterSchema),z.boolean() ]).optional(),
-  isPublic: z.union([ z.lazy(() => BoolWithAggregatesFilterSchema),z.boolean() ]).optional(),
-  ArchivedAt: z.union([ z.lazy(() => DateTimeNullableWithAggregatesFilterSchema),z.coerce.date() ]).optional().nullable(),
-  Deleted: z.union([ z.lazy(() => BoolWithAggregatesFilterSchema),z.boolean() ]).optional(),
-  DeletedAt: z.union([ z.lazy(() => DateTimeNullableWithAggregatesFilterSchema),z.coerce.date() ]).optional().nullable(),
-  categoryId: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
-  newsItemId: z.union([ z.lazy(() => StringNullableWithAggregatesFilterSchema),z.string() ]).optional().nullable(),
-}).strict();
-
-export const BlogWhereInputSchema: z.ZodType<Prisma.BlogWhereInput> = z.object({
-  AND: z.union([ z.lazy(() => BlogWhereInputSchema),z.lazy(() => BlogWhereInputSchema).array() ]).optional(),
-  OR: z.lazy(() => BlogWhereInputSchema).array().optional(),
-  NOT: z.union([ z.lazy(() => BlogWhereInputSchema),z.lazy(() => BlogWhereInputSchema).array() ]).optional(),
-  id: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  title: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  content: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  titlePunch: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
-  slug: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  seoDescription: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
-  baseLanguage: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  imagenSeoId: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
-  dateNews: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
-  imagenCardId: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
-  newsItemId: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
-  readTime: z.union([ z.lazy(() => IntNullableFilterSchema),z.number() ]).optional().nullable(),
-  views: z.union([ z.lazy(() => IntFilterSchema),z.number() ]).optional(),
-  dateCreated: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
-  categoryId: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
-  imagenSeo: z.union([ z.lazy(() => ImageNullableScalarRelationFilterSchema),z.lazy(() => ImageWhereInputSchema) ]).optional().nullable(),
-  imagenCard: z.union([ z.lazy(() => ImageNullableScalarRelationFilterSchema),z.lazy(() => ImageWhereInputSchema) ]).optional().nullable(),
-  newsItem: z.union([ z.lazy(() => NewsItemNullableScalarRelationFilterSchema),z.lazy(() => NewsItemWhereInputSchema) ]).optional().nullable(),
-  Image: z.lazy(() => ImageListRelationFilterSchema).optional(),
-  blogAuthors: z.lazy(() => BlogAuthorListRelationFilterSchema).optional(),
-  likes: z.lazy(() => BlogLikeListRelationFilterSchema).optional(),
-  tags: z.lazy(() => BlogTagListRelationFilterSchema).optional(),
-  Category: z.union([ z.lazy(() => CategoryNullableScalarRelationFilterSchema),z.lazy(() => CategoryWhereInputSchema) ]).optional().nullable(),
-  TranslationQueue: z.lazy(() => TranslationQueueListRelationFilterSchema).optional()
-}).strict();
-
-export const BlogOrderByWithRelationInputSchema: z.ZodType<Prisma.BlogOrderByWithRelationInput> = z.object({
-  id: z.lazy(() => SortOrderSchema).optional(),
-  title: z.lazy(() => SortOrderSchema).optional(),
-  content: z.lazy(() => SortOrderSchema).optional(),
-  titlePunch: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
-  slug: z.lazy(() => SortOrderSchema).optional(),
-  seoDescription: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
-  baseLanguage: z.lazy(() => SortOrderSchema).optional(),
-  imagenSeoId: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
-  dateNews: z.lazy(() => SortOrderSchema).optional(),
-  imagenCardId: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
-  newsItemId: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
-  readTime: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
-  views: z.lazy(() => SortOrderSchema).optional(),
-  dateCreated: z.lazy(() => SortOrderSchema).optional(),
-  categoryId: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
-  imagenSeo: z.lazy(() => ImageOrderByWithRelationInputSchema).optional(),
-  imagenCard: z.lazy(() => ImageOrderByWithRelationInputSchema).optional(),
-  newsItem: z.lazy(() => NewsItemOrderByWithRelationInputSchema).optional(),
-  Image: z.lazy(() => ImageOrderByRelationAggregateInputSchema).optional(),
-  blogAuthors: z.lazy(() => BlogAuthorOrderByRelationAggregateInputSchema).optional(),
-  likes: z.lazy(() => BlogLikeOrderByRelationAggregateInputSchema).optional(),
-  tags: z.lazy(() => BlogTagOrderByRelationAggregateInputSchema).optional(),
-  Category: z.lazy(() => CategoryOrderByWithRelationInputSchema).optional(),
-  TranslationQueue: z.lazy(() => TranslationQueueOrderByRelationAggregateInputSchema).optional()
-}).strict();
-
-export const BlogWhereUniqueInputSchema: z.ZodType<Prisma.BlogWhereUniqueInput> = z.union([
-  z.object({
-    id: z.string().cuid(),
-    slug: z.string(),
-    newsItemId: z.string()
-  }),
-  z.object({
-    id: z.string().cuid(),
-    slug: z.string(),
-  }),
-  z.object({
-    id: z.string().cuid(),
-    newsItemId: z.string(),
-  }),
-  z.object({
-    id: z.string().cuid(),
-  }),
-  z.object({
-    slug: z.string(),
-    newsItemId: z.string(),
-  }),
-  z.object({
-    slug: z.string(),
-  }),
-  z.object({
-    newsItemId: z.string(),
-  }),
-])
-.and(z.object({
-  id: z.string().cuid().optional(),
-  slug: z.string().optional(),
-  newsItemId: z.string().optional(),
-  AND: z.union([ z.lazy(() => BlogWhereInputSchema),z.lazy(() => BlogWhereInputSchema).array() ]).optional(),
-  OR: z.lazy(() => BlogWhereInputSchema).array().optional(),
-  NOT: z.union([ z.lazy(() => BlogWhereInputSchema),z.lazy(() => BlogWhereInputSchema).array() ]).optional(),
-  title: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  content: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  titlePunch: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
-  seoDescription: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
-  baseLanguage: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  imagenSeoId: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
-  dateNews: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
-  imagenCardId: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
-  readTime: z.union([ z.lazy(() => IntNullableFilterSchema),z.number().int() ]).optional().nullable(),
-  views: z.union([ z.lazy(() => IntFilterSchema),z.number().int() ]).optional(),
-  dateCreated: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
-  categoryId: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
-  imagenSeo: z.union([ z.lazy(() => ImageNullableScalarRelationFilterSchema),z.lazy(() => ImageWhereInputSchema) ]).optional().nullable(),
-  imagenCard: z.union([ z.lazy(() => ImageNullableScalarRelationFilterSchema),z.lazy(() => ImageWhereInputSchema) ]).optional().nullable(),
-  newsItem: z.union([ z.lazy(() => NewsItemNullableScalarRelationFilterSchema),z.lazy(() => NewsItemWhereInputSchema) ]).optional().nullable(),
-  Image: z.lazy(() => ImageListRelationFilterSchema).optional(),
-  blogAuthors: z.lazy(() => BlogAuthorListRelationFilterSchema).optional(),
-  likes: z.lazy(() => BlogLikeListRelationFilterSchema).optional(),
-  tags: z.lazy(() => BlogTagListRelationFilterSchema).optional(),
-  Category: z.union([ z.lazy(() => CategoryNullableScalarRelationFilterSchema),z.lazy(() => CategoryWhereInputSchema) ]).optional().nullable(),
-  TranslationQueue: z.lazy(() => TranslationQueueListRelationFilterSchema).optional()
-}).strict());
-
-export const BlogOrderByWithAggregationInputSchema: z.ZodType<Prisma.BlogOrderByWithAggregationInput> = z.object({
-  id: z.lazy(() => SortOrderSchema).optional(),
-  title: z.lazy(() => SortOrderSchema).optional(),
-  content: z.lazy(() => SortOrderSchema).optional(),
-  titlePunch: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
-  slug: z.lazy(() => SortOrderSchema).optional(),
-  seoDescription: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
-  baseLanguage: z.lazy(() => SortOrderSchema).optional(),
-  imagenSeoId: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
-  dateNews: z.lazy(() => SortOrderSchema).optional(),
-  imagenCardId: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
-  newsItemId: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
-  readTime: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
-  views: z.lazy(() => SortOrderSchema).optional(),
-  dateCreated: z.lazy(() => SortOrderSchema).optional(),
-  categoryId: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
-  _count: z.lazy(() => BlogCountOrderByAggregateInputSchema).optional(),
-  _avg: z.lazy(() => BlogAvgOrderByAggregateInputSchema).optional(),
-  _max: z.lazy(() => BlogMaxOrderByAggregateInputSchema).optional(),
-  _min: z.lazy(() => BlogMinOrderByAggregateInputSchema).optional(),
-  _sum: z.lazy(() => BlogSumOrderByAggregateInputSchema).optional()
-}).strict();
-
-export const BlogScalarWhereWithAggregatesInputSchema: z.ZodType<Prisma.BlogScalarWhereWithAggregatesInput> = z.object({
-  AND: z.union([ z.lazy(() => BlogScalarWhereWithAggregatesInputSchema),z.lazy(() => BlogScalarWhereWithAggregatesInputSchema).array() ]).optional(),
-  OR: z.lazy(() => BlogScalarWhereWithAggregatesInputSchema).array().optional(),
-  NOT: z.union([ z.lazy(() => BlogScalarWhereWithAggregatesInputSchema),z.lazy(() => BlogScalarWhereWithAggregatesInputSchema).array() ]).optional(),
-  id: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
-  title: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
-  content: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
-  titlePunch: z.union([ z.lazy(() => StringNullableWithAggregatesFilterSchema),z.string() ]).optional().nullable(),
-  slug: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
-  seoDescription: z.union([ z.lazy(() => StringNullableWithAggregatesFilterSchema),z.string() ]).optional().nullable(),
-  baseLanguage: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
-  imagenSeoId: z.union([ z.lazy(() => StringNullableWithAggregatesFilterSchema),z.string() ]).optional().nullable(),
-  dateNews: z.union([ z.lazy(() => DateTimeWithAggregatesFilterSchema),z.coerce.date() ]).optional(),
-  imagenCardId: z.union([ z.lazy(() => StringNullableWithAggregatesFilterSchema),z.string() ]).optional().nullable(),
-  newsItemId: z.union([ z.lazy(() => StringNullableWithAggregatesFilterSchema),z.string() ]).optional().nullable(),
-  readTime: z.union([ z.lazy(() => IntNullableWithAggregatesFilterSchema),z.number() ]).optional().nullable(),
-  views: z.union([ z.lazy(() => IntWithAggregatesFilterSchema),z.number() ]).optional(),
-  dateCreated: z.union([ z.lazy(() => DateTimeWithAggregatesFilterSchema),z.coerce.date() ]).optional(),
-  categoryId: z.union([ z.lazy(() => StringNullableWithAggregatesFilterSchema),z.string() ]).optional().nullable(),
-}).strict();
-
-export const TagWhereInputSchema: z.ZodType<Prisma.TagWhereInput> = z.object({
-  AND: z.union([ z.lazy(() => TagWhereInputSchema),z.lazy(() => TagWhereInputSchema).array() ]).optional(),
-  OR: z.lazy(() => TagWhereInputSchema).array().optional(),
-  NOT: z.union([ z.lazy(() => TagWhereInputSchema),z.lazy(() => TagWhereInputSchema).array() ]).optional(),
-  id: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  name: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  slug: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  description: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
-  baseLanguage: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  blogs: z.lazy(() => BlogTagListRelationFilterSchema).optional()
-}).strict();
-
-export const TagOrderByWithRelationInputSchema: z.ZodType<Prisma.TagOrderByWithRelationInput> = z.object({
-  id: z.lazy(() => SortOrderSchema).optional(),
-  name: z.lazy(() => SortOrderSchema).optional(),
-  slug: z.lazy(() => SortOrderSchema).optional(),
-  description: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
-  baseLanguage: z.lazy(() => SortOrderSchema).optional(),
-  blogs: z.lazy(() => BlogTagOrderByRelationAggregateInputSchema).optional()
-}).strict();
-
-export const TagWhereUniqueInputSchema: z.ZodType<Prisma.TagWhereUniqueInput> = z.union([
-  z.object({
-    id: z.string().cuid(),
-    name: z.string(),
-    slug: z.string()
-  }),
-  z.object({
-    id: z.string().cuid(),
-    name: z.string(),
-  }),
-  z.object({
-    id: z.string().cuid(),
-    slug: z.string(),
-  }),
-  z.object({
-    id: z.string().cuid(),
-  }),
-  z.object({
-    name: z.string(),
-    slug: z.string(),
-  }),
-  z.object({
-    name: z.string(),
-  }),
-  z.object({
-    slug: z.string(),
-  }),
-])
-.and(z.object({
-  id: z.string().cuid().optional(),
-  name: z.string().optional(),
-  slug: z.string().optional(),
-  AND: z.union([ z.lazy(() => TagWhereInputSchema),z.lazy(() => TagWhereInputSchema).array() ]).optional(),
-  OR: z.lazy(() => TagWhereInputSchema).array().optional(),
-  NOT: z.union([ z.lazy(() => TagWhereInputSchema),z.lazy(() => TagWhereInputSchema).array() ]).optional(),
-  description: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
-  baseLanguage: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  blogs: z.lazy(() => BlogTagListRelationFilterSchema).optional()
-}).strict());
-
-export const TagOrderByWithAggregationInputSchema: z.ZodType<Prisma.TagOrderByWithAggregationInput> = z.object({
-  id: z.lazy(() => SortOrderSchema).optional(),
-  name: z.lazy(() => SortOrderSchema).optional(),
-  slug: z.lazy(() => SortOrderSchema).optional(),
-  description: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
-  baseLanguage: z.lazy(() => SortOrderSchema).optional(),
-  _count: z.lazy(() => TagCountOrderByAggregateInputSchema).optional(),
-  _max: z.lazy(() => TagMaxOrderByAggregateInputSchema).optional(),
-  _min: z.lazy(() => TagMinOrderByAggregateInputSchema).optional()
-}).strict();
-
-export const TagScalarWhereWithAggregatesInputSchema: z.ZodType<Prisma.TagScalarWhereWithAggregatesInput> = z.object({
-  AND: z.union([ z.lazy(() => TagScalarWhereWithAggregatesInputSchema),z.lazy(() => TagScalarWhereWithAggregatesInputSchema).array() ]).optional(),
-  OR: z.lazy(() => TagScalarWhereWithAggregatesInputSchema).array().optional(),
-  NOT: z.union([ z.lazy(() => TagScalarWhereWithAggregatesInputSchema),z.lazy(() => TagScalarWhereWithAggregatesInputSchema).array() ]).optional(),
-  id: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
-  name: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
-  slug: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
-  description: z.union([ z.lazy(() => StringNullableWithAggregatesFilterSchema),z.string() ]).optional().nullable(),
-  baseLanguage: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
 }).strict();
 
 export const BlogTagWhereInputSchema: z.ZodType<Prisma.BlogTagWhereInput> = z.object({
@@ -3108,79 +3194,532 @@ export const ImageScalarWhereWithAggregatesInputSchema: z.ZodType<Prisma.ImageSc
 
 export const TranslationCreateInputSchema: z.ZodType<Prisma.TranslationCreateInput> = z.object({
   id: z.string().cuid().optional(),
+  originalEntityId: z.string(),
   entityType: z.string(),
-  entityId: z.string(),
-  language: z.string(),
-  field: z.string(),
-  value: z.string(),
+  translatedIds: z.union([ z.lazy(() => TranslationCreatetranslatedIdsInputSchema),z.string().array() ]).optional(),
   createdAt: z.coerce.date().optional(),
   updatedAt: z.coerce.date().optional()
 }).strict();
 
 export const TranslationUncheckedCreateInputSchema: z.ZodType<Prisma.TranslationUncheckedCreateInput> = z.object({
   id: z.string().cuid().optional(),
+  originalEntityId: z.string(),
   entityType: z.string(),
-  entityId: z.string(),
-  language: z.string(),
-  field: z.string(),
-  value: z.string(),
+  translatedIds: z.union([ z.lazy(() => TranslationCreatetranslatedIdsInputSchema),z.string().array() ]).optional(),
   createdAt: z.coerce.date().optional(),
   updatedAt: z.coerce.date().optional()
 }).strict();
 
 export const TranslationUpdateInputSchema: z.ZodType<Prisma.TranslationUpdateInput> = z.object({
   id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  originalEntityId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   entityType: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  entityId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  language: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  field: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  value: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  translatedIds: z.union([ z.lazy(() => TranslationUpdatetranslatedIdsInputSchema),z.string().array() ]).optional(),
   createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
 }).strict();
 
 export const TranslationUncheckedUpdateInputSchema: z.ZodType<Prisma.TranslationUncheckedUpdateInput> = z.object({
   id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  originalEntityId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   entityType: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  entityId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  language: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  field: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  value: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  translatedIds: z.union([ z.lazy(() => TranslationUpdatetranslatedIdsInputSchema),z.string().array() ]).optional(),
   createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
 }).strict();
 
 export const TranslationCreateManyInputSchema: z.ZodType<Prisma.TranslationCreateManyInput> = z.object({
   id: z.string().cuid().optional(),
+  originalEntityId: z.string(),
   entityType: z.string(),
-  entityId: z.string(),
-  language: z.string(),
-  field: z.string(),
-  value: z.string(),
+  translatedIds: z.union([ z.lazy(() => TranslationCreatetranslatedIdsInputSchema),z.string().array() ]).optional(),
   createdAt: z.coerce.date().optional(),
   updatedAt: z.coerce.date().optional()
 }).strict();
 
 export const TranslationUpdateManyMutationInputSchema: z.ZodType<Prisma.TranslationUpdateManyMutationInput> = z.object({
   id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  originalEntityId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   entityType: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  entityId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  language: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  field: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  value: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  translatedIds: z.union([ z.lazy(() => TranslationUpdatetranslatedIdsInputSchema),z.string().array() ]).optional(),
   createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
 }).strict();
 
 export const TranslationUncheckedUpdateManyInputSchema: z.ZodType<Prisma.TranslationUncheckedUpdateManyInput> = z.object({
   id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  originalEntityId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   entityType: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  entityId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  language: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  field: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  value: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  translatedIds: z.union([ z.lazy(() => TranslationUpdatetranslatedIdsInputSchema),z.string().array() ]).optional(),
   createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+}).strict();
+
+export const BlogCreateInputSchema: z.ZodType<Prisma.BlogCreateInput> = z.object({
+  id: z.string().cuid().optional(),
+  title: z.string(),
+  content: z.string(),
+  titlePunch: z.string().optional().nullable(),
+  slug: z.string(),
+  seoDescription: z.string().optional().nullable(),
+  baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
+  dateNews: z.coerce.date(),
+  readTime: z.number().int().optional().nullable(),
+  views: z.number().int().optional(),
+  dateCreated: z.coerce.date().optional(),
+  originalBlog: z.lazy(() => BlogCreateNestedOneWithoutTranslationsInputSchema).optional(),
+  translations: z.lazy(() => BlogCreateNestedManyWithoutOriginalBlogInputSchema).optional(),
+  imagenSeo: z.lazy(() => ImageCreateNestedOneWithoutBlogImagenSeoInputSchema).optional(),
+  imagenCard: z.lazy(() => ImageCreateNestedOneWithoutBlogImagenCardInputSchema).optional(),
+  newsItem: z.lazy(() => NewsItemCreateNestedOneWithoutBlogInputSchema).optional(),
+  Image: z.lazy(() => ImageCreateNestedManyWithoutBlogInputSchema).optional(),
+  blogAuthors: z.lazy(() => BlogAuthorCreateNestedManyWithoutBlogInputSchema).optional(),
+  likes: z.lazy(() => BlogLikeCreateNestedManyWithoutBlogInputSchema).optional(),
+  tags: z.lazy(() => BlogTagCreateNestedManyWithoutBlogInputSchema).optional(),
+  Category: z.lazy(() => CategoryCreateNestedOneWithoutBlogInputSchema).optional(),
+  TranslationQueue: z.lazy(() => TranslationQueueCreateNestedManyWithoutBlogInputSchema).optional()
+}).strict();
+
+export const BlogUncheckedCreateInputSchema: z.ZodType<Prisma.BlogUncheckedCreateInput> = z.object({
+  id: z.string().cuid().optional(),
+  title: z.string(),
+  content: z.string(),
+  titlePunch: z.string().optional().nullable(),
+  slug: z.string(),
+  seoDescription: z.string().optional().nullable(),
+  baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
+  originalBlogId: z.string().optional().nullable(),
+  imagenSeoId: z.string().optional().nullable(),
+  dateNews: z.coerce.date(),
+  imagenCardId: z.string().optional().nullable(),
+  newsItemId: z.string().optional().nullable(),
+  readTime: z.number().int().optional().nullable(),
+  views: z.number().int().optional(),
+  dateCreated: z.coerce.date().optional(),
+  categoryId: z.string().optional().nullable(),
+  translations: z.lazy(() => BlogUncheckedCreateNestedManyWithoutOriginalBlogInputSchema).optional(),
+  Image: z.lazy(() => ImageUncheckedCreateNestedManyWithoutBlogInputSchema).optional(),
+  blogAuthors: z.lazy(() => BlogAuthorUncheckedCreateNestedManyWithoutBlogInputSchema).optional(),
+  likes: z.lazy(() => BlogLikeUncheckedCreateNestedManyWithoutBlogInputSchema).optional(),
+  tags: z.lazy(() => BlogTagUncheckedCreateNestedManyWithoutBlogInputSchema).optional(),
+  TranslationQueue: z.lazy(() => TranslationQueueUncheckedCreateNestedManyWithoutBlogInputSchema).optional()
+}).strict();
+
+export const BlogUpdateInputSchema: z.ZodType<Prisma.BlogUpdateInput> = z.object({
+  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  title: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  content: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  titlePunch: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  seoDescription: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  dateNews: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  readTime: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  views: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
+  dateCreated: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  originalBlog: z.lazy(() => BlogUpdateOneWithoutTranslationsNestedInputSchema).optional(),
+  translations: z.lazy(() => BlogUpdateManyWithoutOriginalBlogNestedInputSchema).optional(),
+  imagenSeo: z.lazy(() => ImageUpdateOneWithoutBlogImagenSeoNestedInputSchema).optional(),
+  imagenCard: z.lazy(() => ImageUpdateOneWithoutBlogImagenCardNestedInputSchema).optional(),
+  newsItem: z.lazy(() => NewsItemUpdateOneWithoutBlogNestedInputSchema).optional(),
+  Image: z.lazy(() => ImageUpdateManyWithoutBlogNestedInputSchema).optional(),
+  blogAuthors: z.lazy(() => BlogAuthorUpdateManyWithoutBlogNestedInputSchema).optional(),
+  likes: z.lazy(() => BlogLikeUpdateManyWithoutBlogNestedInputSchema).optional(),
+  tags: z.lazy(() => BlogTagUpdateManyWithoutBlogNestedInputSchema).optional(),
+  Category: z.lazy(() => CategoryUpdateOneWithoutBlogNestedInputSchema).optional(),
+  TranslationQueue: z.lazy(() => TranslationQueueUpdateManyWithoutBlogNestedInputSchema).optional()
+}).strict();
+
+export const BlogUncheckedUpdateInputSchema: z.ZodType<Prisma.BlogUncheckedUpdateInput> = z.object({
+  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  title: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  content: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  titlePunch: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  seoDescription: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  originalBlogId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  imagenSeoId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  dateNews: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  imagenCardId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  newsItemId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  readTime: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  views: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
+  dateCreated: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  categoryId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  translations: z.lazy(() => BlogUncheckedUpdateManyWithoutOriginalBlogNestedInputSchema).optional(),
+  Image: z.lazy(() => ImageUncheckedUpdateManyWithoutBlogNestedInputSchema).optional(),
+  blogAuthors: z.lazy(() => BlogAuthorUncheckedUpdateManyWithoutBlogNestedInputSchema).optional(),
+  likes: z.lazy(() => BlogLikeUncheckedUpdateManyWithoutBlogNestedInputSchema).optional(),
+  tags: z.lazy(() => BlogTagUncheckedUpdateManyWithoutBlogNestedInputSchema).optional(),
+  TranslationQueue: z.lazy(() => TranslationQueueUncheckedUpdateManyWithoutBlogNestedInputSchema).optional()
+}).strict();
+
+export const BlogCreateManyInputSchema: z.ZodType<Prisma.BlogCreateManyInput> = z.object({
+  id: z.string().cuid().optional(),
+  title: z.string(),
+  content: z.string(),
+  titlePunch: z.string().optional().nullable(),
+  slug: z.string(),
+  seoDescription: z.string().optional().nullable(),
+  baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
+  originalBlogId: z.string().optional().nullable(),
+  imagenSeoId: z.string().optional().nullable(),
+  dateNews: z.coerce.date(),
+  imagenCardId: z.string().optional().nullable(),
+  newsItemId: z.string().optional().nullable(),
+  readTime: z.number().int().optional().nullable(),
+  views: z.number().int().optional(),
+  dateCreated: z.coerce.date().optional(),
+  categoryId: z.string().optional().nullable()
+}).strict();
+
+export const BlogUpdateManyMutationInputSchema: z.ZodType<Prisma.BlogUpdateManyMutationInput> = z.object({
+  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  title: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  content: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  titlePunch: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  seoDescription: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  dateNews: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  readTime: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  views: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
+  dateCreated: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+}).strict();
+
+export const BlogUncheckedUpdateManyInputSchema: z.ZodType<Prisma.BlogUncheckedUpdateManyInput> = z.object({
+  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  title: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  content: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  titlePunch: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  seoDescription: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  originalBlogId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  imagenSeoId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  dateNews: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  imagenCardId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  newsItemId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  readTime: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  views: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
+  dateCreated: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  categoryId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+}).strict();
+
+export const CategoryCreateInputSchema: z.ZodType<Prisma.CategoryCreateInput> = z.object({
+  id: z.string().uuid().optional(),
+  name: z.string(),
+  slug: z.string(),
+  baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
+  originalCategory: z.lazy(() => CategoryCreateNestedOneWithoutTranslationsInputSchema).optional(),
+  translations: z.lazy(() => CategoryCreateNestedManyWithoutOriginalCategoryInputSchema).optional(),
+  polls: z.lazy(() => PollCreateNestedManyWithoutCategoryInputSchema).optional(),
+  Image: z.lazy(() => ImageCreateNestedManyWithoutCategoryInputSchema).optional(),
+  Blog: z.lazy(() => BlogCreateNestedManyWithoutCategoryInputSchema).optional()
+}).strict();
+
+export const CategoryUncheckedCreateInputSchema: z.ZodType<Prisma.CategoryUncheckedCreateInput> = z.object({
+  id: z.string().uuid().optional(),
+  name: z.string(),
+  slug: z.string(),
+  baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
+  originalCategoryId: z.string().optional().nullable(),
+  translations: z.lazy(() => CategoryUncheckedCreateNestedManyWithoutOriginalCategoryInputSchema).optional(),
+  polls: z.lazy(() => PollUncheckedCreateNestedManyWithoutCategoryInputSchema).optional(),
+  Image: z.lazy(() => ImageUncheckedCreateNestedManyWithoutCategoryInputSchema).optional(),
+  Blog: z.lazy(() => BlogUncheckedCreateNestedManyWithoutCategoryInputSchema).optional()
+}).strict();
+
+export const CategoryUpdateInputSchema: z.ZodType<Prisma.CategoryUpdateInput> = z.object({
+  id: z.union([ z.string().uuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  name: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  originalCategory: z.lazy(() => CategoryUpdateOneWithoutTranslationsNestedInputSchema).optional(),
+  translations: z.lazy(() => CategoryUpdateManyWithoutOriginalCategoryNestedInputSchema).optional(),
+  polls: z.lazy(() => PollUpdateManyWithoutCategoryNestedInputSchema).optional(),
+  Image: z.lazy(() => ImageUpdateManyWithoutCategoryNestedInputSchema).optional(),
+  Blog: z.lazy(() => BlogUpdateManyWithoutCategoryNestedInputSchema).optional()
+}).strict();
+
+export const CategoryUncheckedUpdateInputSchema: z.ZodType<Prisma.CategoryUncheckedUpdateInput> = z.object({
+  id: z.union([ z.string().uuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  name: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  originalCategoryId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  translations: z.lazy(() => CategoryUncheckedUpdateManyWithoutOriginalCategoryNestedInputSchema).optional(),
+  polls: z.lazy(() => PollUncheckedUpdateManyWithoutCategoryNestedInputSchema).optional(),
+  Image: z.lazy(() => ImageUncheckedUpdateManyWithoutCategoryNestedInputSchema).optional(),
+  Blog: z.lazy(() => BlogUncheckedUpdateManyWithoutCategoryNestedInputSchema).optional()
+}).strict();
+
+export const CategoryCreateManyInputSchema: z.ZodType<Prisma.CategoryCreateManyInput> = z.object({
+  id: z.string().uuid().optional(),
+  name: z.string(),
+  slug: z.string(),
+  baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
+  originalCategoryId: z.string().optional().nullable()
+}).strict();
+
+export const CategoryUpdateManyMutationInputSchema: z.ZodType<Prisma.CategoryUpdateManyMutationInput> = z.object({
+  id: z.union([ z.string().uuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  name: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+}).strict();
+
+export const CategoryUncheckedUpdateManyInputSchema: z.ZodType<Prisma.CategoryUncheckedUpdateManyInput> = z.object({
+  id: z.union([ z.string().uuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  name: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  originalCategoryId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+}).strict();
+
+export const TagCreateInputSchema: z.ZodType<Prisma.TagCreateInput> = z.object({
+  id: z.string().cuid().optional(),
+  name: z.string(),
+  slug: z.string(),
+  description: z.string().optional().nullable(),
+  baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
+  originalTag: z.lazy(() => TagCreateNestedOneWithoutTranslationsInputSchema).optional(),
+  translations: z.lazy(() => TagCreateNestedManyWithoutOriginalTagInputSchema).optional(),
+  blogs: z.lazy(() => BlogTagCreateNestedManyWithoutTagInputSchema).optional()
+}).strict();
+
+export const TagUncheckedCreateInputSchema: z.ZodType<Prisma.TagUncheckedCreateInput> = z.object({
+  id: z.string().cuid().optional(),
+  name: z.string(),
+  slug: z.string(),
+  description: z.string().optional().nullable(),
+  baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
+  originalTagId: z.string().optional().nullable(),
+  translations: z.lazy(() => TagUncheckedCreateNestedManyWithoutOriginalTagInputSchema).optional(),
+  blogs: z.lazy(() => BlogTagUncheckedCreateNestedManyWithoutTagInputSchema).optional()
+}).strict();
+
+export const TagUpdateInputSchema: z.ZodType<Prisma.TagUpdateInput> = z.object({
+  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  name: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  description: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  originalTag: z.lazy(() => TagUpdateOneWithoutTranslationsNestedInputSchema).optional(),
+  translations: z.lazy(() => TagUpdateManyWithoutOriginalTagNestedInputSchema).optional(),
+  blogs: z.lazy(() => BlogTagUpdateManyWithoutTagNestedInputSchema).optional()
+}).strict();
+
+export const TagUncheckedUpdateInputSchema: z.ZodType<Prisma.TagUncheckedUpdateInput> = z.object({
+  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  name: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  description: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  originalTagId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  translations: z.lazy(() => TagUncheckedUpdateManyWithoutOriginalTagNestedInputSchema).optional(),
+  blogs: z.lazy(() => BlogTagUncheckedUpdateManyWithoutTagNestedInputSchema).optional()
+}).strict();
+
+export const TagCreateManyInputSchema: z.ZodType<Prisma.TagCreateManyInput> = z.object({
+  id: z.string().cuid().optional(),
+  name: z.string(),
+  slug: z.string(),
+  description: z.string().optional().nullable(),
+  baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
+  originalTagId: z.string().optional().nullable()
+}).strict();
+
+export const TagUpdateManyMutationInputSchema: z.ZodType<Prisma.TagUpdateManyMutationInput> = z.object({
+  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  name: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  description: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+}).strict();
+
+export const TagUncheckedUpdateManyInputSchema: z.ZodType<Prisma.TagUncheckedUpdateManyInput> = z.object({
+  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  name: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  description: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  originalTagId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+}).strict();
+
+export const PollCreateInputSchema: z.ZodType<Prisma.PollCreateInput> = z.object({
+  id: z.string().uuid().optional(),
+  question: z.string(),
+  slug: z.string(),
+  description: z.string().optional().nullable(),
+  baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
+  startDate: z.coerce.date(),
+  endDate: z.coerce.date(),
+  createdAt: z.coerce.date().optional(),
+  Archived: z.boolean().optional(),
+  isPublic: z.boolean().optional(),
+  ArchivedAt: z.coerce.date().optional().nullable(),
+  Deleted: z.boolean().optional(),
+  DeletedAt: z.coerce.date().optional().nullable(),
+  originalPoll: z.lazy(() => PollCreateNestedOneWithoutTranslationsInputSchema).optional(),
+  translations: z.lazy(() => PollCreateNestedManyWithoutOriginalPollInputSchema).optional(),
+  category: z.lazy(() => CategoryCreateNestedOneWithoutPollsInputSchema),
+  options: z.lazy(() => PollOptionCreateNestedManyWithoutPollInputSchema).optional(),
+  Vote: z.lazy(() => VoteCreateNestedManyWithoutPollInputSchema).optional(),
+  newsItem: z.lazy(() => NewsItemCreateNestedOneWithoutPollInputSchema).optional(),
+  Image: z.lazy(() => ImageCreateNestedManyWithoutPollInputSchema).optional()
+}).strict();
+
+export const PollUncheckedCreateInputSchema: z.ZodType<Prisma.PollUncheckedCreateInput> = z.object({
+  id: z.string().uuid().optional(),
+  question: z.string(),
+  slug: z.string(),
+  description: z.string().optional().nullable(),
+  baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
+  originalPollId: z.string().optional().nullable(),
+  startDate: z.coerce.date(),
+  endDate: z.coerce.date(),
+  createdAt: z.coerce.date().optional(),
+  Archived: z.boolean().optional(),
+  isPublic: z.boolean().optional(),
+  ArchivedAt: z.coerce.date().optional().nullable(),
+  Deleted: z.boolean().optional(),
+  DeletedAt: z.coerce.date().optional().nullable(),
+  categoryId: z.string(),
+  newsItemId: z.string().optional().nullable(),
+  translations: z.lazy(() => PollUncheckedCreateNestedManyWithoutOriginalPollInputSchema).optional(),
+  options: z.lazy(() => PollOptionUncheckedCreateNestedManyWithoutPollInputSchema).optional(),
+  Vote: z.lazy(() => VoteUncheckedCreateNestedManyWithoutPollInputSchema).optional(),
+  Image: z.lazy(() => ImageUncheckedCreateNestedManyWithoutPollInputSchema).optional()
+}).strict();
+
+export const PollUpdateInputSchema: z.ZodType<Prisma.PollUpdateInput> = z.object({
+  id: z.union([ z.string().uuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  question: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  description: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  startDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  endDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  Archived: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  isPublic: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  ArchivedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  Deleted: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  DeletedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  originalPoll: z.lazy(() => PollUpdateOneWithoutTranslationsNestedInputSchema).optional(),
+  translations: z.lazy(() => PollUpdateManyWithoutOriginalPollNestedInputSchema).optional(),
+  category: z.lazy(() => CategoryUpdateOneRequiredWithoutPollsNestedInputSchema).optional(),
+  options: z.lazy(() => PollOptionUpdateManyWithoutPollNestedInputSchema).optional(),
+  Vote: z.lazy(() => VoteUpdateManyWithoutPollNestedInputSchema).optional(),
+  newsItem: z.lazy(() => NewsItemUpdateOneWithoutPollNestedInputSchema).optional(),
+  Image: z.lazy(() => ImageUpdateManyWithoutPollNestedInputSchema).optional()
+}).strict();
+
+export const PollUncheckedUpdateInputSchema: z.ZodType<Prisma.PollUncheckedUpdateInput> = z.object({
+  id: z.union([ z.string().uuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  question: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  description: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  originalPollId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  startDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  endDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  Archived: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  isPublic: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  ArchivedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  Deleted: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  DeletedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  categoryId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  newsItemId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  translations: z.lazy(() => PollUncheckedUpdateManyWithoutOriginalPollNestedInputSchema).optional(),
+  options: z.lazy(() => PollOptionUncheckedUpdateManyWithoutPollNestedInputSchema).optional(),
+  Vote: z.lazy(() => VoteUncheckedUpdateManyWithoutPollNestedInputSchema).optional(),
+  Image: z.lazy(() => ImageUncheckedUpdateManyWithoutPollNestedInputSchema).optional()
+}).strict();
+
+export const PollCreateManyInputSchema: z.ZodType<Prisma.PollCreateManyInput> = z.object({
+  id: z.string().uuid().optional(),
+  question: z.string(),
+  slug: z.string(),
+  description: z.string().optional().nullable(),
+  baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
+  originalPollId: z.string().optional().nullable(),
+  startDate: z.coerce.date(),
+  endDate: z.coerce.date(),
+  createdAt: z.coerce.date().optional(),
+  Archived: z.boolean().optional(),
+  isPublic: z.boolean().optional(),
+  ArchivedAt: z.coerce.date().optional().nullable(),
+  Deleted: z.boolean().optional(),
+  DeletedAt: z.coerce.date().optional().nullable(),
+  categoryId: z.string(),
+  newsItemId: z.string().optional().nullable()
+}).strict();
+
+export const PollUpdateManyMutationInputSchema: z.ZodType<Prisma.PollUpdateManyMutationInput> = z.object({
+  id: z.union([ z.string().uuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  question: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  description: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  startDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  endDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  Archived: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  isPublic: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  ArchivedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  Deleted: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  DeletedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+}).strict();
+
+export const PollUncheckedUpdateManyInputSchema: z.ZodType<Prisma.PollUncheckedUpdateManyInput> = z.object({
+  id: z.union([ z.string().uuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  question: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  description: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  originalPollId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  startDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  endDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  Archived: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  isPublic: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  ArchivedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  Deleted: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  DeletedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  categoryId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  newsItemId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
 }).strict();
 
 export const UserCreateInputSchema: z.ZodType<Prisma.UserCreateInput> = z.object({
@@ -3772,67 +4311,6 @@ export const VoteUncheckedUpdateManyInputSchema: z.ZodType<Prisma.VoteUncheckedU
   userId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
 }).strict();
 
-export const CategoryCreateInputSchema: z.ZodType<Prisma.CategoryCreateInput> = z.object({
-  id: z.string().uuid().optional(),
-  name: z.string(),
-  slug: z.string(),
-  baseLanguage: z.string().optional(),
-  polls: z.lazy(() => PollCreateNestedManyWithoutCategoryInputSchema).optional(),
-  Image: z.lazy(() => ImageCreateNestedManyWithoutCategoryInputSchema).optional(),
-  Blog: z.lazy(() => BlogCreateNestedManyWithoutCategoryInputSchema).optional()
-}).strict();
-
-export const CategoryUncheckedCreateInputSchema: z.ZodType<Prisma.CategoryUncheckedCreateInput> = z.object({
-  id: z.string().uuid().optional(),
-  name: z.string(),
-  slug: z.string(),
-  baseLanguage: z.string().optional(),
-  polls: z.lazy(() => PollUncheckedCreateNestedManyWithoutCategoryInputSchema).optional(),
-  Image: z.lazy(() => ImageUncheckedCreateNestedManyWithoutCategoryInputSchema).optional(),
-  Blog: z.lazy(() => BlogUncheckedCreateNestedManyWithoutCategoryInputSchema).optional()
-}).strict();
-
-export const CategoryUpdateInputSchema: z.ZodType<Prisma.CategoryUpdateInput> = z.object({
-  id: z.union([ z.string().uuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  name: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  polls: z.lazy(() => PollUpdateManyWithoutCategoryNestedInputSchema).optional(),
-  Image: z.lazy(() => ImageUpdateManyWithoutCategoryNestedInputSchema).optional(),
-  Blog: z.lazy(() => BlogUpdateManyWithoutCategoryNestedInputSchema).optional()
-}).strict();
-
-export const CategoryUncheckedUpdateInputSchema: z.ZodType<Prisma.CategoryUncheckedUpdateInput> = z.object({
-  id: z.union([ z.string().uuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  name: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  polls: z.lazy(() => PollUncheckedUpdateManyWithoutCategoryNestedInputSchema).optional(),
-  Image: z.lazy(() => ImageUncheckedUpdateManyWithoutCategoryNestedInputSchema).optional(),
-  Blog: z.lazy(() => BlogUncheckedUpdateManyWithoutCategoryNestedInputSchema).optional()
-}).strict();
-
-export const CategoryCreateManyInputSchema: z.ZodType<Prisma.CategoryCreateManyInput> = z.object({
-  id: z.string().uuid().optional(),
-  name: z.string(),
-  slug: z.string(),
-  baseLanguage: z.string().optional()
-}).strict();
-
-export const CategoryUpdateManyMutationInputSchema: z.ZodType<Prisma.CategoryUpdateManyMutationInput> = z.object({
-  id: z.union([ z.string().uuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  name: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-}).strict();
-
-export const CategoryUncheckedUpdateManyInputSchema: z.ZodType<Prisma.CategoryUncheckedUpdateManyInput> = z.object({
-  id: z.union([ z.string().uuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  name: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-}).strict();
-
 export const NewsItemCreateInputSchema: z.ZodType<Prisma.NewsItemCreateInput> = z.object({
   id: z.string().cuid().optional(),
   title: z.string(),
@@ -3913,344 +4391,6 @@ export const NewsItemUncheckedUpdateManyInputSchema: z.ZodType<Prisma.NewsItemUn
   createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   pollId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   blogId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-}).strict();
-
-export const PollCreateInputSchema: z.ZodType<Prisma.PollCreateInput> = z.object({
-  id: z.string().uuid().optional(),
-  question: z.string(),
-  slug: z.string(),
-  description: z.string().optional().nullable(),
-  baseLanguage: z.string().optional(),
-  startDate: z.coerce.date(),
-  endDate: z.coerce.date(),
-  createdAt: z.coerce.date().optional(),
-  Archived: z.boolean().optional(),
-  isPublic: z.boolean().optional(),
-  ArchivedAt: z.coerce.date().optional().nullable(),
-  Deleted: z.boolean().optional(),
-  DeletedAt: z.coerce.date().optional().nullable(),
-  category: z.lazy(() => CategoryCreateNestedOneWithoutPollsInputSchema),
-  options: z.lazy(() => PollOptionCreateNestedManyWithoutPollInputSchema).optional(),
-  Vote: z.lazy(() => VoteCreateNestedManyWithoutPollInputSchema).optional(),
-  newsItem: z.lazy(() => NewsItemCreateNestedOneWithoutPollInputSchema).optional(),
-  Image: z.lazy(() => ImageCreateNestedManyWithoutPollInputSchema).optional()
-}).strict();
-
-export const PollUncheckedCreateInputSchema: z.ZodType<Prisma.PollUncheckedCreateInput> = z.object({
-  id: z.string().uuid().optional(),
-  question: z.string(),
-  slug: z.string(),
-  description: z.string().optional().nullable(),
-  baseLanguage: z.string().optional(),
-  startDate: z.coerce.date(),
-  endDate: z.coerce.date(),
-  createdAt: z.coerce.date().optional(),
-  Archived: z.boolean().optional(),
-  isPublic: z.boolean().optional(),
-  ArchivedAt: z.coerce.date().optional().nullable(),
-  Deleted: z.boolean().optional(),
-  DeletedAt: z.coerce.date().optional().nullable(),
-  categoryId: z.string(),
-  newsItemId: z.string().optional().nullable(),
-  options: z.lazy(() => PollOptionUncheckedCreateNestedManyWithoutPollInputSchema).optional(),
-  Vote: z.lazy(() => VoteUncheckedCreateNestedManyWithoutPollInputSchema).optional(),
-  Image: z.lazy(() => ImageUncheckedCreateNestedManyWithoutPollInputSchema).optional()
-}).strict();
-
-export const PollUpdateInputSchema: z.ZodType<Prisma.PollUpdateInput> = z.object({
-  id: z.union([ z.string().uuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  question: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  description: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  startDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  endDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  Archived: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
-  isPublic: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
-  ArchivedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  Deleted: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
-  DeletedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  category: z.lazy(() => CategoryUpdateOneRequiredWithoutPollsNestedInputSchema).optional(),
-  options: z.lazy(() => PollOptionUpdateManyWithoutPollNestedInputSchema).optional(),
-  Vote: z.lazy(() => VoteUpdateManyWithoutPollNestedInputSchema).optional(),
-  newsItem: z.lazy(() => NewsItemUpdateOneWithoutPollNestedInputSchema).optional(),
-  Image: z.lazy(() => ImageUpdateManyWithoutPollNestedInputSchema).optional()
-}).strict();
-
-export const PollUncheckedUpdateInputSchema: z.ZodType<Prisma.PollUncheckedUpdateInput> = z.object({
-  id: z.union([ z.string().uuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  question: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  description: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  startDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  endDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  Archived: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
-  isPublic: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
-  ArchivedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  Deleted: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
-  DeletedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  categoryId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  newsItemId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  options: z.lazy(() => PollOptionUncheckedUpdateManyWithoutPollNestedInputSchema).optional(),
-  Vote: z.lazy(() => VoteUncheckedUpdateManyWithoutPollNestedInputSchema).optional(),
-  Image: z.lazy(() => ImageUncheckedUpdateManyWithoutPollNestedInputSchema).optional()
-}).strict();
-
-export const PollCreateManyInputSchema: z.ZodType<Prisma.PollCreateManyInput> = z.object({
-  id: z.string().uuid().optional(),
-  question: z.string(),
-  slug: z.string(),
-  description: z.string().optional().nullable(),
-  baseLanguage: z.string().optional(),
-  startDate: z.coerce.date(),
-  endDate: z.coerce.date(),
-  createdAt: z.coerce.date().optional(),
-  Archived: z.boolean().optional(),
-  isPublic: z.boolean().optional(),
-  ArchivedAt: z.coerce.date().optional().nullable(),
-  Deleted: z.boolean().optional(),
-  DeletedAt: z.coerce.date().optional().nullable(),
-  categoryId: z.string(),
-  newsItemId: z.string().optional().nullable()
-}).strict();
-
-export const PollUpdateManyMutationInputSchema: z.ZodType<Prisma.PollUpdateManyMutationInput> = z.object({
-  id: z.union([ z.string().uuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  question: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  description: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  startDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  endDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  Archived: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
-  isPublic: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
-  ArchivedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  Deleted: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
-  DeletedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-}).strict();
-
-export const PollUncheckedUpdateManyInputSchema: z.ZodType<Prisma.PollUncheckedUpdateManyInput> = z.object({
-  id: z.union([ z.string().uuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  question: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  description: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  startDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  endDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  Archived: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
-  isPublic: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
-  ArchivedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  Deleted: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
-  DeletedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  categoryId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  newsItemId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-}).strict();
-
-export const BlogCreateInputSchema: z.ZodType<Prisma.BlogCreateInput> = z.object({
-  id: z.string().cuid().optional(),
-  title: z.string(),
-  content: z.string(),
-  titlePunch: z.string().optional().nullable(),
-  slug: z.string(),
-  seoDescription: z.string().optional().nullable(),
-  baseLanguage: z.string().optional(),
-  dateNews: z.coerce.date(),
-  readTime: z.number().int().optional().nullable(),
-  views: z.number().int().optional(),
-  dateCreated: z.coerce.date().optional(),
-  imagenSeo: z.lazy(() => ImageCreateNestedOneWithoutBlogImagenSeoInputSchema).optional(),
-  imagenCard: z.lazy(() => ImageCreateNestedOneWithoutBlogImagenCardInputSchema).optional(),
-  newsItem: z.lazy(() => NewsItemCreateNestedOneWithoutBlogInputSchema).optional(),
-  Image: z.lazy(() => ImageCreateNestedManyWithoutBlogInputSchema).optional(),
-  blogAuthors: z.lazy(() => BlogAuthorCreateNestedManyWithoutBlogInputSchema).optional(),
-  likes: z.lazy(() => BlogLikeCreateNestedManyWithoutBlogInputSchema).optional(),
-  tags: z.lazy(() => BlogTagCreateNestedManyWithoutBlogInputSchema).optional(),
-  Category: z.lazy(() => CategoryCreateNestedOneWithoutBlogInputSchema).optional(),
-  TranslationQueue: z.lazy(() => TranslationQueueCreateNestedManyWithoutBlogInputSchema).optional()
-}).strict();
-
-export const BlogUncheckedCreateInputSchema: z.ZodType<Prisma.BlogUncheckedCreateInput> = z.object({
-  id: z.string().cuid().optional(),
-  title: z.string(),
-  content: z.string(),
-  titlePunch: z.string().optional().nullable(),
-  slug: z.string(),
-  seoDescription: z.string().optional().nullable(),
-  baseLanguage: z.string().optional(),
-  imagenSeoId: z.string().optional().nullable(),
-  dateNews: z.coerce.date(),
-  imagenCardId: z.string().optional().nullable(),
-  newsItemId: z.string().optional().nullable(),
-  readTime: z.number().int().optional().nullable(),
-  views: z.number().int().optional(),
-  dateCreated: z.coerce.date().optional(),
-  categoryId: z.string().optional().nullable(),
-  Image: z.lazy(() => ImageUncheckedCreateNestedManyWithoutBlogInputSchema).optional(),
-  blogAuthors: z.lazy(() => BlogAuthorUncheckedCreateNestedManyWithoutBlogInputSchema).optional(),
-  likes: z.lazy(() => BlogLikeUncheckedCreateNestedManyWithoutBlogInputSchema).optional(),
-  tags: z.lazy(() => BlogTagUncheckedCreateNestedManyWithoutBlogInputSchema).optional(),
-  TranslationQueue: z.lazy(() => TranslationQueueUncheckedCreateNestedManyWithoutBlogInputSchema).optional()
-}).strict();
-
-export const BlogUpdateInputSchema: z.ZodType<Prisma.BlogUpdateInput> = z.object({
-  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  title: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  content: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  titlePunch: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  seoDescription: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  dateNews: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  readTime: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  views: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
-  dateCreated: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  imagenSeo: z.lazy(() => ImageUpdateOneWithoutBlogImagenSeoNestedInputSchema).optional(),
-  imagenCard: z.lazy(() => ImageUpdateOneWithoutBlogImagenCardNestedInputSchema).optional(),
-  newsItem: z.lazy(() => NewsItemUpdateOneWithoutBlogNestedInputSchema).optional(),
-  Image: z.lazy(() => ImageUpdateManyWithoutBlogNestedInputSchema).optional(),
-  blogAuthors: z.lazy(() => BlogAuthorUpdateManyWithoutBlogNestedInputSchema).optional(),
-  likes: z.lazy(() => BlogLikeUpdateManyWithoutBlogNestedInputSchema).optional(),
-  tags: z.lazy(() => BlogTagUpdateManyWithoutBlogNestedInputSchema).optional(),
-  Category: z.lazy(() => CategoryUpdateOneWithoutBlogNestedInputSchema).optional(),
-  TranslationQueue: z.lazy(() => TranslationQueueUpdateManyWithoutBlogNestedInputSchema).optional()
-}).strict();
-
-export const BlogUncheckedUpdateInputSchema: z.ZodType<Prisma.BlogUncheckedUpdateInput> = z.object({
-  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  title: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  content: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  titlePunch: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  seoDescription: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  imagenSeoId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  dateNews: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  imagenCardId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  newsItemId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  readTime: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  views: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
-  dateCreated: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  categoryId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  Image: z.lazy(() => ImageUncheckedUpdateManyWithoutBlogNestedInputSchema).optional(),
-  blogAuthors: z.lazy(() => BlogAuthorUncheckedUpdateManyWithoutBlogNestedInputSchema).optional(),
-  likes: z.lazy(() => BlogLikeUncheckedUpdateManyWithoutBlogNestedInputSchema).optional(),
-  tags: z.lazy(() => BlogTagUncheckedUpdateManyWithoutBlogNestedInputSchema).optional(),
-  TranslationQueue: z.lazy(() => TranslationQueueUncheckedUpdateManyWithoutBlogNestedInputSchema).optional()
-}).strict();
-
-export const BlogCreateManyInputSchema: z.ZodType<Prisma.BlogCreateManyInput> = z.object({
-  id: z.string().cuid().optional(),
-  title: z.string(),
-  content: z.string(),
-  titlePunch: z.string().optional().nullable(),
-  slug: z.string(),
-  seoDescription: z.string().optional().nullable(),
-  baseLanguage: z.string().optional(),
-  imagenSeoId: z.string().optional().nullable(),
-  dateNews: z.coerce.date(),
-  imagenCardId: z.string().optional().nullable(),
-  newsItemId: z.string().optional().nullable(),
-  readTime: z.number().int().optional().nullable(),
-  views: z.number().int().optional(),
-  dateCreated: z.coerce.date().optional(),
-  categoryId: z.string().optional().nullable()
-}).strict();
-
-export const BlogUpdateManyMutationInputSchema: z.ZodType<Prisma.BlogUpdateManyMutationInput> = z.object({
-  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  title: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  content: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  titlePunch: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  seoDescription: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  dateNews: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  readTime: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  views: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
-  dateCreated: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-}).strict();
-
-export const BlogUncheckedUpdateManyInputSchema: z.ZodType<Prisma.BlogUncheckedUpdateManyInput> = z.object({
-  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  title: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  content: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  titlePunch: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  seoDescription: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  imagenSeoId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  dateNews: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  imagenCardId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  newsItemId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  readTime: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  views: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
-  dateCreated: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  categoryId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-}).strict();
-
-export const TagCreateInputSchema: z.ZodType<Prisma.TagCreateInput> = z.object({
-  id: z.string().cuid().optional(),
-  name: z.string(),
-  slug: z.string(),
-  description: z.string().optional().nullable(),
-  baseLanguage: z.string().optional(),
-  blogs: z.lazy(() => BlogTagCreateNestedManyWithoutTagInputSchema).optional()
-}).strict();
-
-export const TagUncheckedCreateInputSchema: z.ZodType<Prisma.TagUncheckedCreateInput> = z.object({
-  id: z.string().cuid().optional(),
-  name: z.string(),
-  slug: z.string(),
-  description: z.string().optional().nullable(),
-  baseLanguage: z.string().optional(),
-  blogs: z.lazy(() => BlogTagUncheckedCreateNestedManyWithoutTagInputSchema).optional()
-}).strict();
-
-export const TagUpdateInputSchema: z.ZodType<Prisma.TagUpdateInput> = z.object({
-  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  name: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  description: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  blogs: z.lazy(() => BlogTagUpdateManyWithoutTagNestedInputSchema).optional()
-}).strict();
-
-export const TagUncheckedUpdateInputSchema: z.ZodType<Prisma.TagUncheckedUpdateInput> = z.object({
-  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  name: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  description: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  blogs: z.lazy(() => BlogTagUncheckedUpdateManyWithoutTagNestedInputSchema).optional()
-}).strict();
-
-export const TagCreateManyInputSchema: z.ZodType<Prisma.TagCreateManyInput> = z.object({
-  id: z.string().cuid().optional(),
-  name: z.string(),
-  slug: z.string(),
-  description: z.string().optional().nullable(),
-  baseLanguage: z.string().optional()
-}).strict();
-
-export const TagUpdateManyMutationInputSchema: z.ZodType<Prisma.TagUpdateManyMutationInput> = z.object({
-  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  name: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  description: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-}).strict();
-
-export const TagUncheckedUpdateManyInputSchema: z.ZodType<Prisma.TagUncheckedUpdateManyInput> = z.object({
-  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  name: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  description: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
 }).strict();
 
 export const BlogTagCreateInputSchema: z.ZodType<Prisma.BlogTagCreateInput> = z.object({
@@ -4863,6 +5003,14 @@ export const StringFilterSchema: z.ZodType<Prisma.StringFilter> = z.object({
   not: z.union([ z.string(),z.lazy(() => NestedStringFilterSchema) ]).optional(),
 }).strict();
 
+export const StringNullableListFilterSchema: z.ZodType<Prisma.StringNullableListFilter> = z.object({
+  equals: z.string().array().optional().nullable(),
+  has: z.string().optional().nullable(),
+  hasEvery: z.string().array().optional(),
+  hasSome: z.string().array().optional(),
+  isEmpty: z.boolean().optional()
+}).strict();
+
 export const DateTimeFilterSchema: z.ZodType<Prisma.DateTimeFilter> = z.object({
   equals: z.coerce.date().optional(),
   in: z.coerce.date().array().optional(),
@@ -4874,42 +5022,32 @@ export const DateTimeFilterSchema: z.ZodType<Prisma.DateTimeFilter> = z.object({
   not: z.union([ z.coerce.date(),z.lazy(() => NestedDateTimeFilterSchema) ]).optional(),
 }).strict();
 
-export const TranslationEntityTypeEntityIdLanguageFieldCompoundUniqueInputSchema: z.ZodType<Prisma.TranslationEntityTypeEntityIdLanguageFieldCompoundUniqueInput> = z.object({
-  entityType: z.string(),
-  entityId: z.string(),
-  language: z.string(),
-  field: z.string()
+export const TranslationOriginalEntityIdEntityTypeCompoundUniqueInputSchema: z.ZodType<Prisma.TranslationOriginalEntityIdEntityTypeCompoundUniqueInput> = z.object({
+  originalEntityId: z.string(),
+  entityType: z.string()
 }).strict();
 
 export const TranslationCountOrderByAggregateInputSchema: z.ZodType<Prisma.TranslationCountOrderByAggregateInput> = z.object({
   id: z.lazy(() => SortOrderSchema).optional(),
+  originalEntityId: z.lazy(() => SortOrderSchema).optional(),
   entityType: z.lazy(() => SortOrderSchema).optional(),
-  entityId: z.lazy(() => SortOrderSchema).optional(),
-  language: z.lazy(() => SortOrderSchema).optional(),
-  field: z.lazy(() => SortOrderSchema).optional(),
-  value: z.lazy(() => SortOrderSchema).optional(),
+  translatedIds: z.lazy(() => SortOrderSchema).optional(),
   createdAt: z.lazy(() => SortOrderSchema).optional(),
   updatedAt: z.lazy(() => SortOrderSchema).optional()
 }).strict();
 
 export const TranslationMaxOrderByAggregateInputSchema: z.ZodType<Prisma.TranslationMaxOrderByAggregateInput> = z.object({
   id: z.lazy(() => SortOrderSchema).optional(),
+  originalEntityId: z.lazy(() => SortOrderSchema).optional(),
   entityType: z.lazy(() => SortOrderSchema).optional(),
-  entityId: z.lazy(() => SortOrderSchema).optional(),
-  language: z.lazy(() => SortOrderSchema).optional(),
-  field: z.lazy(() => SortOrderSchema).optional(),
-  value: z.lazy(() => SortOrderSchema).optional(),
   createdAt: z.lazy(() => SortOrderSchema).optional(),
   updatedAt: z.lazy(() => SortOrderSchema).optional()
 }).strict();
 
 export const TranslationMinOrderByAggregateInputSchema: z.ZodType<Prisma.TranslationMinOrderByAggregateInput> = z.object({
   id: z.lazy(() => SortOrderSchema).optional(),
+  originalEntityId: z.lazy(() => SortOrderSchema).optional(),
   entityType: z.lazy(() => SortOrderSchema).optional(),
-  entityId: z.lazy(() => SortOrderSchema).optional(),
-  language: z.lazy(() => SortOrderSchema).optional(),
-  field: z.lazy(() => SortOrderSchema).optional(),
-  value: z.lazy(() => SortOrderSchema).optional(),
   createdAt: z.lazy(() => SortOrderSchema).optional(),
   updatedAt: z.lazy(() => SortOrderSchema).optional()
 }).strict();
@@ -4961,6 +5099,338 @@ export const StringNullableFilterSchema: z.ZodType<Prisma.StringNullableFilter> 
   not: z.union([ z.string(),z.lazy(() => NestedStringNullableFilterSchema) ]).optional().nullable(),
 }).strict();
 
+export const BoolFilterSchema: z.ZodType<Prisma.BoolFilter> = z.object({
+  equals: z.boolean().optional(),
+  not: z.union([ z.boolean(),z.lazy(() => NestedBoolFilterSchema) ]).optional(),
+}).strict();
+
+export const IntNullableFilterSchema: z.ZodType<Prisma.IntNullableFilter> = z.object({
+  equals: z.number().optional().nullable(),
+  in: z.number().array().optional().nullable(),
+  notIn: z.number().array().optional().nullable(),
+  lt: z.number().optional(),
+  lte: z.number().optional(),
+  gt: z.number().optional(),
+  gte: z.number().optional(),
+  not: z.union([ z.number(),z.lazy(() => NestedIntNullableFilterSchema) ]).optional().nullable(),
+}).strict();
+
+export const IntFilterSchema: z.ZodType<Prisma.IntFilter> = z.object({
+  equals: z.number().optional(),
+  in: z.number().array().optional(),
+  notIn: z.number().array().optional(),
+  lt: z.number().optional(),
+  lte: z.number().optional(),
+  gt: z.number().optional(),
+  gte: z.number().optional(),
+  not: z.union([ z.number(),z.lazy(() => NestedIntFilterSchema) ]).optional(),
+}).strict();
+
+export const BlogNullableScalarRelationFilterSchema: z.ZodType<Prisma.BlogNullableScalarRelationFilter> = z.object({
+  is: z.lazy(() => BlogWhereInputSchema).optional().nullable(),
+  isNot: z.lazy(() => BlogWhereInputSchema).optional().nullable()
+}).strict();
+
+export const BlogListRelationFilterSchema: z.ZodType<Prisma.BlogListRelationFilter> = z.object({
+  every: z.lazy(() => BlogWhereInputSchema).optional(),
+  some: z.lazy(() => BlogWhereInputSchema).optional(),
+  none: z.lazy(() => BlogWhereInputSchema).optional()
+}).strict();
+
+export const ImageNullableScalarRelationFilterSchema: z.ZodType<Prisma.ImageNullableScalarRelationFilter> = z.object({
+  is: z.lazy(() => ImageWhereInputSchema).optional().nullable(),
+  isNot: z.lazy(() => ImageWhereInputSchema).optional().nullable()
+}).strict();
+
+export const NewsItemNullableScalarRelationFilterSchema: z.ZodType<Prisma.NewsItemNullableScalarRelationFilter> = z.object({
+  is: z.lazy(() => NewsItemWhereInputSchema).optional().nullable(),
+  isNot: z.lazy(() => NewsItemWhereInputSchema).optional().nullable()
+}).strict();
+
+export const ImageListRelationFilterSchema: z.ZodType<Prisma.ImageListRelationFilter> = z.object({
+  every: z.lazy(() => ImageWhereInputSchema).optional(),
+  some: z.lazy(() => ImageWhereInputSchema).optional(),
+  none: z.lazy(() => ImageWhereInputSchema).optional()
+}).strict();
+
+export const BlogAuthorListRelationFilterSchema: z.ZodType<Prisma.BlogAuthorListRelationFilter> = z.object({
+  every: z.lazy(() => BlogAuthorWhereInputSchema).optional(),
+  some: z.lazy(() => BlogAuthorWhereInputSchema).optional(),
+  none: z.lazy(() => BlogAuthorWhereInputSchema).optional()
+}).strict();
+
+export const BlogLikeListRelationFilterSchema: z.ZodType<Prisma.BlogLikeListRelationFilter> = z.object({
+  every: z.lazy(() => BlogLikeWhereInputSchema).optional(),
+  some: z.lazy(() => BlogLikeWhereInputSchema).optional(),
+  none: z.lazy(() => BlogLikeWhereInputSchema).optional()
+}).strict();
+
+export const BlogTagListRelationFilterSchema: z.ZodType<Prisma.BlogTagListRelationFilter> = z.object({
+  every: z.lazy(() => BlogTagWhereInputSchema).optional(),
+  some: z.lazy(() => BlogTagWhereInputSchema).optional(),
+  none: z.lazy(() => BlogTagWhereInputSchema).optional()
+}).strict();
+
+export const CategoryNullableScalarRelationFilterSchema: z.ZodType<Prisma.CategoryNullableScalarRelationFilter> = z.object({
+  is: z.lazy(() => CategoryWhereInputSchema).optional().nullable(),
+  isNot: z.lazy(() => CategoryWhereInputSchema).optional().nullable()
+}).strict();
+
+export const TranslationQueueListRelationFilterSchema: z.ZodType<Prisma.TranslationQueueListRelationFilter> = z.object({
+  every: z.lazy(() => TranslationQueueWhereInputSchema).optional(),
+  some: z.lazy(() => TranslationQueueWhereInputSchema).optional(),
+  none: z.lazy(() => TranslationQueueWhereInputSchema).optional()
+}).strict();
+
+export const SortOrderInputSchema: z.ZodType<Prisma.SortOrderInput> = z.object({
+  sort: z.lazy(() => SortOrderSchema),
+  nulls: z.lazy(() => NullsOrderSchema).optional()
+}).strict();
+
+export const BlogOrderByRelationAggregateInputSchema: z.ZodType<Prisma.BlogOrderByRelationAggregateInput> = z.object({
+  _count: z.lazy(() => SortOrderSchema).optional()
+}).strict();
+
+export const ImageOrderByRelationAggregateInputSchema: z.ZodType<Prisma.ImageOrderByRelationAggregateInput> = z.object({
+  _count: z.lazy(() => SortOrderSchema).optional()
+}).strict();
+
+export const BlogAuthorOrderByRelationAggregateInputSchema: z.ZodType<Prisma.BlogAuthorOrderByRelationAggregateInput> = z.object({
+  _count: z.lazy(() => SortOrderSchema).optional()
+}).strict();
+
+export const BlogLikeOrderByRelationAggregateInputSchema: z.ZodType<Prisma.BlogLikeOrderByRelationAggregateInput> = z.object({
+  _count: z.lazy(() => SortOrderSchema).optional()
+}).strict();
+
+export const BlogTagOrderByRelationAggregateInputSchema: z.ZodType<Prisma.BlogTagOrderByRelationAggregateInput> = z.object({
+  _count: z.lazy(() => SortOrderSchema).optional()
+}).strict();
+
+export const TranslationQueueOrderByRelationAggregateInputSchema: z.ZodType<Prisma.TranslationQueueOrderByRelationAggregateInput> = z.object({
+  _count: z.lazy(() => SortOrderSchema).optional()
+}).strict();
+
+export const BlogCountOrderByAggregateInputSchema: z.ZodType<Prisma.BlogCountOrderByAggregateInput> = z.object({
+  id: z.lazy(() => SortOrderSchema).optional(),
+  title: z.lazy(() => SortOrderSchema).optional(),
+  content: z.lazy(() => SortOrderSchema).optional(),
+  titlePunch: z.lazy(() => SortOrderSchema).optional(),
+  slug: z.lazy(() => SortOrderSchema).optional(),
+  seoDescription: z.lazy(() => SortOrderSchema).optional(),
+  baseLanguage: z.lazy(() => SortOrderSchema).optional(),
+  isTranslation: z.lazy(() => SortOrderSchema).optional(),
+  originalBlogId: z.lazy(() => SortOrderSchema).optional(),
+  imagenSeoId: z.lazy(() => SortOrderSchema).optional(),
+  dateNews: z.lazy(() => SortOrderSchema).optional(),
+  imagenCardId: z.lazy(() => SortOrderSchema).optional(),
+  newsItemId: z.lazy(() => SortOrderSchema).optional(),
+  readTime: z.lazy(() => SortOrderSchema).optional(),
+  views: z.lazy(() => SortOrderSchema).optional(),
+  dateCreated: z.lazy(() => SortOrderSchema).optional(),
+  categoryId: z.lazy(() => SortOrderSchema).optional()
+}).strict();
+
+export const BlogAvgOrderByAggregateInputSchema: z.ZodType<Prisma.BlogAvgOrderByAggregateInput> = z.object({
+  readTime: z.lazy(() => SortOrderSchema).optional(),
+  views: z.lazy(() => SortOrderSchema).optional()
+}).strict();
+
+export const BlogMaxOrderByAggregateInputSchema: z.ZodType<Prisma.BlogMaxOrderByAggregateInput> = z.object({
+  id: z.lazy(() => SortOrderSchema).optional(),
+  title: z.lazy(() => SortOrderSchema).optional(),
+  content: z.lazy(() => SortOrderSchema).optional(),
+  titlePunch: z.lazy(() => SortOrderSchema).optional(),
+  slug: z.lazy(() => SortOrderSchema).optional(),
+  seoDescription: z.lazy(() => SortOrderSchema).optional(),
+  baseLanguage: z.lazy(() => SortOrderSchema).optional(),
+  isTranslation: z.lazy(() => SortOrderSchema).optional(),
+  originalBlogId: z.lazy(() => SortOrderSchema).optional(),
+  imagenSeoId: z.lazy(() => SortOrderSchema).optional(),
+  dateNews: z.lazy(() => SortOrderSchema).optional(),
+  imagenCardId: z.lazy(() => SortOrderSchema).optional(),
+  newsItemId: z.lazy(() => SortOrderSchema).optional(),
+  readTime: z.lazy(() => SortOrderSchema).optional(),
+  views: z.lazy(() => SortOrderSchema).optional(),
+  dateCreated: z.lazy(() => SortOrderSchema).optional(),
+  categoryId: z.lazy(() => SortOrderSchema).optional()
+}).strict();
+
+export const BlogMinOrderByAggregateInputSchema: z.ZodType<Prisma.BlogMinOrderByAggregateInput> = z.object({
+  id: z.lazy(() => SortOrderSchema).optional(),
+  title: z.lazy(() => SortOrderSchema).optional(),
+  content: z.lazy(() => SortOrderSchema).optional(),
+  titlePunch: z.lazy(() => SortOrderSchema).optional(),
+  slug: z.lazy(() => SortOrderSchema).optional(),
+  seoDescription: z.lazy(() => SortOrderSchema).optional(),
+  baseLanguage: z.lazy(() => SortOrderSchema).optional(),
+  isTranslation: z.lazy(() => SortOrderSchema).optional(),
+  originalBlogId: z.lazy(() => SortOrderSchema).optional(),
+  imagenSeoId: z.lazy(() => SortOrderSchema).optional(),
+  dateNews: z.lazy(() => SortOrderSchema).optional(),
+  imagenCardId: z.lazy(() => SortOrderSchema).optional(),
+  newsItemId: z.lazy(() => SortOrderSchema).optional(),
+  readTime: z.lazy(() => SortOrderSchema).optional(),
+  views: z.lazy(() => SortOrderSchema).optional(),
+  dateCreated: z.lazy(() => SortOrderSchema).optional(),
+  categoryId: z.lazy(() => SortOrderSchema).optional()
+}).strict();
+
+export const BlogSumOrderByAggregateInputSchema: z.ZodType<Prisma.BlogSumOrderByAggregateInput> = z.object({
+  readTime: z.lazy(() => SortOrderSchema).optional(),
+  views: z.lazy(() => SortOrderSchema).optional()
+}).strict();
+
+export const StringNullableWithAggregatesFilterSchema: z.ZodType<Prisma.StringNullableWithAggregatesFilter> = z.object({
+  equals: z.string().optional().nullable(),
+  in: z.string().array().optional().nullable(),
+  notIn: z.string().array().optional().nullable(),
+  lt: z.string().optional(),
+  lte: z.string().optional(),
+  gt: z.string().optional(),
+  gte: z.string().optional(),
+  contains: z.string().optional(),
+  startsWith: z.string().optional(),
+  endsWith: z.string().optional(),
+  mode: z.lazy(() => QueryModeSchema).optional(),
+  not: z.union([ z.string(),z.lazy(() => NestedStringNullableWithAggregatesFilterSchema) ]).optional().nullable(),
+  _count: z.lazy(() => NestedIntNullableFilterSchema).optional(),
+  _min: z.lazy(() => NestedStringNullableFilterSchema).optional(),
+  _max: z.lazy(() => NestedStringNullableFilterSchema).optional()
+}).strict();
+
+export const BoolWithAggregatesFilterSchema: z.ZodType<Prisma.BoolWithAggregatesFilter> = z.object({
+  equals: z.boolean().optional(),
+  not: z.union([ z.boolean(),z.lazy(() => NestedBoolWithAggregatesFilterSchema) ]).optional(),
+  _count: z.lazy(() => NestedIntFilterSchema).optional(),
+  _min: z.lazy(() => NestedBoolFilterSchema).optional(),
+  _max: z.lazy(() => NestedBoolFilterSchema).optional()
+}).strict();
+
+export const IntNullableWithAggregatesFilterSchema: z.ZodType<Prisma.IntNullableWithAggregatesFilter> = z.object({
+  equals: z.number().optional().nullable(),
+  in: z.number().array().optional().nullable(),
+  notIn: z.number().array().optional().nullable(),
+  lt: z.number().optional(),
+  lte: z.number().optional(),
+  gt: z.number().optional(),
+  gte: z.number().optional(),
+  not: z.union([ z.number(),z.lazy(() => NestedIntNullableWithAggregatesFilterSchema) ]).optional().nullable(),
+  _count: z.lazy(() => NestedIntNullableFilterSchema).optional(),
+  _avg: z.lazy(() => NestedFloatNullableFilterSchema).optional(),
+  _sum: z.lazy(() => NestedIntNullableFilterSchema).optional(),
+  _min: z.lazy(() => NestedIntNullableFilterSchema).optional(),
+  _max: z.lazy(() => NestedIntNullableFilterSchema).optional()
+}).strict();
+
+export const IntWithAggregatesFilterSchema: z.ZodType<Prisma.IntWithAggregatesFilter> = z.object({
+  equals: z.number().optional(),
+  in: z.number().array().optional(),
+  notIn: z.number().array().optional(),
+  lt: z.number().optional(),
+  lte: z.number().optional(),
+  gt: z.number().optional(),
+  gte: z.number().optional(),
+  not: z.union([ z.number(),z.lazy(() => NestedIntWithAggregatesFilterSchema) ]).optional(),
+  _count: z.lazy(() => NestedIntFilterSchema).optional(),
+  _avg: z.lazy(() => NestedFloatFilterSchema).optional(),
+  _sum: z.lazy(() => NestedIntFilterSchema).optional(),
+  _min: z.lazy(() => NestedIntFilterSchema).optional(),
+  _max: z.lazy(() => NestedIntFilterSchema).optional()
+}).strict();
+
+export const CategoryListRelationFilterSchema: z.ZodType<Prisma.CategoryListRelationFilter> = z.object({
+  every: z.lazy(() => CategoryWhereInputSchema).optional(),
+  some: z.lazy(() => CategoryWhereInputSchema).optional(),
+  none: z.lazy(() => CategoryWhereInputSchema).optional()
+}).strict();
+
+export const PollListRelationFilterSchema: z.ZodType<Prisma.PollListRelationFilter> = z.object({
+  every: z.lazy(() => PollWhereInputSchema).optional(),
+  some: z.lazy(() => PollWhereInputSchema).optional(),
+  none: z.lazy(() => PollWhereInputSchema).optional()
+}).strict();
+
+export const CategoryOrderByRelationAggregateInputSchema: z.ZodType<Prisma.CategoryOrderByRelationAggregateInput> = z.object({
+  _count: z.lazy(() => SortOrderSchema).optional()
+}).strict();
+
+export const PollOrderByRelationAggregateInputSchema: z.ZodType<Prisma.PollOrderByRelationAggregateInput> = z.object({
+  _count: z.lazy(() => SortOrderSchema).optional()
+}).strict();
+
+export const CategoryCountOrderByAggregateInputSchema: z.ZodType<Prisma.CategoryCountOrderByAggregateInput> = z.object({
+  id: z.lazy(() => SortOrderSchema).optional(),
+  name: z.lazy(() => SortOrderSchema).optional(),
+  slug: z.lazy(() => SortOrderSchema).optional(),
+  baseLanguage: z.lazy(() => SortOrderSchema).optional(),
+  isTranslation: z.lazy(() => SortOrderSchema).optional(),
+  originalCategoryId: z.lazy(() => SortOrderSchema).optional()
+}).strict();
+
+export const CategoryMaxOrderByAggregateInputSchema: z.ZodType<Prisma.CategoryMaxOrderByAggregateInput> = z.object({
+  id: z.lazy(() => SortOrderSchema).optional(),
+  name: z.lazy(() => SortOrderSchema).optional(),
+  slug: z.lazy(() => SortOrderSchema).optional(),
+  baseLanguage: z.lazy(() => SortOrderSchema).optional(),
+  isTranslation: z.lazy(() => SortOrderSchema).optional(),
+  originalCategoryId: z.lazy(() => SortOrderSchema).optional()
+}).strict();
+
+export const CategoryMinOrderByAggregateInputSchema: z.ZodType<Prisma.CategoryMinOrderByAggregateInput> = z.object({
+  id: z.lazy(() => SortOrderSchema).optional(),
+  name: z.lazy(() => SortOrderSchema).optional(),
+  slug: z.lazy(() => SortOrderSchema).optional(),
+  baseLanguage: z.lazy(() => SortOrderSchema).optional(),
+  isTranslation: z.lazy(() => SortOrderSchema).optional(),
+  originalCategoryId: z.lazy(() => SortOrderSchema).optional()
+}).strict();
+
+export const TagNullableScalarRelationFilterSchema: z.ZodType<Prisma.TagNullableScalarRelationFilter> = z.object({
+  is: z.lazy(() => TagWhereInputSchema).optional().nullable(),
+  isNot: z.lazy(() => TagWhereInputSchema).optional().nullable()
+}).strict();
+
+export const TagListRelationFilterSchema: z.ZodType<Prisma.TagListRelationFilter> = z.object({
+  every: z.lazy(() => TagWhereInputSchema).optional(),
+  some: z.lazy(() => TagWhereInputSchema).optional(),
+  none: z.lazy(() => TagWhereInputSchema).optional()
+}).strict();
+
+export const TagOrderByRelationAggregateInputSchema: z.ZodType<Prisma.TagOrderByRelationAggregateInput> = z.object({
+  _count: z.lazy(() => SortOrderSchema).optional()
+}).strict();
+
+export const TagCountOrderByAggregateInputSchema: z.ZodType<Prisma.TagCountOrderByAggregateInput> = z.object({
+  id: z.lazy(() => SortOrderSchema).optional(),
+  name: z.lazy(() => SortOrderSchema).optional(),
+  slug: z.lazy(() => SortOrderSchema).optional(),
+  description: z.lazy(() => SortOrderSchema).optional(),
+  baseLanguage: z.lazy(() => SortOrderSchema).optional(),
+  isTranslation: z.lazy(() => SortOrderSchema).optional(),
+  originalTagId: z.lazy(() => SortOrderSchema).optional()
+}).strict();
+
+export const TagMaxOrderByAggregateInputSchema: z.ZodType<Prisma.TagMaxOrderByAggregateInput> = z.object({
+  id: z.lazy(() => SortOrderSchema).optional(),
+  name: z.lazy(() => SortOrderSchema).optional(),
+  slug: z.lazy(() => SortOrderSchema).optional(),
+  description: z.lazy(() => SortOrderSchema).optional(),
+  baseLanguage: z.lazy(() => SortOrderSchema).optional(),
+  isTranslation: z.lazy(() => SortOrderSchema).optional(),
+  originalTagId: z.lazy(() => SortOrderSchema).optional()
+}).strict();
+
+export const TagMinOrderByAggregateInputSchema: z.ZodType<Prisma.TagMinOrderByAggregateInput> = z.object({
+  id: z.lazy(() => SortOrderSchema).optional(),
+  name: z.lazy(() => SortOrderSchema).optional(),
+  slug: z.lazy(() => SortOrderSchema).optional(),
+  description: z.lazy(() => SortOrderSchema).optional(),
+  baseLanguage: z.lazy(() => SortOrderSchema).optional(),
+  isTranslation: z.lazy(() => SortOrderSchema).optional(),
+  originalTagId: z.lazy(() => SortOrderSchema).optional()
+}).strict();
+
 export const DateTimeNullableFilterSchema: z.ZodType<Prisma.DateTimeNullableFilter> = z.object({
   equals: z.coerce.date().optional().nullable(),
   in: z.coerce.date().array().optional().nullable(),
@@ -4972,9 +5442,108 @@ export const DateTimeNullableFilterSchema: z.ZodType<Prisma.DateTimeNullableFilt
   not: z.union([ z.coerce.date(),z.lazy(() => NestedDateTimeNullableFilterSchema) ]).optional().nullable(),
 }).strict();
 
-export const BoolFilterSchema: z.ZodType<Prisma.BoolFilter> = z.object({
-  equals: z.boolean().optional(),
-  not: z.union([ z.boolean(),z.lazy(() => NestedBoolFilterSchema) ]).optional(),
+export const PollNullableScalarRelationFilterSchema: z.ZodType<Prisma.PollNullableScalarRelationFilter> = z.object({
+  is: z.lazy(() => PollWhereInputSchema).optional().nullable(),
+  isNot: z.lazy(() => PollWhereInputSchema).optional().nullable()
+}).strict();
+
+export const CategoryScalarRelationFilterSchema: z.ZodType<Prisma.CategoryScalarRelationFilter> = z.object({
+  is: z.lazy(() => CategoryWhereInputSchema).optional(),
+  isNot: z.lazy(() => CategoryWhereInputSchema).optional()
+}).strict();
+
+export const PollOptionListRelationFilterSchema: z.ZodType<Prisma.PollOptionListRelationFilter> = z.object({
+  every: z.lazy(() => PollOptionWhereInputSchema).optional(),
+  some: z.lazy(() => PollOptionWhereInputSchema).optional(),
+  none: z.lazy(() => PollOptionWhereInputSchema).optional()
+}).strict();
+
+export const VoteListRelationFilterSchema: z.ZodType<Prisma.VoteListRelationFilter> = z.object({
+  every: z.lazy(() => VoteWhereInputSchema).optional(),
+  some: z.lazy(() => VoteWhereInputSchema).optional(),
+  none: z.lazy(() => VoteWhereInputSchema).optional()
+}).strict();
+
+export const PollOptionOrderByRelationAggregateInputSchema: z.ZodType<Prisma.PollOptionOrderByRelationAggregateInput> = z.object({
+  _count: z.lazy(() => SortOrderSchema).optional()
+}).strict();
+
+export const VoteOrderByRelationAggregateInputSchema: z.ZodType<Prisma.VoteOrderByRelationAggregateInput> = z.object({
+  _count: z.lazy(() => SortOrderSchema).optional()
+}).strict();
+
+export const PollCountOrderByAggregateInputSchema: z.ZodType<Prisma.PollCountOrderByAggregateInput> = z.object({
+  id: z.lazy(() => SortOrderSchema).optional(),
+  question: z.lazy(() => SortOrderSchema).optional(),
+  slug: z.lazy(() => SortOrderSchema).optional(),
+  description: z.lazy(() => SortOrderSchema).optional(),
+  baseLanguage: z.lazy(() => SortOrderSchema).optional(),
+  isTranslation: z.lazy(() => SortOrderSchema).optional(),
+  originalPollId: z.lazy(() => SortOrderSchema).optional(),
+  startDate: z.lazy(() => SortOrderSchema).optional(),
+  endDate: z.lazy(() => SortOrderSchema).optional(),
+  createdAt: z.lazy(() => SortOrderSchema).optional(),
+  Archived: z.lazy(() => SortOrderSchema).optional(),
+  isPublic: z.lazy(() => SortOrderSchema).optional(),
+  ArchivedAt: z.lazy(() => SortOrderSchema).optional(),
+  Deleted: z.lazy(() => SortOrderSchema).optional(),
+  DeletedAt: z.lazy(() => SortOrderSchema).optional(),
+  categoryId: z.lazy(() => SortOrderSchema).optional(),
+  newsItemId: z.lazy(() => SortOrderSchema).optional()
+}).strict();
+
+export const PollMaxOrderByAggregateInputSchema: z.ZodType<Prisma.PollMaxOrderByAggregateInput> = z.object({
+  id: z.lazy(() => SortOrderSchema).optional(),
+  question: z.lazy(() => SortOrderSchema).optional(),
+  slug: z.lazy(() => SortOrderSchema).optional(),
+  description: z.lazy(() => SortOrderSchema).optional(),
+  baseLanguage: z.lazy(() => SortOrderSchema).optional(),
+  isTranslation: z.lazy(() => SortOrderSchema).optional(),
+  originalPollId: z.lazy(() => SortOrderSchema).optional(),
+  startDate: z.lazy(() => SortOrderSchema).optional(),
+  endDate: z.lazy(() => SortOrderSchema).optional(),
+  createdAt: z.lazy(() => SortOrderSchema).optional(),
+  Archived: z.lazy(() => SortOrderSchema).optional(),
+  isPublic: z.lazy(() => SortOrderSchema).optional(),
+  ArchivedAt: z.lazy(() => SortOrderSchema).optional(),
+  Deleted: z.lazy(() => SortOrderSchema).optional(),
+  DeletedAt: z.lazy(() => SortOrderSchema).optional(),
+  categoryId: z.lazy(() => SortOrderSchema).optional(),
+  newsItemId: z.lazy(() => SortOrderSchema).optional()
+}).strict();
+
+export const PollMinOrderByAggregateInputSchema: z.ZodType<Prisma.PollMinOrderByAggregateInput> = z.object({
+  id: z.lazy(() => SortOrderSchema).optional(),
+  question: z.lazy(() => SortOrderSchema).optional(),
+  slug: z.lazy(() => SortOrderSchema).optional(),
+  description: z.lazy(() => SortOrderSchema).optional(),
+  baseLanguage: z.lazy(() => SortOrderSchema).optional(),
+  isTranslation: z.lazy(() => SortOrderSchema).optional(),
+  originalPollId: z.lazy(() => SortOrderSchema).optional(),
+  startDate: z.lazy(() => SortOrderSchema).optional(),
+  endDate: z.lazy(() => SortOrderSchema).optional(),
+  createdAt: z.lazy(() => SortOrderSchema).optional(),
+  Archived: z.lazy(() => SortOrderSchema).optional(),
+  isPublic: z.lazy(() => SortOrderSchema).optional(),
+  ArchivedAt: z.lazy(() => SortOrderSchema).optional(),
+  Deleted: z.lazy(() => SortOrderSchema).optional(),
+  DeletedAt: z.lazy(() => SortOrderSchema).optional(),
+  categoryId: z.lazy(() => SortOrderSchema).optional(),
+  newsItemId: z.lazy(() => SortOrderSchema).optional()
+}).strict();
+
+export const DateTimeNullableWithAggregatesFilterSchema: z.ZodType<Prisma.DateTimeNullableWithAggregatesFilter> = z.object({
+  equals: z.coerce.date().optional().nullable(),
+  in: z.coerce.date().array().optional().nullable(),
+  notIn: z.coerce.date().array().optional().nullable(),
+  lt: z.coerce.date().optional(),
+  lte: z.coerce.date().optional(),
+  gt: z.coerce.date().optional(),
+  gte: z.coerce.date().optional(),
+  not: z.union([ z.coerce.date(),z.lazy(() => NestedDateTimeNullableWithAggregatesFilterSchema) ]).optional().nullable(),
+  _count: z.lazy(() => NestedIntNullableFilterSchema).optional(),
+  _min: z.lazy(() => NestedDateTimeNullableFilterSchema).optional(),
+  _max: z.lazy(() => NestedDateTimeNullableFilterSchema).optional()
 }).strict();
 
 export const EnumRoleFilterSchema: z.ZodType<Prisma.EnumRoleFilter> = z.object({
@@ -4982,14 +5551,6 @@ export const EnumRoleFilterSchema: z.ZodType<Prisma.EnumRoleFilter> = z.object({
   in: z.lazy(() => RoleSchema).array().optional(),
   notIn: z.lazy(() => RoleSchema).array().optional(),
   not: z.union([ z.lazy(() => RoleSchema),z.lazy(() => NestedEnumRoleFilterSchema) ]).optional(),
-}).strict();
-
-export const StringNullableListFilterSchema: z.ZodType<Prisma.StringNullableListFilter> = z.object({
-  equals: z.string().array().optional().nullable(),
-  has: z.string().optional().nullable(),
-  hasEvery: z.string().array().optional(),
-  hasSome: z.string().array().optional(),
-  isEmpty: z.boolean().optional()
 }).strict();
 
 export const AccountListRelationFilterSchema: z.ZodType<Prisma.AccountListRelationFilter> = z.object({
@@ -5004,33 +5565,15 @@ export const SessionListRelationFilterSchema: z.ZodType<Prisma.SessionListRelati
   none: z.lazy(() => SessionWhereInputSchema).optional()
 }).strict();
 
-export const VoteListRelationFilterSchema: z.ZodType<Prisma.VoteListRelationFilter> = z.object({
-  every: z.lazy(() => VoteWhereInputSchema).optional(),
-  some: z.lazy(() => VoteWhereInputSchema).optional(),
-  none: z.lazy(() => VoteWhereInputSchema).optional()
-}).strict();
-
 export const InfoNullableScalarRelationFilterSchema: z.ZodType<Prisma.InfoNullableScalarRelationFilter> = z.object({
   is: z.lazy(() => InfoWhereInputSchema).optional().nullable(),
   isNot: z.lazy(() => InfoWhereInputSchema).optional().nullable()
-}).strict();
-
-export const BlogLikeListRelationFilterSchema: z.ZodType<Prisma.BlogLikeListRelationFilter> = z.object({
-  every: z.lazy(() => BlogLikeWhereInputSchema).optional(),
-  some: z.lazy(() => BlogLikeWhereInputSchema).optional(),
-  none: z.lazy(() => BlogLikeWhereInputSchema).optional()
 }).strict();
 
 export const AuthorListRelationFilterSchema: z.ZodType<Prisma.AuthorListRelationFilter> = z.object({
   every: z.lazy(() => AuthorWhereInputSchema).optional(),
   some: z.lazy(() => AuthorWhereInputSchema).optional(),
   none: z.lazy(() => AuthorWhereInputSchema).optional()
-}).strict();
-
-export const ImageListRelationFilterSchema: z.ZodType<Prisma.ImageListRelationFilter> = z.object({
-  every: z.lazy(() => ImageWhereInputSchema).optional(),
-  some: z.lazy(() => ImageWhereInputSchema).optional(),
-  none: z.lazy(() => ImageWhereInputSchema).optional()
 }).strict();
 
 export const SocialMediaListRelationFilterSchema: z.ZodType<Prisma.SocialMediaListRelationFilter> = z.object({
@@ -5045,11 +5588,6 @@ export const ReadingHistoryListRelationFilterSchema: z.ZodType<Prisma.ReadingHis
   none: z.lazy(() => ReadingHistoryWhereInputSchema).optional()
 }).strict();
 
-export const SortOrderInputSchema: z.ZodType<Prisma.SortOrderInput> = z.object({
-  sort: z.lazy(() => SortOrderSchema),
-  nulls: z.lazy(() => NullsOrderSchema).optional()
-}).strict();
-
 export const AccountOrderByRelationAggregateInputSchema: z.ZodType<Prisma.AccountOrderByRelationAggregateInput> = z.object({
   _count: z.lazy(() => SortOrderSchema).optional()
 }).strict();
@@ -5058,19 +5596,7 @@ export const SessionOrderByRelationAggregateInputSchema: z.ZodType<Prisma.Sessio
   _count: z.lazy(() => SortOrderSchema).optional()
 }).strict();
 
-export const VoteOrderByRelationAggregateInputSchema: z.ZodType<Prisma.VoteOrderByRelationAggregateInput> = z.object({
-  _count: z.lazy(() => SortOrderSchema).optional()
-}).strict();
-
-export const BlogLikeOrderByRelationAggregateInputSchema: z.ZodType<Prisma.BlogLikeOrderByRelationAggregateInput> = z.object({
-  _count: z.lazy(() => SortOrderSchema).optional()
-}).strict();
-
 export const AuthorOrderByRelationAggregateInputSchema: z.ZodType<Prisma.AuthorOrderByRelationAggregateInput> = z.object({
-  _count: z.lazy(() => SortOrderSchema).optional()
-}).strict();
-
-export const ImageOrderByRelationAggregateInputSchema: z.ZodType<Prisma.ImageOrderByRelationAggregateInput> = z.object({
   _count: z.lazy(() => SortOrderSchema).optional()
 }).strict();
 
@@ -5131,46 +5657,6 @@ export const UserMinOrderByAggregateInputSchema: z.ZodType<Prisma.UserMinOrderBy
   description: z.lazy(() => SortOrderSchema).optional()
 }).strict();
 
-export const StringNullableWithAggregatesFilterSchema: z.ZodType<Prisma.StringNullableWithAggregatesFilter> = z.object({
-  equals: z.string().optional().nullable(),
-  in: z.string().array().optional().nullable(),
-  notIn: z.string().array().optional().nullable(),
-  lt: z.string().optional(),
-  lte: z.string().optional(),
-  gt: z.string().optional(),
-  gte: z.string().optional(),
-  contains: z.string().optional(),
-  startsWith: z.string().optional(),
-  endsWith: z.string().optional(),
-  mode: z.lazy(() => QueryModeSchema).optional(),
-  not: z.union([ z.string(),z.lazy(() => NestedStringNullableWithAggregatesFilterSchema) ]).optional().nullable(),
-  _count: z.lazy(() => NestedIntNullableFilterSchema).optional(),
-  _min: z.lazy(() => NestedStringNullableFilterSchema).optional(),
-  _max: z.lazy(() => NestedStringNullableFilterSchema).optional()
-}).strict();
-
-export const DateTimeNullableWithAggregatesFilterSchema: z.ZodType<Prisma.DateTimeNullableWithAggregatesFilter> = z.object({
-  equals: z.coerce.date().optional().nullable(),
-  in: z.coerce.date().array().optional().nullable(),
-  notIn: z.coerce.date().array().optional().nullable(),
-  lt: z.coerce.date().optional(),
-  lte: z.coerce.date().optional(),
-  gt: z.coerce.date().optional(),
-  gte: z.coerce.date().optional(),
-  not: z.union([ z.coerce.date(),z.lazy(() => NestedDateTimeNullableWithAggregatesFilterSchema) ]).optional().nullable(),
-  _count: z.lazy(() => NestedIntNullableFilterSchema).optional(),
-  _min: z.lazy(() => NestedDateTimeNullableFilterSchema).optional(),
-  _max: z.lazy(() => NestedDateTimeNullableFilterSchema).optional()
-}).strict();
-
-export const BoolWithAggregatesFilterSchema: z.ZodType<Prisma.BoolWithAggregatesFilter> = z.object({
-  equals: z.boolean().optional(),
-  not: z.union([ z.boolean(),z.lazy(() => NestedBoolWithAggregatesFilterSchema) ]).optional(),
-  _count: z.lazy(() => NestedIntFilterSchema).optional(),
-  _min: z.lazy(() => NestedBoolFilterSchema).optional(),
-  _max: z.lazy(() => NestedBoolFilterSchema).optional()
-}).strict();
-
 export const EnumRoleWithAggregatesFilterSchema: z.ZodType<Prisma.EnumRoleWithAggregatesFilter> = z.object({
   equals: z.lazy(() => RoleSchema).optional(),
   in: z.lazy(() => RoleSchema).array().optional(),
@@ -5179,17 +5665,6 @@ export const EnumRoleWithAggregatesFilterSchema: z.ZodType<Prisma.EnumRoleWithAg
   _count: z.lazy(() => NestedIntFilterSchema).optional(),
   _min: z.lazy(() => NestedEnumRoleFilterSchema).optional(),
   _max: z.lazy(() => NestedEnumRoleFilterSchema).optional()
-}).strict();
-
-export const IntFilterSchema: z.ZodType<Prisma.IntFilter> = z.object({
-  equals: z.number().optional(),
-  in: z.number().array().optional(),
-  notIn: z.number().array().optional(),
-  lt: z.number().optional(),
-  lte: z.number().optional(),
-  gt: z.number().optional(),
-  gte: z.number().optional(),
-  not: z.union([ z.number(),z.lazy(() => NestedIntFilterSchema) ]).optional(),
 }).strict();
 
 export const UserScalarRelationFilterSchema: z.ZodType<Prisma.UserScalarRelationFilter> = z.object({
@@ -5232,22 +5707,6 @@ export const ReadingHistoryMinOrderByAggregateInputSchema: z.ZodType<Prisma.Read
 
 export const ReadingHistorySumOrderByAggregateInputSchema: z.ZodType<Prisma.ReadingHistorySumOrderByAggregateInput> = z.object({
   readTime: z.lazy(() => SortOrderSchema).optional()
-}).strict();
-
-export const IntWithAggregatesFilterSchema: z.ZodType<Prisma.IntWithAggregatesFilter> = z.object({
-  equals: z.number().optional(),
-  in: z.number().array().optional(),
-  notIn: z.number().array().optional(),
-  lt: z.number().optional(),
-  lte: z.number().optional(),
-  gt: z.number().optional(),
-  gte: z.number().optional(),
-  not: z.union([ z.number(),z.lazy(() => NestedIntWithAggregatesFilterSchema) ]).optional(),
-  _count: z.lazy(() => NestedIntFilterSchema).optional(),
-  _avg: z.lazy(() => NestedFloatFilterSchema).optional(),
-  _sum: z.lazy(() => NestedIntFilterSchema).optional(),
-  _min: z.lazy(() => NestedIntFilterSchema).optional(),
-  _max: z.lazy(() => NestedIntFilterSchema).optional()
 }).strict();
 
 export const InfoCountOrderByAggregateInputSchema: z.ZodType<Prisma.InfoCountOrderByAggregateInput> = z.object({
@@ -5293,17 +5752,6 @@ export const InfoMinOrderByAggregateInputSchema: z.ZodType<Prisma.InfoMinOrderBy
   city: z.lazy(() => SortOrderSchema).optional(),
   country: z.lazy(() => SortOrderSchema).optional(),
   postalCode: z.lazy(() => SortOrderSchema).optional()
-}).strict();
-
-export const IntNullableFilterSchema: z.ZodType<Prisma.IntNullableFilter> = z.object({
-  equals: z.number().optional().nullable(),
-  in: z.number().array().optional().nullable(),
-  notIn: z.number().array().optional().nullable(),
-  lt: z.number().optional(),
-  lte: z.number().optional(),
-  gt: z.number().optional(),
-  gte: z.number().optional(),
-  not: z.union([ z.number(),z.lazy(() => NestedIntNullableFilterSchema) ]).optional().nullable(),
 }).strict();
 
 export const AccountProviderProviderAccountIdCompoundUniqueInputSchema: z.ZodType<Prisma.AccountProviderProviderAccountIdCompoundUniqueInput> = z.object({
@@ -5362,22 +5810,6 @@ export const AccountMinOrderByAggregateInputSchema: z.ZodType<Prisma.AccountMinO
 
 export const AccountSumOrderByAggregateInputSchema: z.ZodType<Prisma.AccountSumOrderByAggregateInput> = z.object({
   expires_at: z.lazy(() => SortOrderSchema).optional()
-}).strict();
-
-export const IntNullableWithAggregatesFilterSchema: z.ZodType<Prisma.IntNullableWithAggregatesFilter> = z.object({
-  equals: z.number().optional().nullable(),
-  in: z.number().array().optional().nullable(),
-  notIn: z.number().array().optional().nullable(),
-  lt: z.number().optional(),
-  lte: z.number().optional(),
-  gt: z.number().optional(),
-  gte: z.number().optional(),
-  not: z.union([ z.number(),z.lazy(() => NestedIntNullableWithAggregatesFilterSchema) ]).optional().nullable(),
-  _count: z.lazy(() => NestedIntNullableFilterSchema).optional(),
-  _avg: z.lazy(() => NestedFloatNullableFilterSchema).optional(),
-  _sum: z.lazy(() => NestedIntNullableFilterSchema).optional(),
-  _min: z.lazy(() => NestedIntNullableFilterSchema).optional(),
-  _max: z.lazy(() => NestedIntNullableFilterSchema).optional()
 }).strict();
 
 export const SessionCountOrderByAggregateInputSchema: z.ZodType<Prisma.SessionCountOrderByAggregateInput> = z.object({
@@ -5475,57 +5907,6 @@ export const VoteMinOrderByAggregateInputSchema: z.ZodType<Prisma.VoteMinOrderBy
   userId: z.lazy(() => SortOrderSchema).optional()
 }).strict();
 
-export const PollListRelationFilterSchema: z.ZodType<Prisma.PollListRelationFilter> = z.object({
-  every: z.lazy(() => PollWhereInputSchema).optional(),
-  some: z.lazy(() => PollWhereInputSchema).optional(),
-  none: z.lazy(() => PollWhereInputSchema).optional()
-}).strict();
-
-export const BlogListRelationFilterSchema: z.ZodType<Prisma.BlogListRelationFilter> = z.object({
-  every: z.lazy(() => BlogWhereInputSchema).optional(),
-  some: z.lazy(() => BlogWhereInputSchema).optional(),
-  none: z.lazy(() => BlogWhereInputSchema).optional()
-}).strict();
-
-export const PollOrderByRelationAggregateInputSchema: z.ZodType<Prisma.PollOrderByRelationAggregateInput> = z.object({
-  _count: z.lazy(() => SortOrderSchema).optional()
-}).strict();
-
-export const BlogOrderByRelationAggregateInputSchema: z.ZodType<Prisma.BlogOrderByRelationAggregateInput> = z.object({
-  _count: z.lazy(() => SortOrderSchema).optional()
-}).strict();
-
-export const CategoryCountOrderByAggregateInputSchema: z.ZodType<Prisma.CategoryCountOrderByAggregateInput> = z.object({
-  id: z.lazy(() => SortOrderSchema).optional(),
-  name: z.lazy(() => SortOrderSchema).optional(),
-  slug: z.lazy(() => SortOrderSchema).optional(),
-  baseLanguage: z.lazy(() => SortOrderSchema).optional()
-}).strict();
-
-export const CategoryMaxOrderByAggregateInputSchema: z.ZodType<Prisma.CategoryMaxOrderByAggregateInput> = z.object({
-  id: z.lazy(() => SortOrderSchema).optional(),
-  name: z.lazy(() => SortOrderSchema).optional(),
-  slug: z.lazy(() => SortOrderSchema).optional(),
-  baseLanguage: z.lazy(() => SortOrderSchema).optional()
-}).strict();
-
-export const CategoryMinOrderByAggregateInputSchema: z.ZodType<Prisma.CategoryMinOrderByAggregateInput> = z.object({
-  id: z.lazy(() => SortOrderSchema).optional(),
-  name: z.lazy(() => SortOrderSchema).optional(),
-  slug: z.lazy(() => SortOrderSchema).optional(),
-  baseLanguage: z.lazy(() => SortOrderSchema).optional()
-}).strict();
-
-export const PollNullableScalarRelationFilterSchema: z.ZodType<Prisma.PollNullableScalarRelationFilter> = z.object({
-  is: z.lazy(() => PollWhereInputSchema).optional().nullable(),
-  isNot: z.lazy(() => PollWhereInputSchema).optional().nullable()
-}).strict();
-
-export const BlogNullableScalarRelationFilterSchema: z.ZodType<Prisma.BlogNullableScalarRelationFilter> = z.object({
-  is: z.lazy(() => BlogWhereInputSchema).optional().nullable(),
-  isNot: z.lazy(() => BlogWhereInputSchema).optional().nullable()
-}).strict();
-
 export const NewsItemCountOrderByAggregateInputSchema: z.ZodType<Prisma.NewsItemCountOrderByAggregateInput> = z.object({
   id: z.lazy(() => SortOrderSchema).optional(),
   title: z.lazy(() => SortOrderSchema).optional(),
@@ -5554,208 +5935,6 @@ export const NewsItemMinOrderByAggregateInputSchema: z.ZodType<Prisma.NewsItemMi
   createdAt: z.lazy(() => SortOrderSchema).optional(),
   pollId: z.lazy(() => SortOrderSchema).optional(),
   blogId: z.lazy(() => SortOrderSchema).optional()
-}).strict();
-
-export const CategoryScalarRelationFilterSchema: z.ZodType<Prisma.CategoryScalarRelationFilter> = z.object({
-  is: z.lazy(() => CategoryWhereInputSchema).optional(),
-  isNot: z.lazy(() => CategoryWhereInputSchema).optional()
-}).strict();
-
-export const PollOptionListRelationFilterSchema: z.ZodType<Prisma.PollOptionListRelationFilter> = z.object({
-  every: z.lazy(() => PollOptionWhereInputSchema).optional(),
-  some: z.lazy(() => PollOptionWhereInputSchema).optional(),
-  none: z.lazy(() => PollOptionWhereInputSchema).optional()
-}).strict();
-
-export const NewsItemNullableScalarRelationFilterSchema: z.ZodType<Prisma.NewsItemNullableScalarRelationFilter> = z.object({
-  is: z.lazy(() => NewsItemWhereInputSchema).optional().nullable(),
-  isNot: z.lazy(() => NewsItemWhereInputSchema).optional().nullable()
-}).strict();
-
-export const PollOptionOrderByRelationAggregateInputSchema: z.ZodType<Prisma.PollOptionOrderByRelationAggregateInput> = z.object({
-  _count: z.lazy(() => SortOrderSchema).optional()
-}).strict();
-
-export const PollCountOrderByAggregateInputSchema: z.ZodType<Prisma.PollCountOrderByAggregateInput> = z.object({
-  id: z.lazy(() => SortOrderSchema).optional(),
-  question: z.lazy(() => SortOrderSchema).optional(),
-  slug: z.lazy(() => SortOrderSchema).optional(),
-  description: z.lazy(() => SortOrderSchema).optional(),
-  baseLanguage: z.lazy(() => SortOrderSchema).optional(),
-  startDate: z.lazy(() => SortOrderSchema).optional(),
-  endDate: z.lazy(() => SortOrderSchema).optional(),
-  createdAt: z.lazy(() => SortOrderSchema).optional(),
-  Archived: z.lazy(() => SortOrderSchema).optional(),
-  isPublic: z.lazy(() => SortOrderSchema).optional(),
-  ArchivedAt: z.lazy(() => SortOrderSchema).optional(),
-  Deleted: z.lazy(() => SortOrderSchema).optional(),
-  DeletedAt: z.lazy(() => SortOrderSchema).optional(),
-  categoryId: z.lazy(() => SortOrderSchema).optional(),
-  newsItemId: z.lazy(() => SortOrderSchema).optional()
-}).strict();
-
-export const PollMaxOrderByAggregateInputSchema: z.ZodType<Prisma.PollMaxOrderByAggregateInput> = z.object({
-  id: z.lazy(() => SortOrderSchema).optional(),
-  question: z.lazy(() => SortOrderSchema).optional(),
-  slug: z.lazy(() => SortOrderSchema).optional(),
-  description: z.lazy(() => SortOrderSchema).optional(),
-  baseLanguage: z.lazy(() => SortOrderSchema).optional(),
-  startDate: z.lazy(() => SortOrderSchema).optional(),
-  endDate: z.lazy(() => SortOrderSchema).optional(),
-  createdAt: z.lazy(() => SortOrderSchema).optional(),
-  Archived: z.lazy(() => SortOrderSchema).optional(),
-  isPublic: z.lazy(() => SortOrderSchema).optional(),
-  ArchivedAt: z.lazy(() => SortOrderSchema).optional(),
-  Deleted: z.lazy(() => SortOrderSchema).optional(),
-  DeletedAt: z.lazy(() => SortOrderSchema).optional(),
-  categoryId: z.lazy(() => SortOrderSchema).optional(),
-  newsItemId: z.lazy(() => SortOrderSchema).optional()
-}).strict();
-
-export const PollMinOrderByAggregateInputSchema: z.ZodType<Prisma.PollMinOrderByAggregateInput> = z.object({
-  id: z.lazy(() => SortOrderSchema).optional(),
-  question: z.lazy(() => SortOrderSchema).optional(),
-  slug: z.lazy(() => SortOrderSchema).optional(),
-  description: z.lazy(() => SortOrderSchema).optional(),
-  baseLanguage: z.lazy(() => SortOrderSchema).optional(),
-  startDate: z.lazy(() => SortOrderSchema).optional(),
-  endDate: z.lazy(() => SortOrderSchema).optional(),
-  createdAt: z.lazy(() => SortOrderSchema).optional(),
-  Archived: z.lazy(() => SortOrderSchema).optional(),
-  isPublic: z.lazy(() => SortOrderSchema).optional(),
-  ArchivedAt: z.lazy(() => SortOrderSchema).optional(),
-  Deleted: z.lazy(() => SortOrderSchema).optional(),
-  DeletedAt: z.lazy(() => SortOrderSchema).optional(),
-  categoryId: z.lazy(() => SortOrderSchema).optional(),
-  newsItemId: z.lazy(() => SortOrderSchema).optional()
-}).strict();
-
-export const ImageNullableScalarRelationFilterSchema: z.ZodType<Prisma.ImageNullableScalarRelationFilter> = z.object({
-  is: z.lazy(() => ImageWhereInputSchema).optional().nullable(),
-  isNot: z.lazy(() => ImageWhereInputSchema).optional().nullable()
-}).strict();
-
-export const BlogAuthorListRelationFilterSchema: z.ZodType<Prisma.BlogAuthorListRelationFilter> = z.object({
-  every: z.lazy(() => BlogAuthorWhereInputSchema).optional(),
-  some: z.lazy(() => BlogAuthorWhereInputSchema).optional(),
-  none: z.lazy(() => BlogAuthorWhereInputSchema).optional()
-}).strict();
-
-export const BlogTagListRelationFilterSchema: z.ZodType<Prisma.BlogTagListRelationFilter> = z.object({
-  every: z.lazy(() => BlogTagWhereInputSchema).optional(),
-  some: z.lazy(() => BlogTagWhereInputSchema).optional(),
-  none: z.lazy(() => BlogTagWhereInputSchema).optional()
-}).strict();
-
-export const CategoryNullableScalarRelationFilterSchema: z.ZodType<Prisma.CategoryNullableScalarRelationFilter> = z.object({
-  is: z.lazy(() => CategoryWhereInputSchema).optional().nullable(),
-  isNot: z.lazy(() => CategoryWhereInputSchema).optional().nullable()
-}).strict();
-
-export const TranslationQueueListRelationFilterSchema: z.ZodType<Prisma.TranslationQueueListRelationFilter> = z.object({
-  every: z.lazy(() => TranslationQueueWhereInputSchema).optional(),
-  some: z.lazy(() => TranslationQueueWhereInputSchema).optional(),
-  none: z.lazy(() => TranslationQueueWhereInputSchema).optional()
-}).strict();
-
-export const BlogAuthorOrderByRelationAggregateInputSchema: z.ZodType<Prisma.BlogAuthorOrderByRelationAggregateInput> = z.object({
-  _count: z.lazy(() => SortOrderSchema).optional()
-}).strict();
-
-export const BlogTagOrderByRelationAggregateInputSchema: z.ZodType<Prisma.BlogTagOrderByRelationAggregateInput> = z.object({
-  _count: z.lazy(() => SortOrderSchema).optional()
-}).strict();
-
-export const TranslationQueueOrderByRelationAggregateInputSchema: z.ZodType<Prisma.TranslationQueueOrderByRelationAggregateInput> = z.object({
-  _count: z.lazy(() => SortOrderSchema).optional()
-}).strict();
-
-export const BlogCountOrderByAggregateInputSchema: z.ZodType<Prisma.BlogCountOrderByAggregateInput> = z.object({
-  id: z.lazy(() => SortOrderSchema).optional(),
-  title: z.lazy(() => SortOrderSchema).optional(),
-  content: z.lazy(() => SortOrderSchema).optional(),
-  titlePunch: z.lazy(() => SortOrderSchema).optional(),
-  slug: z.lazy(() => SortOrderSchema).optional(),
-  seoDescription: z.lazy(() => SortOrderSchema).optional(),
-  baseLanguage: z.lazy(() => SortOrderSchema).optional(),
-  imagenSeoId: z.lazy(() => SortOrderSchema).optional(),
-  dateNews: z.lazy(() => SortOrderSchema).optional(),
-  imagenCardId: z.lazy(() => SortOrderSchema).optional(),
-  newsItemId: z.lazy(() => SortOrderSchema).optional(),
-  readTime: z.lazy(() => SortOrderSchema).optional(),
-  views: z.lazy(() => SortOrderSchema).optional(),
-  dateCreated: z.lazy(() => SortOrderSchema).optional(),
-  categoryId: z.lazy(() => SortOrderSchema).optional()
-}).strict();
-
-export const BlogAvgOrderByAggregateInputSchema: z.ZodType<Prisma.BlogAvgOrderByAggregateInput> = z.object({
-  readTime: z.lazy(() => SortOrderSchema).optional(),
-  views: z.lazy(() => SortOrderSchema).optional()
-}).strict();
-
-export const BlogMaxOrderByAggregateInputSchema: z.ZodType<Prisma.BlogMaxOrderByAggregateInput> = z.object({
-  id: z.lazy(() => SortOrderSchema).optional(),
-  title: z.lazy(() => SortOrderSchema).optional(),
-  content: z.lazy(() => SortOrderSchema).optional(),
-  titlePunch: z.lazy(() => SortOrderSchema).optional(),
-  slug: z.lazy(() => SortOrderSchema).optional(),
-  seoDescription: z.lazy(() => SortOrderSchema).optional(),
-  baseLanguage: z.lazy(() => SortOrderSchema).optional(),
-  imagenSeoId: z.lazy(() => SortOrderSchema).optional(),
-  dateNews: z.lazy(() => SortOrderSchema).optional(),
-  imagenCardId: z.lazy(() => SortOrderSchema).optional(),
-  newsItemId: z.lazy(() => SortOrderSchema).optional(),
-  readTime: z.lazy(() => SortOrderSchema).optional(),
-  views: z.lazy(() => SortOrderSchema).optional(),
-  dateCreated: z.lazy(() => SortOrderSchema).optional(),
-  categoryId: z.lazy(() => SortOrderSchema).optional()
-}).strict();
-
-export const BlogMinOrderByAggregateInputSchema: z.ZodType<Prisma.BlogMinOrderByAggregateInput> = z.object({
-  id: z.lazy(() => SortOrderSchema).optional(),
-  title: z.lazy(() => SortOrderSchema).optional(),
-  content: z.lazy(() => SortOrderSchema).optional(),
-  titlePunch: z.lazy(() => SortOrderSchema).optional(),
-  slug: z.lazy(() => SortOrderSchema).optional(),
-  seoDescription: z.lazy(() => SortOrderSchema).optional(),
-  baseLanguage: z.lazy(() => SortOrderSchema).optional(),
-  imagenSeoId: z.lazy(() => SortOrderSchema).optional(),
-  dateNews: z.lazy(() => SortOrderSchema).optional(),
-  imagenCardId: z.lazy(() => SortOrderSchema).optional(),
-  newsItemId: z.lazy(() => SortOrderSchema).optional(),
-  readTime: z.lazy(() => SortOrderSchema).optional(),
-  views: z.lazy(() => SortOrderSchema).optional(),
-  dateCreated: z.lazy(() => SortOrderSchema).optional(),
-  categoryId: z.lazy(() => SortOrderSchema).optional()
-}).strict();
-
-export const BlogSumOrderByAggregateInputSchema: z.ZodType<Prisma.BlogSumOrderByAggregateInput> = z.object({
-  readTime: z.lazy(() => SortOrderSchema).optional(),
-  views: z.lazy(() => SortOrderSchema).optional()
-}).strict();
-
-export const TagCountOrderByAggregateInputSchema: z.ZodType<Prisma.TagCountOrderByAggregateInput> = z.object({
-  id: z.lazy(() => SortOrderSchema).optional(),
-  name: z.lazy(() => SortOrderSchema).optional(),
-  slug: z.lazy(() => SortOrderSchema).optional(),
-  description: z.lazy(() => SortOrderSchema).optional(),
-  baseLanguage: z.lazy(() => SortOrderSchema).optional()
-}).strict();
-
-export const TagMaxOrderByAggregateInputSchema: z.ZodType<Prisma.TagMaxOrderByAggregateInput> = z.object({
-  id: z.lazy(() => SortOrderSchema).optional(),
-  name: z.lazy(() => SortOrderSchema).optional(),
-  slug: z.lazy(() => SortOrderSchema).optional(),
-  description: z.lazy(() => SortOrderSchema).optional(),
-  baseLanguage: z.lazy(() => SortOrderSchema).optional()
-}).strict();
-
-export const TagMinOrderByAggregateInputSchema: z.ZodType<Prisma.TagMinOrderByAggregateInput> = z.object({
-  id: z.lazy(() => SortOrderSchema).optional(),
-  name: z.lazy(() => SortOrderSchema).optional(),
-  slug: z.lazy(() => SortOrderSchema).optional(),
-  description: z.lazy(() => SortOrderSchema).optional(),
-  baseLanguage: z.lazy(() => SortOrderSchema).optional()
 }).strict();
 
 export const BlogScalarRelationFilterSchema: z.ZodType<Prisma.BlogScalarRelationFilter> = z.object({
@@ -6082,12 +6261,879 @@ export const ImageSumOrderByAggregateInputSchema: z.ZodType<Prisma.ImageSumOrder
   size: z.lazy(() => SortOrderSchema).optional()
 }).strict();
 
+export const TranslationCreatetranslatedIdsInputSchema: z.ZodType<Prisma.TranslationCreatetranslatedIdsInput> = z.object({
+  set: z.string().array()
+}).strict();
+
 export const StringFieldUpdateOperationsInputSchema: z.ZodType<Prisma.StringFieldUpdateOperationsInput> = z.object({
   set: z.string().optional()
 }).strict();
 
+export const TranslationUpdatetranslatedIdsInputSchema: z.ZodType<Prisma.TranslationUpdatetranslatedIdsInput> = z.object({
+  set: z.string().array().optional(),
+  push: z.union([ z.string(),z.string().array() ]).optional(),
+}).strict();
+
 export const DateTimeFieldUpdateOperationsInputSchema: z.ZodType<Prisma.DateTimeFieldUpdateOperationsInput> = z.object({
   set: z.coerce.date().optional()
+}).strict();
+
+export const BlogCreateNestedOneWithoutTranslationsInputSchema: z.ZodType<Prisma.BlogCreateNestedOneWithoutTranslationsInput> = z.object({
+  create: z.union([ z.lazy(() => BlogCreateWithoutTranslationsInputSchema),z.lazy(() => BlogUncheckedCreateWithoutTranslationsInputSchema) ]).optional(),
+  connectOrCreate: z.lazy(() => BlogCreateOrConnectWithoutTranslationsInputSchema).optional(),
+  connect: z.lazy(() => BlogWhereUniqueInputSchema).optional()
+}).strict();
+
+export const BlogCreateNestedManyWithoutOriginalBlogInputSchema: z.ZodType<Prisma.BlogCreateNestedManyWithoutOriginalBlogInput> = z.object({
+  create: z.union([ z.lazy(() => BlogCreateWithoutOriginalBlogInputSchema),z.lazy(() => BlogCreateWithoutOriginalBlogInputSchema).array(),z.lazy(() => BlogUncheckedCreateWithoutOriginalBlogInputSchema),z.lazy(() => BlogUncheckedCreateWithoutOriginalBlogInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => BlogCreateOrConnectWithoutOriginalBlogInputSchema),z.lazy(() => BlogCreateOrConnectWithoutOriginalBlogInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => BlogCreateManyOriginalBlogInputEnvelopeSchema).optional(),
+  connect: z.union([ z.lazy(() => BlogWhereUniqueInputSchema),z.lazy(() => BlogWhereUniqueInputSchema).array() ]).optional(),
+}).strict();
+
+export const ImageCreateNestedOneWithoutBlogImagenSeoInputSchema: z.ZodType<Prisma.ImageCreateNestedOneWithoutBlogImagenSeoInput> = z.object({
+  create: z.union([ z.lazy(() => ImageCreateWithoutBlogImagenSeoInputSchema),z.lazy(() => ImageUncheckedCreateWithoutBlogImagenSeoInputSchema) ]).optional(),
+  connectOrCreate: z.lazy(() => ImageCreateOrConnectWithoutBlogImagenSeoInputSchema).optional(),
+  connect: z.lazy(() => ImageWhereUniqueInputSchema).optional()
+}).strict();
+
+export const ImageCreateNestedOneWithoutBlogImagenCardInputSchema: z.ZodType<Prisma.ImageCreateNestedOneWithoutBlogImagenCardInput> = z.object({
+  create: z.union([ z.lazy(() => ImageCreateWithoutBlogImagenCardInputSchema),z.lazy(() => ImageUncheckedCreateWithoutBlogImagenCardInputSchema) ]).optional(),
+  connectOrCreate: z.lazy(() => ImageCreateOrConnectWithoutBlogImagenCardInputSchema).optional(),
+  connect: z.lazy(() => ImageWhereUniqueInputSchema).optional()
+}).strict();
+
+export const NewsItemCreateNestedOneWithoutBlogInputSchema: z.ZodType<Prisma.NewsItemCreateNestedOneWithoutBlogInput> = z.object({
+  create: z.union([ z.lazy(() => NewsItemCreateWithoutBlogInputSchema),z.lazy(() => NewsItemUncheckedCreateWithoutBlogInputSchema) ]).optional(),
+  connectOrCreate: z.lazy(() => NewsItemCreateOrConnectWithoutBlogInputSchema).optional(),
+  connect: z.lazy(() => NewsItemWhereUniqueInputSchema).optional()
+}).strict();
+
+export const ImageCreateNestedManyWithoutBlogInputSchema: z.ZodType<Prisma.ImageCreateNestedManyWithoutBlogInput> = z.object({
+  create: z.union([ z.lazy(() => ImageCreateWithoutBlogInputSchema),z.lazy(() => ImageCreateWithoutBlogInputSchema).array(),z.lazy(() => ImageUncheckedCreateWithoutBlogInputSchema),z.lazy(() => ImageUncheckedCreateWithoutBlogInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => ImageCreateOrConnectWithoutBlogInputSchema),z.lazy(() => ImageCreateOrConnectWithoutBlogInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => ImageCreateManyBlogInputEnvelopeSchema).optional(),
+  connect: z.union([ z.lazy(() => ImageWhereUniqueInputSchema),z.lazy(() => ImageWhereUniqueInputSchema).array() ]).optional(),
+}).strict();
+
+export const BlogAuthorCreateNestedManyWithoutBlogInputSchema: z.ZodType<Prisma.BlogAuthorCreateNestedManyWithoutBlogInput> = z.object({
+  create: z.union([ z.lazy(() => BlogAuthorCreateWithoutBlogInputSchema),z.lazy(() => BlogAuthorCreateWithoutBlogInputSchema).array(),z.lazy(() => BlogAuthorUncheckedCreateWithoutBlogInputSchema),z.lazy(() => BlogAuthorUncheckedCreateWithoutBlogInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => BlogAuthorCreateOrConnectWithoutBlogInputSchema),z.lazy(() => BlogAuthorCreateOrConnectWithoutBlogInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => BlogAuthorCreateManyBlogInputEnvelopeSchema).optional(),
+  connect: z.union([ z.lazy(() => BlogAuthorWhereUniqueInputSchema),z.lazy(() => BlogAuthorWhereUniqueInputSchema).array() ]).optional(),
+}).strict();
+
+export const BlogLikeCreateNestedManyWithoutBlogInputSchema: z.ZodType<Prisma.BlogLikeCreateNestedManyWithoutBlogInput> = z.object({
+  create: z.union([ z.lazy(() => BlogLikeCreateWithoutBlogInputSchema),z.lazy(() => BlogLikeCreateWithoutBlogInputSchema).array(),z.lazy(() => BlogLikeUncheckedCreateWithoutBlogInputSchema),z.lazy(() => BlogLikeUncheckedCreateWithoutBlogInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => BlogLikeCreateOrConnectWithoutBlogInputSchema),z.lazy(() => BlogLikeCreateOrConnectWithoutBlogInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => BlogLikeCreateManyBlogInputEnvelopeSchema).optional(),
+  connect: z.union([ z.lazy(() => BlogLikeWhereUniqueInputSchema),z.lazy(() => BlogLikeWhereUniqueInputSchema).array() ]).optional(),
+}).strict();
+
+export const BlogTagCreateNestedManyWithoutBlogInputSchema: z.ZodType<Prisma.BlogTagCreateNestedManyWithoutBlogInput> = z.object({
+  create: z.union([ z.lazy(() => BlogTagCreateWithoutBlogInputSchema),z.lazy(() => BlogTagCreateWithoutBlogInputSchema).array(),z.lazy(() => BlogTagUncheckedCreateWithoutBlogInputSchema),z.lazy(() => BlogTagUncheckedCreateWithoutBlogInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => BlogTagCreateOrConnectWithoutBlogInputSchema),z.lazy(() => BlogTagCreateOrConnectWithoutBlogInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => BlogTagCreateManyBlogInputEnvelopeSchema).optional(),
+  connect: z.union([ z.lazy(() => BlogTagWhereUniqueInputSchema),z.lazy(() => BlogTagWhereUniqueInputSchema).array() ]).optional(),
+}).strict();
+
+export const CategoryCreateNestedOneWithoutBlogInputSchema: z.ZodType<Prisma.CategoryCreateNestedOneWithoutBlogInput> = z.object({
+  create: z.union([ z.lazy(() => CategoryCreateWithoutBlogInputSchema),z.lazy(() => CategoryUncheckedCreateWithoutBlogInputSchema) ]).optional(),
+  connectOrCreate: z.lazy(() => CategoryCreateOrConnectWithoutBlogInputSchema).optional(),
+  connect: z.lazy(() => CategoryWhereUniqueInputSchema).optional()
+}).strict();
+
+export const TranslationQueueCreateNestedManyWithoutBlogInputSchema: z.ZodType<Prisma.TranslationQueueCreateNestedManyWithoutBlogInput> = z.object({
+  create: z.union([ z.lazy(() => TranslationQueueCreateWithoutBlogInputSchema),z.lazy(() => TranslationQueueCreateWithoutBlogInputSchema).array(),z.lazy(() => TranslationQueueUncheckedCreateWithoutBlogInputSchema),z.lazy(() => TranslationQueueUncheckedCreateWithoutBlogInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => TranslationQueueCreateOrConnectWithoutBlogInputSchema),z.lazy(() => TranslationQueueCreateOrConnectWithoutBlogInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => TranslationQueueCreateManyBlogInputEnvelopeSchema).optional(),
+  connect: z.union([ z.lazy(() => TranslationQueueWhereUniqueInputSchema),z.lazy(() => TranslationQueueWhereUniqueInputSchema).array() ]).optional(),
+}).strict();
+
+export const BlogUncheckedCreateNestedManyWithoutOriginalBlogInputSchema: z.ZodType<Prisma.BlogUncheckedCreateNestedManyWithoutOriginalBlogInput> = z.object({
+  create: z.union([ z.lazy(() => BlogCreateWithoutOriginalBlogInputSchema),z.lazy(() => BlogCreateWithoutOriginalBlogInputSchema).array(),z.lazy(() => BlogUncheckedCreateWithoutOriginalBlogInputSchema),z.lazy(() => BlogUncheckedCreateWithoutOriginalBlogInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => BlogCreateOrConnectWithoutOriginalBlogInputSchema),z.lazy(() => BlogCreateOrConnectWithoutOriginalBlogInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => BlogCreateManyOriginalBlogInputEnvelopeSchema).optional(),
+  connect: z.union([ z.lazy(() => BlogWhereUniqueInputSchema),z.lazy(() => BlogWhereUniqueInputSchema).array() ]).optional(),
+}).strict();
+
+export const ImageUncheckedCreateNestedManyWithoutBlogInputSchema: z.ZodType<Prisma.ImageUncheckedCreateNestedManyWithoutBlogInput> = z.object({
+  create: z.union([ z.lazy(() => ImageCreateWithoutBlogInputSchema),z.lazy(() => ImageCreateWithoutBlogInputSchema).array(),z.lazy(() => ImageUncheckedCreateWithoutBlogInputSchema),z.lazy(() => ImageUncheckedCreateWithoutBlogInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => ImageCreateOrConnectWithoutBlogInputSchema),z.lazy(() => ImageCreateOrConnectWithoutBlogInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => ImageCreateManyBlogInputEnvelopeSchema).optional(),
+  connect: z.union([ z.lazy(() => ImageWhereUniqueInputSchema),z.lazy(() => ImageWhereUniqueInputSchema).array() ]).optional(),
+}).strict();
+
+export const BlogAuthorUncheckedCreateNestedManyWithoutBlogInputSchema: z.ZodType<Prisma.BlogAuthorUncheckedCreateNestedManyWithoutBlogInput> = z.object({
+  create: z.union([ z.lazy(() => BlogAuthorCreateWithoutBlogInputSchema),z.lazy(() => BlogAuthorCreateWithoutBlogInputSchema).array(),z.lazy(() => BlogAuthorUncheckedCreateWithoutBlogInputSchema),z.lazy(() => BlogAuthorUncheckedCreateWithoutBlogInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => BlogAuthorCreateOrConnectWithoutBlogInputSchema),z.lazy(() => BlogAuthorCreateOrConnectWithoutBlogInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => BlogAuthorCreateManyBlogInputEnvelopeSchema).optional(),
+  connect: z.union([ z.lazy(() => BlogAuthorWhereUniqueInputSchema),z.lazy(() => BlogAuthorWhereUniqueInputSchema).array() ]).optional(),
+}).strict();
+
+export const BlogLikeUncheckedCreateNestedManyWithoutBlogInputSchema: z.ZodType<Prisma.BlogLikeUncheckedCreateNestedManyWithoutBlogInput> = z.object({
+  create: z.union([ z.lazy(() => BlogLikeCreateWithoutBlogInputSchema),z.lazy(() => BlogLikeCreateWithoutBlogInputSchema).array(),z.lazy(() => BlogLikeUncheckedCreateWithoutBlogInputSchema),z.lazy(() => BlogLikeUncheckedCreateWithoutBlogInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => BlogLikeCreateOrConnectWithoutBlogInputSchema),z.lazy(() => BlogLikeCreateOrConnectWithoutBlogInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => BlogLikeCreateManyBlogInputEnvelopeSchema).optional(),
+  connect: z.union([ z.lazy(() => BlogLikeWhereUniqueInputSchema),z.lazy(() => BlogLikeWhereUniqueInputSchema).array() ]).optional(),
+}).strict();
+
+export const BlogTagUncheckedCreateNestedManyWithoutBlogInputSchema: z.ZodType<Prisma.BlogTagUncheckedCreateNestedManyWithoutBlogInput> = z.object({
+  create: z.union([ z.lazy(() => BlogTagCreateWithoutBlogInputSchema),z.lazy(() => BlogTagCreateWithoutBlogInputSchema).array(),z.lazy(() => BlogTagUncheckedCreateWithoutBlogInputSchema),z.lazy(() => BlogTagUncheckedCreateWithoutBlogInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => BlogTagCreateOrConnectWithoutBlogInputSchema),z.lazy(() => BlogTagCreateOrConnectWithoutBlogInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => BlogTagCreateManyBlogInputEnvelopeSchema).optional(),
+  connect: z.union([ z.lazy(() => BlogTagWhereUniqueInputSchema),z.lazy(() => BlogTagWhereUniqueInputSchema).array() ]).optional(),
+}).strict();
+
+export const TranslationQueueUncheckedCreateNestedManyWithoutBlogInputSchema: z.ZodType<Prisma.TranslationQueueUncheckedCreateNestedManyWithoutBlogInput> = z.object({
+  create: z.union([ z.lazy(() => TranslationQueueCreateWithoutBlogInputSchema),z.lazy(() => TranslationQueueCreateWithoutBlogInputSchema).array(),z.lazy(() => TranslationQueueUncheckedCreateWithoutBlogInputSchema),z.lazy(() => TranslationQueueUncheckedCreateWithoutBlogInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => TranslationQueueCreateOrConnectWithoutBlogInputSchema),z.lazy(() => TranslationQueueCreateOrConnectWithoutBlogInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => TranslationQueueCreateManyBlogInputEnvelopeSchema).optional(),
+  connect: z.union([ z.lazy(() => TranslationQueueWhereUniqueInputSchema),z.lazy(() => TranslationQueueWhereUniqueInputSchema).array() ]).optional(),
+}).strict();
+
+export const NullableStringFieldUpdateOperationsInputSchema: z.ZodType<Prisma.NullableStringFieldUpdateOperationsInput> = z.object({
+  set: z.string().optional().nullable()
+}).strict();
+
+export const BoolFieldUpdateOperationsInputSchema: z.ZodType<Prisma.BoolFieldUpdateOperationsInput> = z.object({
+  set: z.boolean().optional()
+}).strict();
+
+export const NullableIntFieldUpdateOperationsInputSchema: z.ZodType<Prisma.NullableIntFieldUpdateOperationsInput> = z.object({
+  set: z.number().optional().nullable(),
+  increment: z.number().optional(),
+  decrement: z.number().optional(),
+  multiply: z.number().optional(),
+  divide: z.number().optional()
+}).strict();
+
+export const IntFieldUpdateOperationsInputSchema: z.ZodType<Prisma.IntFieldUpdateOperationsInput> = z.object({
+  set: z.number().optional(),
+  increment: z.number().optional(),
+  decrement: z.number().optional(),
+  multiply: z.number().optional(),
+  divide: z.number().optional()
+}).strict();
+
+export const BlogUpdateOneWithoutTranslationsNestedInputSchema: z.ZodType<Prisma.BlogUpdateOneWithoutTranslationsNestedInput> = z.object({
+  create: z.union([ z.lazy(() => BlogCreateWithoutTranslationsInputSchema),z.lazy(() => BlogUncheckedCreateWithoutTranslationsInputSchema) ]).optional(),
+  connectOrCreate: z.lazy(() => BlogCreateOrConnectWithoutTranslationsInputSchema).optional(),
+  upsert: z.lazy(() => BlogUpsertWithoutTranslationsInputSchema).optional(),
+  disconnect: z.union([ z.boolean(),z.lazy(() => BlogWhereInputSchema) ]).optional(),
+  delete: z.union([ z.boolean(),z.lazy(() => BlogWhereInputSchema) ]).optional(),
+  connect: z.lazy(() => BlogWhereUniqueInputSchema).optional(),
+  update: z.union([ z.lazy(() => BlogUpdateToOneWithWhereWithoutTranslationsInputSchema),z.lazy(() => BlogUpdateWithoutTranslationsInputSchema),z.lazy(() => BlogUncheckedUpdateWithoutTranslationsInputSchema) ]).optional(),
+}).strict();
+
+export const BlogUpdateManyWithoutOriginalBlogNestedInputSchema: z.ZodType<Prisma.BlogUpdateManyWithoutOriginalBlogNestedInput> = z.object({
+  create: z.union([ z.lazy(() => BlogCreateWithoutOriginalBlogInputSchema),z.lazy(() => BlogCreateWithoutOriginalBlogInputSchema).array(),z.lazy(() => BlogUncheckedCreateWithoutOriginalBlogInputSchema),z.lazy(() => BlogUncheckedCreateWithoutOriginalBlogInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => BlogCreateOrConnectWithoutOriginalBlogInputSchema),z.lazy(() => BlogCreateOrConnectWithoutOriginalBlogInputSchema).array() ]).optional(),
+  upsert: z.union([ z.lazy(() => BlogUpsertWithWhereUniqueWithoutOriginalBlogInputSchema),z.lazy(() => BlogUpsertWithWhereUniqueWithoutOriginalBlogInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => BlogCreateManyOriginalBlogInputEnvelopeSchema).optional(),
+  set: z.union([ z.lazy(() => BlogWhereUniqueInputSchema),z.lazy(() => BlogWhereUniqueInputSchema).array() ]).optional(),
+  disconnect: z.union([ z.lazy(() => BlogWhereUniqueInputSchema),z.lazy(() => BlogWhereUniqueInputSchema).array() ]).optional(),
+  delete: z.union([ z.lazy(() => BlogWhereUniqueInputSchema),z.lazy(() => BlogWhereUniqueInputSchema).array() ]).optional(),
+  connect: z.union([ z.lazy(() => BlogWhereUniqueInputSchema),z.lazy(() => BlogWhereUniqueInputSchema).array() ]).optional(),
+  update: z.union([ z.lazy(() => BlogUpdateWithWhereUniqueWithoutOriginalBlogInputSchema),z.lazy(() => BlogUpdateWithWhereUniqueWithoutOriginalBlogInputSchema).array() ]).optional(),
+  updateMany: z.union([ z.lazy(() => BlogUpdateManyWithWhereWithoutOriginalBlogInputSchema),z.lazy(() => BlogUpdateManyWithWhereWithoutOriginalBlogInputSchema).array() ]).optional(),
+  deleteMany: z.union([ z.lazy(() => BlogScalarWhereInputSchema),z.lazy(() => BlogScalarWhereInputSchema).array() ]).optional(),
+}).strict();
+
+export const ImageUpdateOneWithoutBlogImagenSeoNestedInputSchema: z.ZodType<Prisma.ImageUpdateOneWithoutBlogImagenSeoNestedInput> = z.object({
+  create: z.union([ z.lazy(() => ImageCreateWithoutBlogImagenSeoInputSchema),z.lazy(() => ImageUncheckedCreateWithoutBlogImagenSeoInputSchema) ]).optional(),
+  connectOrCreate: z.lazy(() => ImageCreateOrConnectWithoutBlogImagenSeoInputSchema).optional(),
+  upsert: z.lazy(() => ImageUpsertWithoutBlogImagenSeoInputSchema).optional(),
+  disconnect: z.union([ z.boolean(),z.lazy(() => ImageWhereInputSchema) ]).optional(),
+  delete: z.union([ z.boolean(),z.lazy(() => ImageWhereInputSchema) ]).optional(),
+  connect: z.lazy(() => ImageWhereUniqueInputSchema).optional(),
+  update: z.union([ z.lazy(() => ImageUpdateToOneWithWhereWithoutBlogImagenSeoInputSchema),z.lazy(() => ImageUpdateWithoutBlogImagenSeoInputSchema),z.lazy(() => ImageUncheckedUpdateWithoutBlogImagenSeoInputSchema) ]).optional(),
+}).strict();
+
+export const ImageUpdateOneWithoutBlogImagenCardNestedInputSchema: z.ZodType<Prisma.ImageUpdateOneWithoutBlogImagenCardNestedInput> = z.object({
+  create: z.union([ z.lazy(() => ImageCreateWithoutBlogImagenCardInputSchema),z.lazy(() => ImageUncheckedCreateWithoutBlogImagenCardInputSchema) ]).optional(),
+  connectOrCreate: z.lazy(() => ImageCreateOrConnectWithoutBlogImagenCardInputSchema).optional(),
+  upsert: z.lazy(() => ImageUpsertWithoutBlogImagenCardInputSchema).optional(),
+  disconnect: z.union([ z.boolean(),z.lazy(() => ImageWhereInputSchema) ]).optional(),
+  delete: z.union([ z.boolean(),z.lazy(() => ImageWhereInputSchema) ]).optional(),
+  connect: z.lazy(() => ImageWhereUniqueInputSchema).optional(),
+  update: z.union([ z.lazy(() => ImageUpdateToOneWithWhereWithoutBlogImagenCardInputSchema),z.lazy(() => ImageUpdateWithoutBlogImagenCardInputSchema),z.lazy(() => ImageUncheckedUpdateWithoutBlogImagenCardInputSchema) ]).optional(),
+}).strict();
+
+export const NewsItemUpdateOneWithoutBlogNestedInputSchema: z.ZodType<Prisma.NewsItemUpdateOneWithoutBlogNestedInput> = z.object({
+  create: z.union([ z.lazy(() => NewsItemCreateWithoutBlogInputSchema),z.lazy(() => NewsItemUncheckedCreateWithoutBlogInputSchema) ]).optional(),
+  connectOrCreate: z.lazy(() => NewsItemCreateOrConnectWithoutBlogInputSchema).optional(),
+  upsert: z.lazy(() => NewsItemUpsertWithoutBlogInputSchema).optional(),
+  disconnect: z.union([ z.boolean(),z.lazy(() => NewsItemWhereInputSchema) ]).optional(),
+  delete: z.union([ z.boolean(),z.lazy(() => NewsItemWhereInputSchema) ]).optional(),
+  connect: z.lazy(() => NewsItemWhereUniqueInputSchema).optional(),
+  update: z.union([ z.lazy(() => NewsItemUpdateToOneWithWhereWithoutBlogInputSchema),z.lazy(() => NewsItemUpdateWithoutBlogInputSchema),z.lazy(() => NewsItemUncheckedUpdateWithoutBlogInputSchema) ]).optional(),
+}).strict();
+
+export const ImageUpdateManyWithoutBlogNestedInputSchema: z.ZodType<Prisma.ImageUpdateManyWithoutBlogNestedInput> = z.object({
+  create: z.union([ z.lazy(() => ImageCreateWithoutBlogInputSchema),z.lazy(() => ImageCreateWithoutBlogInputSchema).array(),z.lazy(() => ImageUncheckedCreateWithoutBlogInputSchema),z.lazy(() => ImageUncheckedCreateWithoutBlogInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => ImageCreateOrConnectWithoutBlogInputSchema),z.lazy(() => ImageCreateOrConnectWithoutBlogInputSchema).array() ]).optional(),
+  upsert: z.union([ z.lazy(() => ImageUpsertWithWhereUniqueWithoutBlogInputSchema),z.lazy(() => ImageUpsertWithWhereUniqueWithoutBlogInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => ImageCreateManyBlogInputEnvelopeSchema).optional(),
+  set: z.union([ z.lazy(() => ImageWhereUniqueInputSchema),z.lazy(() => ImageWhereUniqueInputSchema).array() ]).optional(),
+  disconnect: z.union([ z.lazy(() => ImageWhereUniqueInputSchema),z.lazy(() => ImageWhereUniqueInputSchema).array() ]).optional(),
+  delete: z.union([ z.lazy(() => ImageWhereUniqueInputSchema),z.lazy(() => ImageWhereUniqueInputSchema).array() ]).optional(),
+  connect: z.union([ z.lazy(() => ImageWhereUniqueInputSchema),z.lazy(() => ImageWhereUniqueInputSchema).array() ]).optional(),
+  update: z.union([ z.lazy(() => ImageUpdateWithWhereUniqueWithoutBlogInputSchema),z.lazy(() => ImageUpdateWithWhereUniqueWithoutBlogInputSchema).array() ]).optional(),
+  updateMany: z.union([ z.lazy(() => ImageUpdateManyWithWhereWithoutBlogInputSchema),z.lazy(() => ImageUpdateManyWithWhereWithoutBlogInputSchema).array() ]).optional(),
+  deleteMany: z.union([ z.lazy(() => ImageScalarWhereInputSchema),z.lazy(() => ImageScalarWhereInputSchema).array() ]).optional(),
+}).strict();
+
+export const BlogAuthorUpdateManyWithoutBlogNestedInputSchema: z.ZodType<Prisma.BlogAuthorUpdateManyWithoutBlogNestedInput> = z.object({
+  create: z.union([ z.lazy(() => BlogAuthorCreateWithoutBlogInputSchema),z.lazy(() => BlogAuthorCreateWithoutBlogInputSchema).array(),z.lazy(() => BlogAuthorUncheckedCreateWithoutBlogInputSchema),z.lazy(() => BlogAuthorUncheckedCreateWithoutBlogInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => BlogAuthorCreateOrConnectWithoutBlogInputSchema),z.lazy(() => BlogAuthorCreateOrConnectWithoutBlogInputSchema).array() ]).optional(),
+  upsert: z.union([ z.lazy(() => BlogAuthorUpsertWithWhereUniqueWithoutBlogInputSchema),z.lazy(() => BlogAuthorUpsertWithWhereUniqueWithoutBlogInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => BlogAuthorCreateManyBlogInputEnvelopeSchema).optional(),
+  set: z.union([ z.lazy(() => BlogAuthorWhereUniqueInputSchema),z.lazy(() => BlogAuthorWhereUniqueInputSchema).array() ]).optional(),
+  disconnect: z.union([ z.lazy(() => BlogAuthorWhereUniqueInputSchema),z.lazy(() => BlogAuthorWhereUniqueInputSchema).array() ]).optional(),
+  delete: z.union([ z.lazy(() => BlogAuthorWhereUniqueInputSchema),z.lazy(() => BlogAuthorWhereUniqueInputSchema).array() ]).optional(),
+  connect: z.union([ z.lazy(() => BlogAuthorWhereUniqueInputSchema),z.lazy(() => BlogAuthorWhereUniqueInputSchema).array() ]).optional(),
+  update: z.union([ z.lazy(() => BlogAuthorUpdateWithWhereUniqueWithoutBlogInputSchema),z.lazy(() => BlogAuthorUpdateWithWhereUniqueWithoutBlogInputSchema).array() ]).optional(),
+  updateMany: z.union([ z.lazy(() => BlogAuthorUpdateManyWithWhereWithoutBlogInputSchema),z.lazy(() => BlogAuthorUpdateManyWithWhereWithoutBlogInputSchema).array() ]).optional(),
+  deleteMany: z.union([ z.lazy(() => BlogAuthorScalarWhereInputSchema),z.lazy(() => BlogAuthorScalarWhereInputSchema).array() ]).optional(),
+}).strict();
+
+export const BlogLikeUpdateManyWithoutBlogNestedInputSchema: z.ZodType<Prisma.BlogLikeUpdateManyWithoutBlogNestedInput> = z.object({
+  create: z.union([ z.lazy(() => BlogLikeCreateWithoutBlogInputSchema),z.lazy(() => BlogLikeCreateWithoutBlogInputSchema).array(),z.lazy(() => BlogLikeUncheckedCreateWithoutBlogInputSchema),z.lazy(() => BlogLikeUncheckedCreateWithoutBlogInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => BlogLikeCreateOrConnectWithoutBlogInputSchema),z.lazy(() => BlogLikeCreateOrConnectWithoutBlogInputSchema).array() ]).optional(),
+  upsert: z.union([ z.lazy(() => BlogLikeUpsertWithWhereUniqueWithoutBlogInputSchema),z.lazy(() => BlogLikeUpsertWithWhereUniqueWithoutBlogInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => BlogLikeCreateManyBlogInputEnvelopeSchema).optional(),
+  set: z.union([ z.lazy(() => BlogLikeWhereUniqueInputSchema),z.lazy(() => BlogLikeWhereUniqueInputSchema).array() ]).optional(),
+  disconnect: z.union([ z.lazy(() => BlogLikeWhereUniqueInputSchema),z.lazy(() => BlogLikeWhereUniqueInputSchema).array() ]).optional(),
+  delete: z.union([ z.lazy(() => BlogLikeWhereUniqueInputSchema),z.lazy(() => BlogLikeWhereUniqueInputSchema).array() ]).optional(),
+  connect: z.union([ z.lazy(() => BlogLikeWhereUniqueInputSchema),z.lazy(() => BlogLikeWhereUniqueInputSchema).array() ]).optional(),
+  update: z.union([ z.lazy(() => BlogLikeUpdateWithWhereUniqueWithoutBlogInputSchema),z.lazy(() => BlogLikeUpdateWithWhereUniqueWithoutBlogInputSchema).array() ]).optional(),
+  updateMany: z.union([ z.lazy(() => BlogLikeUpdateManyWithWhereWithoutBlogInputSchema),z.lazy(() => BlogLikeUpdateManyWithWhereWithoutBlogInputSchema).array() ]).optional(),
+  deleteMany: z.union([ z.lazy(() => BlogLikeScalarWhereInputSchema),z.lazy(() => BlogLikeScalarWhereInputSchema).array() ]).optional(),
+}).strict();
+
+export const BlogTagUpdateManyWithoutBlogNestedInputSchema: z.ZodType<Prisma.BlogTagUpdateManyWithoutBlogNestedInput> = z.object({
+  create: z.union([ z.lazy(() => BlogTagCreateWithoutBlogInputSchema),z.lazy(() => BlogTagCreateWithoutBlogInputSchema).array(),z.lazy(() => BlogTagUncheckedCreateWithoutBlogInputSchema),z.lazy(() => BlogTagUncheckedCreateWithoutBlogInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => BlogTagCreateOrConnectWithoutBlogInputSchema),z.lazy(() => BlogTagCreateOrConnectWithoutBlogInputSchema).array() ]).optional(),
+  upsert: z.union([ z.lazy(() => BlogTagUpsertWithWhereUniqueWithoutBlogInputSchema),z.lazy(() => BlogTagUpsertWithWhereUniqueWithoutBlogInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => BlogTagCreateManyBlogInputEnvelopeSchema).optional(),
+  set: z.union([ z.lazy(() => BlogTagWhereUniqueInputSchema),z.lazy(() => BlogTagWhereUniqueInputSchema).array() ]).optional(),
+  disconnect: z.union([ z.lazy(() => BlogTagWhereUniqueInputSchema),z.lazy(() => BlogTagWhereUniqueInputSchema).array() ]).optional(),
+  delete: z.union([ z.lazy(() => BlogTagWhereUniqueInputSchema),z.lazy(() => BlogTagWhereUniqueInputSchema).array() ]).optional(),
+  connect: z.union([ z.lazy(() => BlogTagWhereUniqueInputSchema),z.lazy(() => BlogTagWhereUniqueInputSchema).array() ]).optional(),
+  update: z.union([ z.lazy(() => BlogTagUpdateWithWhereUniqueWithoutBlogInputSchema),z.lazy(() => BlogTagUpdateWithWhereUniqueWithoutBlogInputSchema).array() ]).optional(),
+  updateMany: z.union([ z.lazy(() => BlogTagUpdateManyWithWhereWithoutBlogInputSchema),z.lazy(() => BlogTagUpdateManyWithWhereWithoutBlogInputSchema).array() ]).optional(),
+  deleteMany: z.union([ z.lazy(() => BlogTagScalarWhereInputSchema),z.lazy(() => BlogTagScalarWhereInputSchema).array() ]).optional(),
+}).strict();
+
+export const CategoryUpdateOneWithoutBlogNestedInputSchema: z.ZodType<Prisma.CategoryUpdateOneWithoutBlogNestedInput> = z.object({
+  create: z.union([ z.lazy(() => CategoryCreateWithoutBlogInputSchema),z.lazy(() => CategoryUncheckedCreateWithoutBlogInputSchema) ]).optional(),
+  connectOrCreate: z.lazy(() => CategoryCreateOrConnectWithoutBlogInputSchema).optional(),
+  upsert: z.lazy(() => CategoryUpsertWithoutBlogInputSchema).optional(),
+  disconnect: z.union([ z.boolean(),z.lazy(() => CategoryWhereInputSchema) ]).optional(),
+  delete: z.union([ z.boolean(),z.lazy(() => CategoryWhereInputSchema) ]).optional(),
+  connect: z.lazy(() => CategoryWhereUniqueInputSchema).optional(),
+  update: z.union([ z.lazy(() => CategoryUpdateToOneWithWhereWithoutBlogInputSchema),z.lazy(() => CategoryUpdateWithoutBlogInputSchema),z.lazy(() => CategoryUncheckedUpdateWithoutBlogInputSchema) ]).optional(),
+}).strict();
+
+export const TranslationQueueUpdateManyWithoutBlogNestedInputSchema: z.ZodType<Prisma.TranslationQueueUpdateManyWithoutBlogNestedInput> = z.object({
+  create: z.union([ z.lazy(() => TranslationQueueCreateWithoutBlogInputSchema),z.lazy(() => TranslationQueueCreateWithoutBlogInputSchema).array(),z.lazy(() => TranslationQueueUncheckedCreateWithoutBlogInputSchema),z.lazy(() => TranslationQueueUncheckedCreateWithoutBlogInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => TranslationQueueCreateOrConnectWithoutBlogInputSchema),z.lazy(() => TranslationQueueCreateOrConnectWithoutBlogInputSchema).array() ]).optional(),
+  upsert: z.union([ z.lazy(() => TranslationQueueUpsertWithWhereUniqueWithoutBlogInputSchema),z.lazy(() => TranslationQueueUpsertWithWhereUniqueWithoutBlogInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => TranslationQueueCreateManyBlogInputEnvelopeSchema).optional(),
+  set: z.union([ z.lazy(() => TranslationQueueWhereUniqueInputSchema),z.lazy(() => TranslationQueueWhereUniqueInputSchema).array() ]).optional(),
+  disconnect: z.union([ z.lazy(() => TranslationQueueWhereUniqueInputSchema),z.lazy(() => TranslationQueueWhereUniqueInputSchema).array() ]).optional(),
+  delete: z.union([ z.lazy(() => TranslationQueueWhereUniqueInputSchema),z.lazy(() => TranslationQueueWhereUniqueInputSchema).array() ]).optional(),
+  connect: z.union([ z.lazy(() => TranslationQueueWhereUniqueInputSchema),z.lazy(() => TranslationQueueWhereUniqueInputSchema).array() ]).optional(),
+  update: z.union([ z.lazy(() => TranslationQueueUpdateWithWhereUniqueWithoutBlogInputSchema),z.lazy(() => TranslationQueueUpdateWithWhereUniqueWithoutBlogInputSchema).array() ]).optional(),
+  updateMany: z.union([ z.lazy(() => TranslationQueueUpdateManyWithWhereWithoutBlogInputSchema),z.lazy(() => TranslationQueueUpdateManyWithWhereWithoutBlogInputSchema).array() ]).optional(),
+  deleteMany: z.union([ z.lazy(() => TranslationQueueScalarWhereInputSchema),z.lazy(() => TranslationQueueScalarWhereInputSchema).array() ]).optional(),
+}).strict();
+
+export const BlogUncheckedUpdateManyWithoutOriginalBlogNestedInputSchema: z.ZodType<Prisma.BlogUncheckedUpdateManyWithoutOriginalBlogNestedInput> = z.object({
+  create: z.union([ z.lazy(() => BlogCreateWithoutOriginalBlogInputSchema),z.lazy(() => BlogCreateWithoutOriginalBlogInputSchema).array(),z.lazy(() => BlogUncheckedCreateWithoutOriginalBlogInputSchema),z.lazy(() => BlogUncheckedCreateWithoutOriginalBlogInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => BlogCreateOrConnectWithoutOriginalBlogInputSchema),z.lazy(() => BlogCreateOrConnectWithoutOriginalBlogInputSchema).array() ]).optional(),
+  upsert: z.union([ z.lazy(() => BlogUpsertWithWhereUniqueWithoutOriginalBlogInputSchema),z.lazy(() => BlogUpsertWithWhereUniqueWithoutOriginalBlogInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => BlogCreateManyOriginalBlogInputEnvelopeSchema).optional(),
+  set: z.union([ z.lazy(() => BlogWhereUniqueInputSchema),z.lazy(() => BlogWhereUniqueInputSchema).array() ]).optional(),
+  disconnect: z.union([ z.lazy(() => BlogWhereUniqueInputSchema),z.lazy(() => BlogWhereUniqueInputSchema).array() ]).optional(),
+  delete: z.union([ z.lazy(() => BlogWhereUniqueInputSchema),z.lazy(() => BlogWhereUniqueInputSchema).array() ]).optional(),
+  connect: z.union([ z.lazy(() => BlogWhereUniqueInputSchema),z.lazy(() => BlogWhereUniqueInputSchema).array() ]).optional(),
+  update: z.union([ z.lazy(() => BlogUpdateWithWhereUniqueWithoutOriginalBlogInputSchema),z.lazy(() => BlogUpdateWithWhereUniqueWithoutOriginalBlogInputSchema).array() ]).optional(),
+  updateMany: z.union([ z.lazy(() => BlogUpdateManyWithWhereWithoutOriginalBlogInputSchema),z.lazy(() => BlogUpdateManyWithWhereWithoutOriginalBlogInputSchema).array() ]).optional(),
+  deleteMany: z.union([ z.lazy(() => BlogScalarWhereInputSchema),z.lazy(() => BlogScalarWhereInputSchema).array() ]).optional(),
+}).strict();
+
+export const ImageUncheckedUpdateManyWithoutBlogNestedInputSchema: z.ZodType<Prisma.ImageUncheckedUpdateManyWithoutBlogNestedInput> = z.object({
+  create: z.union([ z.lazy(() => ImageCreateWithoutBlogInputSchema),z.lazy(() => ImageCreateWithoutBlogInputSchema).array(),z.lazy(() => ImageUncheckedCreateWithoutBlogInputSchema),z.lazy(() => ImageUncheckedCreateWithoutBlogInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => ImageCreateOrConnectWithoutBlogInputSchema),z.lazy(() => ImageCreateOrConnectWithoutBlogInputSchema).array() ]).optional(),
+  upsert: z.union([ z.lazy(() => ImageUpsertWithWhereUniqueWithoutBlogInputSchema),z.lazy(() => ImageUpsertWithWhereUniqueWithoutBlogInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => ImageCreateManyBlogInputEnvelopeSchema).optional(),
+  set: z.union([ z.lazy(() => ImageWhereUniqueInputSchema),z.lazy(() => ImageWhereUniqueInputSchema).array() ]).optional(),
+  disconnect: z.union([ z.lazy(() => ImageWhereUniqueInputSchema),z.lazy(() => ImageWhereUniqueInputSchema).array() ]).optional(),
+  delete: z.union([ z.lazy(() => ImageWhereUniqueInputSchema),z.lazy(() => ImageWhereUniqueInputSchema).array() ]).optional(),
+  connect: z.union([ z.lazy(() => ImageWhereUniqueInputSchema),z.lazy(() => ImageWhereUniqueInputSchema).array() ]).optional(),
+  update: z.union([ z.lazy(() => ImageUpdateWithWhereUniqueWithoutBlogInputSchema),z.lazy(() => ImageUpdateWithWhereUniqueWithoutBlogInputSchema).array() ]).optional(),
+  updateMany: z.union([ z.lazy(() => ImageUpdateManyWithWhereWithoutBlogInputSchema),z.lazy(() => ImageUpdateManyWithWhereWithoutBlogInputSchema).array() ]).optional(),
+  deleteMany: z.union([ z.lazy(() => ImageScalarWhereInputSchema),z.lazy(() => ImageScalarWhereInputSchema).array() ]).optional(),
+}).strict();
+
+export const BlogAuthorUncheckedUpdateManyWithoutBlogNestedInputSchema: z.ZodType<Prisma.BlogAuthorUncheckedUpdateManyWithoutBlogNestedInput> = z.object({
+  create: z.union([ z.lazy(() => BlogAuthorCreateWithoutBlogInputSchema),z.lazy(() => BlogAuthorCreateWithoutBlogInputSchema).array(),z.lazy(() => BlogAuthorUncheckedCreateWithoutBlogInputSchema),z.lazy(() => BlogAuthorUncheckedCreateWithoutBlogInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => BlogAuthorCreateOrConnectWithoutBlogInputSchema),z.lazy(() => BlogAuthorCreateOrConnectWithoutBlogInputSchema).array() ]).optional(),
+  upsert: z.union([ z.lazy(() => BlogAuthorUpsertWithWhereUniqueWithoutBlogInputSchema),z.lazy(() => BlogAuthorUpsertWithWhereUniqueWithoutBlogInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => BlogAuthorCreateManyBlogInputEnvelopeSchema).optional(),
+  set: z.union([ z.lazy(() => BlogAuthorWhereUniqueInputSchema),z.lazy(() => BlogAuthorWhereUniqueInputSchema).array() ]).optional(),
+  disconnect: z.union([ z.lazy(() => BlogAuthorWhereUniqueInputSchema),z.lazy(() => BlogAuthorWhereUniqueInputSchema).array() ]).optional(),
+  delete: z.union([ z.lazy(() => BlogAuthorWhereUniqueInputSchema),z.lazy(() => BlogAuthorWhereUniqueInputSchema).array() ]).optional(),
+  connect: z.union([ z.lazy(() => BlogAuthorWhereUniqueInputSchema),z.lazy(() => BlogAuthorWhereUniqueInputSchema).array() ]).optional(),
+  update: z.union([ z.lazy(() => BlogAuthorUpdateWithWhereUniqueWithoutBlogInputSchema),z.lazy(() => BlogAuthorUpdateWithWhereUniqueWithoutBlogInputSchema).array() ]).optional(),
+  updateMany: z.union([ z.lazy(() => BlogAuthorUpdateManyWithWhereWithoutBlogInputSchema),z.lazy(() => BlogAuthorUpdateManyWithWhereWithoutBlogInputSchema).array() ]).optional(),
+  deleteMany: z.union([ z.lazy(() => BlogAuthorScalarWhereInputSchema),z.lazy(() => BlogAuthorScalarWhereInputSchema).array() ]).optional(),
+}).strict();
+
+export const BlogLikeUncheckedUpdateManyWithoutBlogNestedInputSchema: z.ZodType<Prisma.BlogLikeUncheckedUpdateManyWithoutBlogNestedInput> = z.object({
+  create: z.union([ z.lazy(() => BlogLikeCreateWithoutBlogInputSchema),z.lazy(() => BlogLikeCreateWithoutBlogInputSchema).array(),z.lazy(() => BlogLikeUncheckedCreateWithoutBlogInputSchema),z.lazy(() => BlogLikeUncheckedCreateWithoutBlogInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => BlogLikeCreateOrConnectWithoutBlogInputSchema),z.lazy(() => BlogLikeCreateOrConnectWithoutBlogInputSchema).array() ]).optional(),
+  upsert: z.union([ z.lazy(() => BlogLikeUpsertWithWhereUniqueWithoutBlogInputSchema),z.lazy(() => BlogLikeUpsertWithWhereUniqueWithoutBlogInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => BlogLikeCreateManyBlogInputEnvelopeSchema).optional(),
+  set: z.union([ z.lazy(() => BlogLikeWhereUniqueInputSchema),z.lazy(() => BlogLikeWhereUniqueInputSchema).array() ]).optional(),
+  disconnect: z.union([ z.lazy(() => BlogLikeWhereUniqueInputSchema),z.lazy(() => BlogLikeWhereUniqueInputSchema).array() ]).optional(),
+  delete: z.union([ z.lazy(() => BlogLikeWhereUniqueInputSchema),z.lazy(() => BlogLikeWhereUniqueInputSchema).array() ]).optional(),
+  connect: z.union([ z.lazy(() => BlogLikeWhereUniqueInputSchema),z.lazy(() => BlogLikeWhereUniqueInputSchema).array() ]).optional(),
+  update: z.union([ z.lazy(() => BlogLikeUpdateWithWhereUniqueWithoutBlogInputSchema),z.lazy(() => BlogLikeUpdateWithWhereUniqueWithoutBlogInputSchema).array() ]).optional(),
+  updateMany: z.union([ z.lazy(() => BlogLikeUpdateManyWithWhereWithoutBlogInputSchema),z.lazy(() => BlogLikeUpdateManyWithWhereWithoutBlogInputSchema).array() ]).optional(),
+  deleteMany: z.union([ z.lazy(() => BlogLikeScalarWhereInputSchema),z.lazy(() => BlogLikeScalarWhereInputSchema).array() ]).optional(),
+}).strict();
+
+export const BlogTagUncheckedUpdateManyWithoutBlogNestedInputSchema: z.ZodType<Prisma.BlogTagUncheckedUpdateManyWithoutBlogNestedInput> = z.object({
+  create: z.union([ z.lazy(() => BlogTagCreateWithoutBlogInputSchema),z.lazy(() => BlogTagCreateWithoutBlogInputSchema).array(),z.lazy(() => BlogTagUncheckedCreateWithoutBlogInputSchema),z.lazy(() => BlogTagUncheckedCreateWithoutBlogInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => BlogTagCreateOrConnectWithoutBlogInputSchema),z.lazy(() => BlogTagCreateOrConnectWithoutBlogInputSchema).array() ]).optional(),
+  upsert: z.union([ z.lazy(() => BlogTagUpsertWithWhereUniqueWithoutBlogInputSchema),z.lazy(() => BlogTagUpsertWithWhereUniqueWithoutBlogInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => BlogTagCreateManyBlogInputEnvelopeSchema).optional(),
+  set: z.union([ z.lazy(() => BlogTagWhereUniqueInputSchema),z.lazy(() => BlogTagWhereUniqueInputSchema).array() ]).optional(),
+  disconnect: z.union([ z.lazy(() => BlogTagWhereUniqueInputSchema),z.lazy(() => BlogTagWhereUniqueInputSchema).array() ]).optional(),
+  delete: z.union([ z.lazy(() => BlogTagWhereUniqueInputSchema),z.lazy(() => BlogTagWhereUniqueInputSchema).array() ]).optional(),
+  connect: z.union([ z.lazy(() => BlogTagWhereUniqueInputSchema),z.lazy(() => BlogTagWhereUniqueInputSchema).array() ]).optional(),
+  update: z.union([ z.lazy(() => BlogTagUpdateWithWhereUniqueWithoutBlogInputSchema),z.lazy(() => BlogTagUpdateWithWhereUniqueWithoutBlogInputSchema).array() ]).optional(),
+  updateMany: z.union([ z.lazy(() => BlogTagUpdateManyWithWhereWithoutBlogInputSchema),z.lazy(() => BlogTagUpdateManyWithWhereWithoutBlogInputSchema).array() ]).optional(),
+  deleteMany: z.union([ z.lazy(() => BlogTagScalarWhereInputSchema),z.lazy(() => BlogTagScalarWhereInputSchema).array() ]).optional(),
+}).strict();
+
+export const TranslationQueueUncheckedUpdateManyWithoutBlogNestedInputSchema: z.ZodType<Prisma.TranslationQueueUncheckedUpdateManyWithoutBlogNestedInput> = z.object({
+  create: z.union([ z.lazy(() => TranslationQueueCreateWithoutBlogInputSchema),z.lazy(() => TranslationQueueCreateWithoutBlogInputSchema).array(),z.lazy(() => TranslationQueueUncheckedCreateWithoutBlogInputSchema),z.lazy(() => TranslationQueueUncheckedCreateWithoutBlogInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => TranslationQueueCreateOrConnectWithoutBlogInputSchema),z.lazy(() => TranslationQueueCreateOrConnectWithoutBlogInputSchema).array() ]).optional(),
+  upsert: z.union([ z.lazy(() => TranslationQueueUpsertWithWhereUniqueWithoutBlogInputSchema),z.lazy(() => TranslationQueueUpsertWithWhereUniqueWithoutBlogInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => TranslationQueueCreateManyBlogInputEnvelopeSchema).optional(),
+  set: z.union([ z.lazy(() => TranslationQueueWhereUniqueInputSchema),z.lazy(() => TranslationQueueWhereUniqueInputSchema).array() ]).optional(),
+  disconnect: z.union([ z.lazy(() => TranslationQueueWhereUniqueInputSchema),z.lazy(() => TranslationQueueWhereUniqueInputSchema).array() ]).optional(),
+  delete: z.union([ z.lazy(() => TranslationQueueWhereUniqueInputSchema),z.lazy(() => TranslationQueueWhereUniqueInputSchema).array() ]).optional(),
+  connect: z.union([ z.lazy(() => TranslationQueueWhereUniqueInputSchema),z.lazy(() => TranslationQueueWhereUniqueInputSchema).array() ]).optional(),
+  update: z.union([ z.lazy(() => TranslationQueueUpdateWithWhereUniqueWithoutBlogInputSchema),z.lazy(() => TranslationQueueUpdateWithWhereUniqueWithoutBlogInputSchema).array() ]).optional(),
+  updateMany: z.union([ z.lazy(() => TranslationQueueUpdateManyWithWhereWithoutBlogInputSchema),z.lazy(() => TranslationQueueUpdateManyWithWhereWithoutBlogInputSchema).array() ]).optional(),
+  deleteMany: z.union([ z.lazy(() => TranslationQueueScalarWhereInputSchema),z.lazy(() => TranslationQueueScalarWhereInputSchema).array() ]).optional(),
+}).strict();
+
+export const CategoryCreateNestedOneWithoutTranslationsInputSchema: z.ZodType<Prisma.CategoryCreateNestedOneWithoutTranslationsInput> = z.object({
+  create: z.union([ z.lazy(() => CategoryCreateWithoutTranslationsInputSchema),z.lazy(() => CategoryUncheckedCreateWithoutTranslationsInputSchema) ]).optional(),
+  connectOrCreate: z.lazy(() => CategoryCreateOrConnectWithoutTranslationsInputSchema).optional(),
+  connect: z.lazy(() => CategoryWhereUniqueInputSchema).optional()
+}).strict();
+
+export const CategoryCreateNestedManyWithoutOriginalCategoryInputSchema: z.ZodType<Prisma.CategoryCreateNestedManyWithoutOriginalCategoryInput> = z.object({
+  create: z.union([ z.lazy(() => CategoryCreateWithoutOriginalCategoryInputSchema),z.lazy(() => CategoryCreateWithoutOriginalCategoryInputSchema).array(),z.lazy(() => CategoryUncheckedCreateWithoutOriginalCategoryInputSchema),z.lazy(() => CategoryUncheckedCreateWithoutOriginalCategoryInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => CategoryCreateOrConnectWithoutOriginalCategoryInputSchema),z.lazy(() => CategoryCreateOrConnectWithoutOriginalCategoryInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => CategoryCreateManyOriginalCategoryInputEnvelopeSchema).optional(),
+  connect: z.union([ z.lazy(() => CategoryWhereUniqueInputSchema),z.lazy(() => CategoryWhereUniqueInputSchema).array() ]).optional(),
+}).strict();
+
+export const PollCreateNestedManyWithoutCategoryInputSchema: z.ZodType<Prisma.PollCreateNestedManyWithoutCategoryInput> = z.object({
+  create: z.union([ z.lazy(() => PollCreateWithoutCategoryInputSchema),z.lazy(() => PollCreateWithoutCategoryInputSchema).array(),z.lazy(() => PollUncheckedCreateWithoutCategoryInputSchema),z.lazy(() => PollUncheckedCreateWithoutCategoryInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => PollCreateOrConnectWithoutCategoryInputSchema),z.lazy(() => PollCreateOrConnectWithoutCategoryInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => PollCreateManyCategoryInputEnvelopeSchema).optional(),
+  connect: z.union([ z.lazy(() => PollWhereUniqueInputSchema),z.lazy(() => PollWhereUniqueInputSchema).array() ]).optional(),
+}).strict();
+
+export const ImageCreateNestedManyWithoutCategoryInputSchema: z.ZodType<Prisma.ImageCreateNestedManyWithoutCategoryInput> = z.object({
+  create: z.union([ z.lazy(() => ImageCreateWithoutCategoryInputSchema),z.lazy(() => ImageCreateWithoutCategoryInputSchema).array(),z.lazy(() => ImageUncheckedCreateWithoutCategoryInputSchema),z.lazy(() => ImageUncheckedCreateWithoutCategoryInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => ImageCreateOrConnectWithoutCategoryInputSchema),z.lazy(() => ImageCreateOrConnectWithoutCategoryInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => ImageCreateManyCategoryInputEnvelopeSchema).optional(),
+  connect: z.union([ z.lazy(() => ImageWhereUniqueInputSchema),z.lazy(() => ImageWhereUniqueInputSchema).array() ]).optional(),
+}).strict();
+
+export const BlogCreateNestedManyWithoutCategoryInputSchema: z.ZodType<Prisma.BlogCreateNestedManyWithoutCategoryInput> = z.object({
+  create: z.union([ z.lazy(() => BlogCreateWithoutCategoryInputSchema),z.lazy(() => BlogCreateWithoutCategoryInputSchema).array(),z.lazy(() => BlogUncheckedCreateWithoutCategoryInputSchema),z.lazy(() => BlogUncheckedCreateWithoutCategoryInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => BlogCreateOrConnectWithoutCategoryInputSchema),z.lazy(() => BlogCreateOrConnectWithoutCategoryInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => BlogCreateManyCategoryInputEnvelopeSchema).optional(),
+  connect: z.union([ z.lazy(() => BlogWhereUniqueInputSchema),z.lazy(() => BlogWhereUniqueInputSchema).array() ]).optional(),
+}).strict();
+
+export const CategoryUncheckedCreateNestedManyWithoutOriginalCategoryInputSchema: z.ZodType<Prisma.CategoryUncheckedCreateNestedManyWithoutOriginalCategoryInput> = z.object({
+  create: z.union([ z.lazy(() => CategoryCreateWithoutOriginalCategoryInputSchema),z.lazy(() => CategoryCreateWithoutOriginalCategoryInputSchema).array(),z.lazy(() => CategoryUncheckedCreateWithoutOriginalCategoryInputSchema),z.lazy(() => CategoryUncheckedCreateWithoutOriginalCategoryInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => CategoryCreateOrConnectWithoutOriginalCategoryInputSchema),z.lazy(() => CategoryCreateOrConnectWithoutOriginalCategoryInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => CategoryCreateManyOriginalCategoryInputEnvelopeSchema).optional(),
+  connect: z.union([ z.lazy(() => CategoryWhereUniqueInputSchema),z.lazy(() => CategoryWhereUniqueInputSchema).array() ]).optional(),
+}).strict();
+
+export const PollUncheckedCreateNestedManyWithoutCategoryInputSchema: z.ZodType<Prisma.PollUncheckedCreateNestedManyWithoutCategoryInput> = z.object({
+  create: z.union([ z.lazy(() => PollCreateWithoutCategoryInputSchema),z.lazy(() => PollCreateWithoutCategoryInputSchema).array(),z.lazy(() => PollUncheckedCreateWithoutCategoryInputSchema),z.lazy(() => PollUncheckedCreateWithoutCategoryInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => PollCreateOrConnectWithoutCategoryInputSchema),z.lazy(() => PollCreateOrConnectWithoutCategoryInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => PollCreateManyCategoryInputEnvelopeSchema).optional(),
+  connect: z.union([ z.lazy(() => PollWhereUniqueInputSchema),z.lazy(() => PollWhereUniqueInputSchema).array() ]).optional(),
+}).strict();
+
+export const ImageUncheckedCreateNestedManyWithoutCategoryInputSchema: z.ZodType<Prisma.ImageUncheckedCreateNestedManyWithoutCategoryInput> = z.object({
+  create: z.union([ z.lazy(() => ImageCreateWithoutCategoryInputSchema),z.lazy(() => ImageCreateWithoutCategoryInputSchema).array(),z.lazy(() => ImageUncheckedCreateWithoutCategoryInputSchema),z.lazy(() => ImageUncheckedCreateWithoutCategoryInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => ImageCreateOrConnectWithoutCategoryInputSchema),z.lazy(() => ImageCreateOrConnectWithoutCategoryInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => ImageCreateManyCategoryInputEnvelopeSchema).optional(),
+  connect: z.union([ z.lazy(() => ImageWhereUniqueInputSchema),z.lazy(() => ImageWhereUniqueInputSchema).array() ]).optional(),
+}).strict();
+
+export const BlogUncheckedCreateNestedManyWithoutCategoryInputSchema: z.ZodType<Prisma.BlogUncheckedCreateNestedManyWithoutCategoryInput> = z.object({
+  create: z.union([ z.lazy(() => BlogCreateWithoutCategoryInputSchema),z.lazy(() => BlogCreateWithoutCategoryInputSchema).array(),z.lazy(() => BlogUncheckedCreateWithoutCategoryInputSchema),z.lazy(() => BlogUncheckedCreateWithoutCategoryInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => BlogCreateOrConnectWithoutCategoryInputSchema),z.lazy(() => BlogCreateOrConnectWithoutCategoryInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => BlogCreateManyCategoryInputEnvelopeSchema).optional(),
+  connect: z.union([ z.lazy(() => BlogWhereUniqueInputSchema),z.lazy(() => BlogWhereUniqueInputSchema).array() ]).optional(),
+}).strict();
+
+export const CategoryUpdateOneWithoutTranslationsNestedInputSchema: z.ZodType<Prisma.CategoryUpdateOneWithoutTranslationsNestedInput> = z.object({
+  create: z.union([ z.lazy(() => CategoryCreateWithoutTranslationsInputSchema),z.lazy(() => CategoryUncheckedCreateWithoutTranslationsInputSchema) ]).optional(),
+  connectOrCreate: z.lazy(() => CategoryCreateOrConnectWithoutTranslationsInputSchema).optional(),
+  upsert: z.lazy(() => CategoryUpsertWithoutTranslationsInputSchema).optional(),
+  disconnect: z.union([ z.boolean(),z.lazy(() => CategoryWhereInputSchema) ]).optional(),
+  delete: z.union([ z.boolean(),z.lazy(() => CategoryWhereInputSchema) ]).optional(),
+  connect: z.lazy(() => CategoryWhereUniqueInputSchema).optional(),
+  update: z.union([ z.lazy(() => CategoryUpdateToOneWithWhereWithoutTranslationsInputSchema),z.lazy(() => CategoryUpdateWithoutTranslationsInputSchema),z.lazy(() => CategoryUncheckedUpdateWithoutTranslationsInputSchema) ]).optional(),
+}).strict();
+
+export const CategoryUpdateManyWithoutOriginalCategoryNestedInputSchema: z.ZodType<Prisma.CategoryUpdateManyWithoutOriginalCategoryNestedInput> = z.object({
+  create: z.union([ z.lazy(() => CategoryCreateWithoutOriginalCategoryInputSchema),z.lazy(() => CategoryCreateWithoutOriginalCategoryInputSchema).array(),z.lazy(() => CategoryUncheckedCreateWithoutOriginalCategoryInputSchema),z.lazy(() => CategoryUncheckedCreateWithoutOriginalCategoryInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => CategoryCreateOrConnectWithoutOriginalCategoryInputSchema),z.lazy(() => CategoryCreateOrConnectWithoutOriginalCategoryInputSchema).array() ]).optional(),
+  upsert: z.union([ z.lazy(() => CategoryUpsertWithWhereUniqueWithoutOriginalCategoryInputSchema),z.lazy(() => CategoryUpsertWithWhereUniqueWithoutOriginalCategoryInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => CategoryCreateManyOriginalCategoryInputEnvelopeSchema).optional(),
+  set: z.union([ z.lazy(() => CategoryWhereUniqueInputSchema),z.lazy(() => CategoryWhereUniqueInputSchema).array() ]).optional(),
+  disconnect: z.union([ z.lazy(() => CategoryWhereUniqueInputSchema),z.lazy(() => CategoryWhereUniqueInputSchema).array() ]).optional(),
+  delete: z.union([ z.lazy(() => CategoryWhereUniqueInputSchema),z.lazy(() => CategoryWhereUniqueInputSchema).array() ]).optional(),
+  connect: z.union([ z.lazy(() => CategoryWhereUniqueInputSchema),z.lazy(() => CategoryWhereUniqueInputSchema).array() ]).optional(),
+  update: z.union([ z.lazy(() => CategoryUpdateWithWhereUniqueWithoutOriginalCategoryInputSchema),z.lazy(() => CategoryUpdateWithWhereUniqueWithoutOriginalCategoryInputSchema).array() ]).optional(),
+  updateMany: z.union([ z.lazy(() => CategoryUpdateManyWithWhereWithoutOriginalCategoryInputSchema),z.lazy(() => CategoryUpdateManyWithWhereWithoutOriginalCategoryInputSchema).array() ]).optional(),
+  deleteMany: z.union([ z.lazy(() => CategoryScalarWhereInputSchema),z.lazy(() => CategoryScalarWhereInputSchema).array() ]).optional(),
+}).strict();
+
+export const PollUpdateManyWithoutCategoryNestedInputSchema: z.ZodType<Prisma.PollUpdateManyWithoutCategoryNestedInput> = z.object({
+  create: z.union([ z.lazy(() => PollCreateWithoutCategoryInputSchema),z.lazy(() => PollCreateWithoutCategoryInputSchema).array(),z.lazy(() => PollUncheckedCreateWithoutCategoryInputSchema),z.lazy(() => PollUncheckedCreateWithoutCategoryInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => PollCreateOrConnectWithoutCategoryInputSchema),z.lazy(() => PollCreateOrConnectWithoutCategoryInputSchema).array() ]).optional(),
+  upsert: z.union([ z.lazy(() => PollUpsertWithWhereUniqueWithoutCategoryInputSchema),z.lazy(() => PollUpsertWithWhereUniqueWithoutCategoryInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => PollCreateManyCategoryInputEnvelopeSchema).optional(),
+  set: z.union([ z.lazy(() => PollWhereUniqueInputSchema),z.lazy(() => PollWhereUniqueInputSchema).array() ]).optional(),
+  disconnect: z.union([ z.lazy(() => PollWhereUniqueInputSchema),z.lazy(() => PollWhereUniqueInputSchema).array() ]).optional(),
+  delete: z.union([ z.lazy(() => PollWhereUniqueInputSchema),z.lazy(() => PollWhereUniqueInputSchema).array() ]).optional(),
+  connect: z.union([ z.lazy(() => PollWhereUniqueInputSchema),z.lazy(() => PollWhereUniqueInputSchema).array() ]).optional(),
+  update: z.union([ z.lazy(() => PollUpdateWithWhereUniqueWithoutCategoryInputSchema),z.lazy(() => PollUpdateWithWhereUniqueWithoutCategoryInputSchema).array() ]).optional(),
+  updateMany: z.union([ z.lazy(() => PollUpdateManyWithWhereWithoutCategoryInputSchema),z.lazy(() => PollUpdateManyWithWhereWithoutCategoryInputSchema).array() ]).optional(),
+  deleteMany: z.union([ z.lazy(() => PollScalarWhereInputSchema),z.lazy(() => PollScalarWhereInputSchema).array() ]).optional(),
+}).strict();
+
+export const ImageUpdateManyWithoutCategoryNestedInputSchema: z.ZodType<Prisma.ImageUpdateManyWithoutCategoryNestedInput> = z.object({
+  create: z.union([ z.lazy(() => ImageCreateWithoutCategoryInputSchema),z.lazy(() => ImageCreateWithoutCategoryInputSchema).array(),z.lazy(() => ImageUncheckedCreateWithoutCategoryInputSchema),z.lazy(() => ImageUncheckedCreateWithoutCategoryInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => ImageCreateOrConnectWithoutCategoryInputSchema),z.lazy(() => ImageCreateOrConnectWithoutCategoryInputSchema).array() ]).optional(),
+  upsert: z.union([ z.lazy(() => ImageUpsertWithWhereUniqueWithoutCategoryInputSchema),z.lazy(() => ImageUpsertWithWhereUniqueWithoutCategoryInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => ImageCreateManyCategoryInputEnvelopeSchema).optional(),
+  set: z.union([ z.lazy(() => ImageWhereUniqueInputSchema),z.lazy(() => ImageWhereUniqueInputSchema).array() ]).optional(),
+  disconnect: z.union([ z.lazy(() => ImageWhereUniqueInputSchema),z.lazy(() => ImageWhereUniqueInputSchema).array() ]).optional(),
+  delete: z.union([ z.lazy(() => ImageWhereUniqueInputSchema),z.lazy(() => ImageWhereUniqueInputSchema).array() ]).optional(),
+  connect: z.union([ z.lazy(() => ImageWhereUniqueInputSchema),z.lazy(() => ImageWhereUniqueInputSchema).array() ]).optional(),
+  update: z.union([ z.lazy(() => ImageUpdateWithWhereUniqueWithoutCategoryInputSchema),z.lazy(() => ImageUpdateWithWhereUniqueWithoutCategoryInputSchema).array() ]).optional(),
+  updateMany: z.union([ z.lazy(() => ImageUpdateManyWithWhereWithoutCategoryInputSchema),z.lazy(() => ImageUpdateManyWithWhereWithoutCategoryInputSchema).array() ]).optional(),
+  deleteMany: z.union([ z.lazy(() => ImageScalarWhereInputSchema),z.lazy(() => ImageScalarWhereInputSchema).array() ]).optional(),
+}).strict();
+
+export const BlogUpdateManyWithoutCategoryNestedInputSchema: z.ZodType<Prisma.BlogUpdateManyWithoutCategoryNestedInput> = z.object({
+  create: z.union([ z.lazy(() => BlogCreateWithoutCategoryInputSchema),z.lazy(() => BlogCreateWithoutCategoryInputSchema).array(),z.lazy(() => BlogUncheckedCreateWithoutCategoryInputSchema),z.lazy(() => BlogUncheckedCreateWithoutCategoryInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => BlogCreateOrConnectWithoutCategoryInputSchema),z.lazy(() => BlogCreateOrConnectWithoutCategoryInputSchema).array() ]).optional(),
+  upsert: z.union([ z.lazy(() => BlogUpsertWithWhereUniqueWithoutCategoryInputSchema),z.lazy(() => BlogUpsertWithWhereUniqueWithoutCategoryInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => BlogCreateManyCategoryInputEnvelopeSchema).optional(),
+  set: z.union([ z.lazy(() => BlogWhereUniqueInputSchema),z.lazy(() => BlogWhereUniqueInputSchema).array() ]).optional(),
+  disconnect: z.union([ z.lazy(() => BlogWhereUniqueInputSchema),z.lazy(() => BlogWhereUniqueInputSchema).array() ]).optional(),
+  delete: z.union([ z.lazy(() => BlogWhereUniqueInputSchema),z.lazy(() => BlogWhereUniqueInputSchema).array() ]).optional(),
+  connect: z.union([ z.lazy(() => BlogWhereUniqueInputSchema),z.lazy(() => BlogWhereUniqueInputSchema).array() ]).optional(),
+  update: z.union([ z.lazy(() => BlogUpdateWithWhereUniqueWithoutCategoryInputSchema),z.lazy(() => BlogUpdateWithWhereUniqueWithoutCategoryInputSchema).array() ]).optional(),
+  updateMany: z.union([ z.lazy(() => BlogUpdateManyWithWhereWithoutCategoryInputSchema),z.lazy(() => BlogUpdateManyWithWhereWithoutCategoryInputSchema).array() ]).optional(),
+  deleteMany: z.union([ z.lazy(() => BlogScalarWhereInputSchema),z.lazy(() => BlogScalarWhereInputSchema).array() ]).optional(),
+}).strict();
+
+export const CategoryUncheckedUpdateManyWithoutOriginalCategoryNestedInputSchema: z.ZodType<Prisma.CategoryUncheckedUpdateManyWithoutOriginalCategoryNestedInput> = z.object({
+  create: z.union([ z.lazy(() => CategoryCreateWithoutOriginalCategoryInputSchema),z.lazy(() => CategoryCreateWithoutOriginalCategoryInputSchema).array(),z.lazy(() => CategoryUncheckedCreateWithoutOriginalCategoryInputSchema),z.lazy(() => CategoryUncheckedCreateWithoutOriginalCategoryInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => CategoryCreateOrConnectWithoutOriginalCategoryInputSchema),z.lazy(() => CategoryCreateOrConnectWithoutOriginalCategoryInputSchema).array() ]).optional(),
+  upsert: z.union([ z.lazy(() => CategoryUpsertWithWhereUniqueWithoutOriginalCategoryInputSchema),z.lazy(() => CategoryUpsertWithWhereUniqueWithoutOriginalCategoryInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => CategoryCreateManyOriginalCategoryInputEnvelopeSchema).optional(),
+  set: z.union([ z.lazy(() => CategoryWhereUniqueInputSchema),z.lazy(() => CategoryWhereUniqueInputSchema).array() ]).optional(),
+  disconnect: z.union([ z.lazy(() => CategoryWhereUniqueInputSchema),z.lazy(() => CategoryWhereUniqueInputSchema).array() ]).optional(),
+  delete: z.union([ z.lazy(() => CategoryWhereUniqueInputSchema),z.lazy(() => CategoryWhereUniqueInputSchema).array() ]).optional(),
+  connect: z.union([ z.lazy(() => CategoryWhereUniqueInputSchema),z.lazy(() => CategoryWhereUniqueInputSchema).array() ]).optional(),
+  update: z.union([ z.lazy(() => CategoryUpdateWithWhereUniqueWithoutOriginalCategoryInputSchema),z.lazy(() => CategoryUpdateWithWhereUniqueWithoutOriginalCategoryInputSchema).array() ]).optional(),
+  updateMany: z.union([ z.lazy(() => CategoryUpdateManyWithWhereWithoutOriginalCategoryInputSchema),z.lazy(() => CategoryUpdateManyWithWhereWithoutOriginalCategoryInputSchema).array() ]).optional(),
+  deleteMany: z.union([ z.lazy(() => CategoryScalarWhereInputSchema),z.lazy(() => CategoryScalarWhereInputSchema).array() ]).optional(),
+}).strict();
+
+export const PollUncheckedUpdateManyWithoutCategoryNestedInputSchema: z.ZodType<Prisma.PollUncheckedUpdateManyWithoutCategoryNestedInput> = z.object({
+  create: z.union([ z.lazy(() => PollCreateWithoutCategoryInputSchema),z.lazy(() => PollCreateWithoutCategoryInputSchema).array(),z.lazy(() => PollUncheckedCreateWithoutCategoryInputSchema),z.lazy(() => PollUncheckedCreateWithoutCategoryInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => PollCreateOrConnectWithoutCategoryInputSchema),z.lazy(() => PollCreateOrConnectWithoutCategoryInputSchema).array() ]).optional(),
+  upsert: z.union([ z.lazy(() => PollUpsertWithWhereUniqueWithoutCategoryInputSchema),z.lazy(() => PollUpsertWithWhereUniqueWithoutCategoryInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => PollCreateManyCategoryInputEnvelopeSchema).optional(),
+  set: z.union([ z.lazy(() => PollWhereUniqueInputSchema),z.lazy(() => PollWhereUniqueInputSchema).array() ]).optional(),
+  disconnect: z.union([ z.lazy(() => PollWhereUniqueInputSchema),z.lazy(() => PollWhereUniqueInputSchema).array() ]).optional(),
+  delete: z.union([ z.lazy(() => PollWhereUniqueInputSchema),z.lazy(() => PollWhereUniqueInputSchema).array() ]).optional(),
+  connect: z.union([ z.lazy(() => PollWhereUniqueInputSchema),z.lazy(() => PollWhereUniqueInputSchema).array() ]).optional(),
+  update: z.union([ z.lazy(() => PollUpdateWithWhereUniqueWithoutCategoryInputSchema),z.lazy(() => PollUpdateWithWhereUniqueWithoutCategoryInputSchema).array() ]).optional(),
+  updateMany: z.union([ z.lazy(() => PollUpdateManyWithWhereWithoutCategoryInputSchema),z.lazy(() => PollUpdateManyWithWhereWithoutCategoryInputSchema).array() ]).optional(),
+  deleteMany: z.union([ z.lazy(() => PollScalarWhereInputSchema),z.lazy(() => PollScalarWhereInputSchema).array() ]).optional(),
+}).strict();
+
+export const ImageUncheckedUpdateManyWithoutCategoryNestedInputSchema: z.ZodType<Prisma.ImageUncheckedUpdateManyWithoutCategoryNestedInput> = z.object({
+  create: z.union([ z.lazy(() => ImageCreateWithoutCategoryInputSchema),z.lazy(() => ImageCreateWithoutCategoryInputSchema).array(),z.lazy(() => ImageUncheckedCreateWithoutCategoryInputSchema),z.lazy(() => ImageUncheckedCreateWithoutCategoryInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => ImageCreateOrConnectWithoutCategoryInputSchema),z.lazy(() => ImageCreateOrConnectWithoutCategoryInputSchema).array() ]).optional(),
+  upsert: z.union([ z.lazy(() => ImageUpsertWithWhereUniqueWithoutCategoryInputSchema),z.lazy(() => ImageUpsertWithWhereUniqueWithoutCategoryInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => ImageCreateManyCategoryInputEnvelopeSchema).optional(),
+  set: z.union([ z.lazy(() => ImageWhereUniqueInputSchema),z.lazy(() => ImageWhereUniqueInputSchema).array() ]).optional(),
+  disconnect: z.union([ z.lazy(() => ImageWhereUniqueInputSchema),z.lazy(() => ImageWhereUniqueInputSchema).array() ]).optional(),
+  delete: z.union([ z.lazy(() => ImageWhereUniqueInputSchema),z.lazy(() => ImageWhereUniqueInputSchema).array() ]).optional(),
+  connect: z.union([ z.lazy(() => ImageWhereUniqueInputSchema),z.lazy(() => ImageWhereUniqueInputSchema).array() ]).optional(),
+  update: z.union([ z.lazy(() => ImageUpdateWithWhereUniqueWithoutCategoryInputSchema),z.lazy(() => ImageUpdateWithWhereUniqueWithoutCategoryInputSchema).array() ]).optional(),
+  updateMany: z.union([ z.lazy(() => ImageUpdateManyWithWhereWithoutCategoryInputSchema),z.lazy(() => ImageUpdateManyWithWhereWithoutCategoryInputSchema).array() ]).optional(),
+  deleteMany: z.union([ z.lazy(() => ImageScalarWhereInputSchema),z.lazy(() => ImageScalarWhereInputSchema).array() ]).optional(),
+}).strict();
+
+export const BlogUncheckedUpdateManyWithoutCategoryNestedInputSchema: z.ZodType<Prisma.BlogUncheckedUpdateManyWithoutCategoryNestedInput> = z.object({
+  create: z.union([ z.lazy(() => BlogCreateWithoutCategoryInputSchema),z.lazy(() => BlogCreateWithoutCategoryInputSchema).array(),z.lazy(() => BlogUncheckedCreateWithoutCategoryInputSchema),z.lazy(() => BlogUncheckedCreateWithoutCategoryInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => BlogCreateOrConnectWithoutCategoryInputSchema),z.lazy(() => BlogCreateOrConnectWithoutCategoryInputSchema).array() ]).optional(),
+  upsert: z.union([ z.lazy(() => BlogUpsertWithWhereUniqueWithoutCategoryInputSchema),z.lazy(() => BlogUpsertWithWhereUniqueWithoutCategoryInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => BlogCreateManyCategoryInputEnvelopeSchema).optional(),
+  set: z.union([ z.lazy(() => BlogWhereUniqueInputSchema),z.lazy(() => BlogWhereUniqueInputSchema).array() ]).optional(),
+  disconnect: z.union([ z.lazy(() => BlogWhereUniqueInputSchema),z.lazy(() => BlogWhereUniqueInputSchema).array() ]).optional(),
+  delete: z.union([ z.lazy(() => BlogWhereUniqueInputSchema),z.lazy(() => BlogWhereUniqueInputSchema).array() ]).optional(),
+  connect: z.union([ z.lazy(() => BlogWhereUniqueInputSchema),z.lazy(() => BlogWhereUniqueInputSchema).array() ]).optional(),
+  update: z.union([ z.lazy(() => BlogUpdateWithWhereUniqueWithoutCategoryInputSchema),z.lazy(() => BlogUpdateWithWhereUniqueWithoutCategoryInputSchema).array() ]).optional(),
+  updateMany: z.union([ z.lazy(() => BlogUpdateManyWithWhereWithoutCategoryInputSchema),z.lazy(() => BlogUpdateManyWithWhereWithoutCategoryInputSchema).array() ]).optional(),
+  deleteMany: z.union([ z.lazy(() => BlogScalarWhereInputSchema),z.lazy(() => BlogScalarWhereInputSchema).array() ]).optional(),
+}).strict();
+
+export const TagCreateNestedOneWithoutTranslationsInputSchema: z.ZodType<Prisma.TagCreateNestedOneWithoutTranslationsInput> = z.object({
+  create: z.union([ z.lazy(() => TagCreateWithoutTranslationsInputSchema),z.lazy(() => TagUncheckedCreateWithoutTranslationsInputSchema) ]).optional(),
+  connectOrCreate: z.lazy(() => TagCreateOrConnectWithoutTranslationsInputSchema).optional(),
+  connect: z.lazy(() => TagWhereUniqueInputSchema).optional()
+}).strict();
+
+export const TagCreateNestedManyWithoutOriginalTagInputSchema: z.ZodType<Prisma.TagCreateNestedManyWithoutOriginalTagInput> = z.object({
+  create: z.union([ z.lazy(() => TagCreateWithoutOriginalTagInputSchema),z.lazy(() => TagCreateWithoutOriginalTagInputSchema).array(),z.lazy(() => TagUncheckedCreateWithoutOriginalTagInputSchema),z.lazy(() => TagUncheckedCreateWithoutOriginalTagInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => TagCreateOrConnectWithoutOriginalTagInputSchema),z.lazy(() => TagCreateOrConnectWithoutOriginalTagInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => TagCreateManyOriginalTagInputEnvelopeSchema).optional(),
+  connect: z.union([ z.lazy(() => TagWhereUniqueInputSchema),z.lazy(() => TagWhereUniqueInputSchema).array() ]).optional(),
+}).strict();
+
+export const BlogTagCreateNestedManyWithoutTagInputSchema: z.ZodType<Prisma.BlogTagCreateNestedManyWithoutTagInput> = z.object({
+  create: z.union([ z.lazy(() => BlogTagCreateWithoutTagInputSchema),z.lazy(() => BlogTagCreateWithoutTagInputSchema).array(),z.lazy(() => BlogTagUncheckedCreateWithoutTagInputSchema),z.lazy(() => BlogTagUncheckedCreateWithoutTagInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => BlogTagCreateOrConnectWithoutTagInputSchema),z.lazy(() => BlogTagCreateOrConnectWithoutTagInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => BlogTagCreateManyTagInputEnvelopeSchema).optional(),
+  connect: z.union([ z.lazy(() => BlogTagWhereUniqueInputSchema),z.lazy(() => BlogTagWhereUniqueInputSchema).array() ]).optional(),
+}).strict();
+
+export const TagUncheckedCreateNestedManyWithoutOriginalTagInputSchema: z.ZodType<Prisma.TagUncheckedCreateNestedManyWithoutOriginalTagInput> = z.object({
+  create: z.union([ z.lazy(() => TagCreateWithoutOriginalTagInputSchema),z.lazy(() => TagCreateWithoutOriginalTagInputSchema).array(),z.lazy(() => TagUncheckedCreateWithoutOriginalTagInputSchema),z.lazy(() => TagUncheckedCreateWithoutOriginalTagInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => TagCreateOrConnectWithoutOriginalTagInputSchema),z.lazy(() => TagCreateOrConnectWithoutOriginalTagInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => TagCreateManyOriginalTagInputEnvelopeSchema).optional(),
+  connect: z.union([ z.lazy(() => TagWhereUniqueInputSchema),z.lazy(() => TagWhereUniqueInputSchema).array() ]).optional(),
+}).strict();
+
+export const BlogTagUncheckedCreateNestedManyWithoutTagInputSchema: z.ZodType<Prisma.BlogTagUncheckedCreateNestedManyWithoutTagInput> = z.object({
+  create: z.union([ z.lazy(() => BlogTagCreateWithoutTagInputSchema),z.lazy(() => BlogTagCreateWithoutTagInputSchema).array(),z.lazy(() => BlogTagUncheckedCreateWithoutTagInputSchema),z.lazy(() => BlogTagUncheckedCreateWithoutTagInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => BlogTagCreateOrConnectWithoutTagInputSchema),z.lazy(() => BlogTagCreateOrConnectWithoutTagInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => BlogTagCreateManyTagInputEnvelopeSchema).optional(),
+  connect: z.union([ z.lazy(() => BlogTagWhereUniqueInputSchema),z.lazy(() => BlogTagWhereUniqueInputSchema).array() ]).optional(),
+}).strict();
+
+export const TagUpdateOneWithoutTranslationsNestedInputSchema: z.ZodType<Prisma.TagUpdateOneWithoutTranslationsNestedInput> = z.object({
+  create: z.union([ z.lazy(() => TagCreateWithoutTranslationsInputSchema),z.lazy(() => TagUncheckedCreateWithoutTranslationsInputSchema) ]).optional(),
+  connectOrCreate: z.lazy(() => TagCreateOrConnectWithoutTranslationsInputSchema).optional(),
+  upsert: z.lazy(() => TagUpsertWithoutTranslationsInputSchema).optional(),
+  disconnect: z.union([ z.boolean(),z.lazy(() => TagWhereInputSchema) ]).optional(),
+  delete: z.union([ z.boolean(),z.lazy(() => TagWhereInputSchema) ]).optional(),
+  connect: z.lazy(() => TagWhereUniqueInputSchema).optional(),
+  update: z.union([ z.lazy(() => TagUpdateToOneWithWhereWithoutTranslationsInputSchema),z.lazy(() => TagUpdateWithoutTranslationsInputSchema),z.lazy(() => TagUncheckedUpdateWithoutTranslationsInputSchema) ]).optional(),
+}).strict();
+
+export const TagUpdateManyWithoutOriginalTagNestedInputSchema: z.ZodType<Prisma.TagUpdateManyWithoutOriginalTagNestedInput> = z.object({
+  create: z.union([ z.lazy(() => TagCreateWithoutOriginalTagInputSchema),z.lazy(() => TagCreateWithoutOriginalTagInputSchema).array(),z.lazy(() => TagUncheckedCreateWithoutOriginalTagInputSchema),z.lazy(() => TagUncheckedCreateWithoutOriginalTagInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => TagCreateOrConnectWithoutOriginalTagInputSchema),z.lazy(() => TagCreateOrConnectWithoutOriginalTagInputSchema).array() ]).optional(),
+  upsert: z.union([ z.lazy(() => TagUpsertWithWhereUniqueWithoutOriginalTagInputSchema),z.lazy(() => TagUpsertWithWhereUniqueWithoutOriginalTagInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => TagCreateManyOriginalTagInputEnvelopeSchema).optional(),
+  set: z.union([ z.lazy(() => TagWhereUniqueInputSchema),z.lazy(() => TagWhereUniqueInputSchema).array() ]).optional(),
+  disconnect: z.union([ z.lazy(() => TagWhereUniqueInputSchema),z.lazy(() => TagWhereUniqueInputSchema).array() ]).optional(),
+  delete: z.union([ z.lazy(() => TagWhereUniqueInputSchema),z.lazy(() => TagWhereUniqueInputSchema).array() ]).optional(),
+  connect: z.union([ z.lazy(() => TagWhereUniqueInputSchema),z.lazy(() => TagWhereUniqueInputSchema).array() ]).optional(),
+  update: z.union([ z.lazy(() => TagUpdateWithWhereUniqueWithoutOriginalTagInputSchema),z.lazy(() => TagUpdateWithWhereUniqueWithoutOriginalTagInputSchema).array() ]).optional(),
+  updateMany: z.union([ z.lazy(() => TagUpdateManyWithWhereWithoutOriginalTagInputSchema),z.lazy(() => TagUpdateManyWithWhereWithoutOriginalTagInputSchema).array() ]).optional(),
+  deleteMany: z.union([ z.lazy(() => TagScalarWhereInputSchema),z.lazy(() => TagScalarWhereInputSchema).array() ]).optional(),
+}).strict();
+
+export const BlogTagUpdateManyWithoutTagNestedInputSchema: z.ZodType<Prisma.BlogTagUpdateManyWithoutTagNestedInput> = z.object({
+  create: z.union([ z.lazy(() => BlogTagCreateWithoutTagInputSchema),z.lazy(() => BlogTagCreateWithoutTagInputSchema).array(),z.lazy(() => BlogTagUncheckedCreateWithoutTagInputSchema),z.lazy(() => BlogTagUncheckedCreateWithoutTagInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => BlogTagCreateOrConnectWithoutTagInputSchema),z.lazy(() => BlogTagCreateOrConnectWithoutTagInputSchema).array() ]).optional(),
+  upsert: z.union([ z.lazy(() => BlogTagUpsertWithWhereUniqueWithoutTagInputSchema),z.lazy(() => BlogTagUpsertWithWhereUniqueWithoutTagInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => BlogTagCreateManyTagInputEnvelopeSchema).optional(),
+  set: z.union([ z.lazy(() => BlogTagWhereUniqueInputSchema),z.lazy(() => BlogTagWhereUniqueInputSchema).array() ]).optional(),
+  disconnect: z.union([ z.lazy(() => BlogTagWhereUniqueInputSchema),z.lazy(() => BlogTagWhereUniqueInputSchema).array() ]).optional(),
+  delete: z.union([ z.lazy(() => BlogTagWhereUniqueInputSchema),z.lazy(() => BlogTagWhereUniqueInputSchema).array() ]).optional(),
+  connect: z.union([ z.lazy(() => BlogTagWhereUniqueInputSchema),z.lazy(() => BlogTagWhereUniqueInputSchema).array() ]).optional(),
+  update: z.union([ z.lazy(() => BlogTagUpdateWithWhereUniqueWithoutTagInputSchema),z.lazy(() => BlogTagUpdateWithWhereUniqueWithoutTagInputSchema).array() ]).optional(),
+  updateMany: z.union([ z.lazy(() => BlogTagUpdateManyWithWhereWithoutTagInputSchema),z.lazy(() => BlogTagUpdateManyWithWhereWithoutTagInputSchema).array() ]).optional(),
+  deleteMany: z.union([ z.lazy(() => BlogTagScalarWhereInputSchema),z.lazy(() => BlogTagScalarWhereInputSchema).array() ]).optional(),
+}).strict();
+
+export const TagUncheckedUpdateManyWithoutOriginalTagNestedInputSchema: z.ZodType<Prisma.TagUncheckedUpdateManyWithoutOriginalTagNestedInput> = z.object({
+  create: z.union([ z.lazy(() => TagCreateWithoutOriginalTagInputSchema),z.lazy(() => TagCreateWithoutOriginalTagInputSchema).array(),z.lazy(() => TagUncheckedCreateWithoutOriginalTagInputSchema),z.lazy(() => TagUncheckedCreateWithoutOriginalTagInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => TagCreateOrConnectWithoutOriginalTagInputSchema),z.lazy(() => TagCreateOrConnectWithoutOriginalTagInputSchema).array() ]).optional(),
+  upsert: z.union([ z.lazy(() => TagUpsertWithWhereUniqueWithoutOriginalTagInputSchema),z.lazy(() => TagUpsertWithWhereUniqueWithoutOriginalTagInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => TagCreateManyOriginalTagInputEnvelopeSchema).optional(),
+  set: z.union([ z.lazy(() => TagWhereUniqueInputSchema),z.lazy(() => TagWhereUniqueInputSchema).array() ]).optional(),
+  disconnect: z.union([ z.lazy(() => TagWhereUniqueInputSchema),z.lazy(() => TagWhereUniqueInputSchema).array() ]).optional(),
+  delete: z.union([ z.lazy(() => TagWhereUniqueInputSchema),z.lazy(() => TagWhereUniqueInputSchema).array() ]).optional(),
+  connect: z.union([ z.lazy(() => TagWhereUniqueInputSchema),z.lazy(() => TagWhereUniqueInputSchema).array() ]).optional(),
+  update: z.union([ z.lazy(() => TagUpdateWithWhereUniqueWithoutOriginalTagInputSchema),z.lazy(() => TagUpdateWithWhereUniqueWithoutOriginalTagInputSchema).array() ]).optional(),
+  updateMany: z.union([ z.lazy(() => TagUpdateManyWithWhereWithoutOriginalTagInputSchema),z.lazy(() => TagUpdateManyWithWhereWithoutOriginalTagInputSchema).array() ]).optional(),
+  deleteMany: z.union([ z.lazy(() => TagScalarWhereInputSchema),z.lazy(() => TagScalarWhereInputSchema).array() ]).optional(),
+}).strict();
+
+export const BlogTagUncheckedUpdateManyWithoutTagNestedInputSchema: z.ZodType<Prisma.BlogTagUncheckedUpdateManyWithoutTagNestedInput> = z.object({
+  create: z.union([ z.lazy(() => BlogTagCreateWithoutTagInputSchema),z.lazy(() => BlogTagCreateWithoutTagInputSchema).array(),z.lazy(() => BlogTagUncheckedCreateWithoutTagInputSchema),z.lazy(() => BlogTagUncheckedCreateWithoutTagInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => BlogTagCreateOrConnectWithoutTagInputSchema),z.lazy(() => BlogTagCreateOrConnectWithoutTagInputSchema).array() ]).optional(),
+  upsert: z.union([ z.lazy(() => BlogTagUpsertWithWhereUniqueWithoutTagInputSchema),z.lazy(() => BlogTagUpsertWithWhereUniqueWithoutTagInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => BlogTagCreateManyTagInputEnvelopeSchema).optional(),
+  set: z.union([ z.lazy(() => BlogTagWhereUniqueInputSchema),z.lazy(() => BlogTagWhereUniqueInputSchema).array() ]).optional(),
+  disconnect: z.union([ z.lazy(() => BlogTagWhereUniqueInputSchema),z.lazy(() => BlogTagWhereUniqueInputSchema).array() ]).optional(),
+  delete: z.union([ z.lazy(() => BlogTagWhereUniqueInputSchema),z.lazy(() => BlogTagWhereUniqueInputSchema).array() ]).optional(),
+  connect: z.union([ z.lazy(() => BlogTagWhereUniqueInputSchema),z.lazy(() => BlogTagWhereUniqueInputSchema).array() ]).optional(),
+  update: z.union([ z.lazy(() => BlogTagUpdateWithWhereUniqueWithoutTagInputSchema),z.lazy(() => BlogTagUpdateWithWhereUniqueWithoutTagInputSchema).array() ]).optional(),
+  updateMany: z.union([ z.lazy(() => BlogTagUpdateManyWithWhereWithoutTagInputSchema),z.lazy(() => BlogTagUpdateManyWithWhereWithoutTagInputSchema).array() ]).optional(),
+  deleteMany: z.union([ z.lazy(() => BlogTagScalarWhereInputSchema),z.lazy(() => BlogTagScalarWhereInputSchema).array() ]).optional(),
+}).strict();
+
+export const PollCreateNestedOneWithoutTranslationsInputSchema: z.ZodType<Prisma.PollCreateNestedOneWithoutTranslationsInput> = z.object({
+  create: z.union([ z.lazy(() => PollCreateWithoutTranslationsInputSchema),z.lazy(() => PollUncheckedCreateWithoutTranslationsInputSchema) ]).optional(),
+  connectOrCreate: z.lazy(() => PollCreateOrConnectWithoutTranslationsInputSchema).optional(),
+  connect: z.lazy(() => PollWhereUniqueInputSchema).optional()
+}).strict();
+
+export const PollCreateNestedManyWithoutOriginalPollInputSchema: z.ZodType<Prisma.PollCreateNestedManyWithoutOriginalPollInput> = z.object({
+  create: z.union([ z.lazy(() => PollCreateWithoutOriginalPollInputSchema),z.lazy(() => PollCreateWithoutOriginalPollInputSchema).array(),z.lazy(() => PollUncheckedCreateWithoutOriginalPollInputSchema),z.lazy(() => PollUncheckedCreateWithoutOriginalPollInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => PollCreateOrConnectWithoutOriginalPollInputSchema),z.lazy(() => PollCreateOrConnectWithoutOriginalPollInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => PollCreateManyOriginalPollInputEnvelopeSchema).optional(),
+  connect: z.union([ z.lazy(() => PollWhereUniqueInputSchema),z.lazy(() => PollWhereUniqueInputSchema).array() ]).optional(),
+}).strict();
+
+export const CategoryCreateNestedOneWithoutPollsInputSchema: z.ZodType<Prisma.CategoryCreateNestedOneWithoutPollsInput> = z.object({
+  create: z.union([ z.lazy(() => CategoryCreateWithoutPollsInputSchema),z.lazy(() => CategoryUncheckedCreateWithoutPollsInputSchema) ]).optional(),
+  connectOrCreate: z.lazy(() => CategoryCreateOrConnectWithoutPollsInputSchema).optional(),
+  connect: z.lazy(() => CategoryWhereUniqueInputSchema).optional()
+}).strict();
+
+export const PollOptionCreateNestedManyWithoutPollInputSchema: z.ZodType<Prisma.PollOptionCreateNestedManyWithoutPollInput> = z.object({
+  create: z.union([ z.lazy(() => PollOptionCreateWithoutPollInputSchema),z.lazy(() => PollOptionCreateWithoutPollInputSchema).array(),z.lazy(() => PollOptionUncheckedCreateWithoutPollInputSchema),z.lazy(() => PollOptionUncheckedCreateWithoutPollInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => PollOptionCreateOrConnectWithoutPollInputSchema),z.lazy(() => PollOptionCreateOrConnectWithoutPollInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => PollOptionCreateManyPollInputEnvelopeSchema).optional(),
+  connect: z.union([ z.lazy(() => PollOptionWhereUniqueInputSchema),z.lazy(() => PollOptionWhereUniqueInputSchema).array() ]).optional(),
+}).strict();
+
+export const VoteCreateNestedManyWithoutPollInputSchema: z.ZodType<Prisma.VoteCreateNestedManyWithoutPollInput> = z.object({
+  create: z.union([ z.lazy(() => VoteCreateWithoutPollInputSchema),z.lazy(() => VoteCreateWithoutPollInputSchema).array(),z.lazy(() => VoteUncheckedCreateWithoutPollInputSchema),z.lazy(() => VoteUncheckedCreateWithoutPollInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => VoteCreateOrConnectWithoutPollInputSchema),z.lazy(() => VoteCreateOrConnectWithoutPollInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => VoteCreateManyPollInputEnvelopeSchema).optional(),
+  connect: z.union([ z.lazy(() => VoteWhereUniqueInputSchema),z.lazy(() => VoteWhereUniqueInputSchema).array() ]).optional(),
+}).strict();
+
+export const NewsItemCreateNestedOneWithoutPollInputSchema: z.ZodType<Prisma.NewsItemCreateNestedOneWithoutPollInput> = z.object({
+  create: z.union([ z.lazy(() => NewsItemCreateWithoutPollInputSchema),z.lazy(() => NewsItemUncheckedCreateWithoutPollInputSchema) ]).optional(),
+  connectOrCreate: z.lazy(() => NewsItemCreateOrConnectWithoutPollInputSchema).optional(),
+  connect: z.lazy(() => NewsItemWhereUniqueInputSchema).optional()
+}).strict();
+
+export const ImageCreateNestedManyWithoutPollInputSchema: z.ZodType<Prisma.ImageCreateNestedManyWithoutPollInput> = z.object({
+  create: z.union([ z.lazy(() => ImageCreateWithoutPollInputSchema),z.lazy(() => ImageCreateWithoutPollInputSchema).array(),z.lazy(() => ImageUncheckedCreateWithoutPollInputSchema),z.lazy(() => ImageUncheckedCreateWithoutPollInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => ImageCreateOrConnectWithoutPollInputSchema),z.lazy(() => ImageCreateOrConnectWithoutPollInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => ImageCreateManyPollInputEnvelopeSchema).optional(),
+  connect: z.union([ z.lazy(() => ImageWhereUniqueInputSchema),z.lazy(() => ImageWhereUniqueInputSchema).array() ]).optional(),
+}).strict();
+
+export const PollUncheckedCreateNestedManyWithoutOriginalPollInputSchema: z.ZodType<Prisma.PollUncheckedCreateNestedManyWithoutOriginalPollInput> = z.object({
+  create: z.union([ z.lazy(() => PollCreateWithoutOriginalPollInputSchema),z.lazy(() => PollCreateWithoutOriginalPollInputSchema).array(),z.lazy(() => PollUncheckedCreateWithoutOriginalPollInputSchema),z.lazy(() => PollUncheckedCreateWithoutOriginalPollInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => PollCreateOrConnectWithoutOriginalPollInputSchema),z.lazy(() => PollCreateOrConnectWithoutOriginalPollInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => PollCreateManyOriginalPollInputEnvelopeSchema).optional(),
+  connect: z.union([ z.lazy(() => PollWhereUniqueInputSchema),z.lazy(() => PollWhereUniqueInputSchema).array() ]).optional(),
+}).strict();
+
+export const PollOptionUncheckedCreateNestedManyWithoutPollInputSchema: z.ZodType<Prisma.PollOptionUncheckedCreateNestedManyWithoutPollInput> = z.object({
+  create: z.union([ z.lazy(() => PollOptionCreateWithoutPollInputSchema),z.lazy(() => PollOptionCreateWithoutPollInputSchema).array(),z.lazy(() => PollOptionUncheckedCreateWithoutPollInputSchema),z.lazy(() => PollOptionUncheckedCreateWithoutPollInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => PollOptionCreateOrConnectWithoutPollInputSchema),z.lazy(() => PollOptionCreateOrConnectWithoutPollInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => PollOptionCreateManyPollInputEnvelopeSchema).optional(),
+  connect: z.union([ z.lazy(() => PollOptionWhereUniqueInputSchema),z.lazy(() => PollOptionWhereUniqueInputSchema).array() ]).optional(),
+}).strict();
+
+export const VoteUncheckedCreateNestedManyWithoutPollInputSchema: z.ZodType<Prisma.VoteUncheckedCreateNestedManyWithoutPollInput> = z.object({
+  create: z.union([ z.lazy(() => VoteCreateWithoutPollInputSchema),z.lazy(() => VoteCreateWithoutPollInputSchema).array(),z.lazy(() => VoteUncheckedCreateWithoutPollInputSchema),z.lazy(() => VoteUncheckedCreateWithoutPollInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => VoteCreateOrConnectWithoutPollInputSchema),z.lazy(() => VoteCreateOrConnectWithoutPollInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => VoteCreateManyPollInputEnvelopeSchema).optional(),
+  connect: z.union([ z.lazy(() => VoteWhereUniqueInputSchema),z.lazy(() => VoteWhereUniqueInputSchema).array() ]).optional(),
+}).strict();
+
+export const ImageUncheckedCreateNestedManyWithoutPollInputSchema: z.ZodType<Prisma.ImageUncheckedCreateNestedManyWithoutPollInput> = z.object({
+  create: z.union([ z.lazy(() => ImageCreateWithoutPollInputSchema),z.lazy(() => ImageCreateWithoutPollInputSchema).array(),z.lazy(() => ImageUncheckedCreateWithoutPollInputSchema),z.lazy(() => ImageUncheckedCreateWithoutPollInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => ImageCreateOrConnectWithoutPollInputSchema),z.lazy(() => ImageCreateOrConnectWithoutPollInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => ImageCreateManyPollInputEnvelopeSchema).optional(),
+  connect: z.union([ z.lazy(() => ImageWhereUniqueInputSchema),z.lazy(() => ImageWhereUniqueInputSchema).array() ]).optional(),
+}).strict();
+
+export const NullableDateTimeFieldUpdateOperationsInputSchema: z.ZodType<Prisma.NullableDateTimeFieldUpdateOperationsInput> = z.object({
+  set: z.coerce.date().optional().nullable()
+}).strict();
+
+export const PollUpdateOneWithoutTranslationsNestedInputSchema: z.ZodType<Prisma.PollUpdateOneWithoutTranslationsNestedInput> = z.object({
+  create: z.union([ z.lazy(() => PollCreateWithoutTranslationsInputSchema),z.lazy(() => PollUncheckedCreateWithoutTranslationsInputSchema) ]).optional(),
+  connectOrCreate: z.lazy(() => PollCreateOrConnectWithoutTranslationsInputSchema).optional(),
+  upsert: z.lazy(() => PollUpsertWithoutTranslationsInputSchema).optional(),
+  disconnect: z.union([ z.boolean(),z.lazy(() => PollWhereInputSchema) ]).optional(),
+  delete: z.union([ z.boolean(),z.lazy(() => PollWhereInputSchema) ]).optional(),
+  connect: z.lazy(() => PollWhereUniqueInputSchema).optional(),
+  update: z.union([ z.lazy(() => PollUpdateToOneWithWhereWithoutTranslationsInputSchema),z.lazy(() => PollUpdateWithoutTranslationsInputSchema),z.lazy(() => PollUncheckedUpdateWithoutTranslationsInputSchema) ]).optional(),
+}).strict();
+
+export const PollUpdateManyWithoutOriginalPollNestedInputSchema: z.ZodType<Prisma.PollUpdateManyWithoutOriginalPollNestedInput> = z.object({
+  create: z.union([ z.lazy(() => PollCreateWithoutOriginalPollInputSchema),z.lazy(() => PollCreateWithoutOriginalPollInputSchema).array(),z.lazy(() => PollUncheckedCreateWithoutOriginalPollInputSchema),z.lazy(() => PollUncheckedCreateWithoutOriginalPollInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => PollCreateOrConnectWithoutOriginalPollInputSchema),z.lazy(() => PollCreateOrConnectWithoutOriginalPollInputSchema).array() ]).optional(),
+  upsert: z.union([ z.lazy(() => PollUpsertWithWhereUniqueWithoutOriginalPollInputSchema),z.lazy(() => PollUpsertWithWhereUniqueWithoutOriginalPollInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => PollCreateManyOriginalPollInputEnvelopeSchema).optional(),
+  set: z.union([ z.lazy(() => PollWhereUniqueInputSchema),z.lazy(() => PollWhereUniqueInputSchema).array() ]).optional(),
+  disconnect: z.union([ z.lazy(() => PollWhereUniqueInputSchema),z.lazy(() => PollWhereUniqueInputSchema).array() ]).optional(),
+  delete: z.union([ z.lazy(() => PollWhereUniqueInputSchema),z.lazy(() => PollWhereUniqueInputSchema).array() ]).optional(),
+  connect: z.union([ z.lazy(() => PollWhereUniqueInputSchema),z.lazy(() => PollWhereUniqueInputSchema).array() ]).optional(),
+  update: z.union([ z.lazy(() => PollUpdateWithWhereUniqueWithoutOriginalPollInputSchema),z.lazy(() => PollUpdateWithWhereUniqueWithoutOriginalPollInputSchema).array() ]).optional(),
+  updateMany: z.union([ z.lazy(() => PollUpdateManyWithWhereWithoutOriginalPollInputSchema),z.lazy(() => PollUpdateManyWithWhereWithoutOriginalPollInputSchema).array() ]).optional(),
+  deleteMany: z.union([ z.lazy(() => PollScalarWhereInputSchema),z.lazy(() => PollScalarWhereInputSchema).array() ]).optional(),
+}).strict();
+
+export const CategoryUpdateOneRequiredWithoutPollsNestedInputSchema: z.ZodType<Prisma.CategoryUpdateOneRequiredWithoutPollsNestedInput> = z.object({
+  create: z.union([ z.lazy(() => CategoryCreateWithoutPollsInputSchema),z.lazy(() => CategoryUncheckedCreateWithoutPollsInputSchema) ]).optional(),
+  connectOrCreate: z.lazy(() => CategoryCreateOrConnectWithoutPollsInputSchema).optional(),
+  upsert: z.lazy(() => CategoryUpsertWithoutPollsInputSchema).optional(),
+  connect: z.lazy(() => CategoryWhereUniqueInputSchema).optional(),
+  update: z.union([ z.lazy(() => CategoryUpdateToOneWithWhereWithoutPollsInputSchema),z.lazy(() => CategoryUpdateWithoutPollsInputSchema),z.lazy(() => CategoryUncheckedUpdateWithoutPollsInputSchema) ]).optional(),
+}).strict();
+
+export const PollOptionUpdateManyWithoutPollNestedInputSchema: z.ZodType<Prisma.PollOptionUpdateManyWithoutPollNestedInput> = z.object({
+  create: z.union([ z.lazy(() => PollOptionCreateWithoutPollInputSchema),z.lazy(() => PollOptionCreateWithoutPollInputSchema).array(),z.lazy(() => PollOptionUncheckedCreateWithoutPollInputSchema),z.lazy(() => PollOptionUncheckedCreateWithoutPollInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => PollOptionCreateOrConnectWithoutPollInputSchema),z.lazy(() => PollOptionCreateOrConnectWithoutPollInputSchema).array() ]).optional(),
+  upsert: z.union([ z.lazy(() => PollOptionUpsertWithWhereUniqueWithoutPollInputSchema),z.lazy(() => PollOptionUpsertWithWhereUniqueWithoutPollInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => PollOptionCreateManyPollInputEnvelopeSchema).optional(),
+  set: z.union([ z.lazy(() => PollOptionWhereUniqueInputSchema),z.lazy(() => PollOptionWhereUniqueInputSchema).array() ]).optional(),
+  disconnect: z.union([ z.lazy(() => PollOptionWhereUniqueInputSchema),z.lazy(() => PollOptionWhereUniqueInputSchema).array() ]).optional(),
+  delete: z.union([ z.lazy(() => PollOptionWhereUniqueInputSchema),z.lazy(() => PollOptionWhereUniqueInputSchema).array() ]).optional(),
+  connect: z.union([ z.lazy(() => PollOptionWhereUniqueInputSchema),z.lazy(() => PollOptionWhereUniqueInputSchema).array() ]).optional(),
+  update: z.union([ z.lazy(() => PollOptionUpdateWithWhereUniqueWithoutPollInputSchema),z.lazy(() => PollOptionUpdateWithWhereUniqueWithoutPollInputSchema).array() ]).optional(),
+  updateMany: z.union([ z.lazy(() => PollOptionUpdateManyWithWhereWithoutPollInputSchema),z.lazy(() => PollOptionUpdateManyWithWhereWithoutPollInputSchema).array() ]).optional(),
+  deleteMany: z.union([ z.lazy(() => PollOptionScalarWhereInputSchema),z.lazy(() => PollOptionScalarWhereInputSchema).array() ]).optional(),
+}).strict();
+
+export const VoteUpdateManyWithoutPollNestedInputSchema: z.ZodType<Prisma.VoteUpdateManyWithoutPollNestedInput> = z.object({
+  create: z.union([ z.lazy(() => VoteCreateWithoutPollInputSchema),z.lazy(() => VoteCreateWithoutPollInputSchema).array(),z.lazy(() => VoteUncheckedCreateWithoutPollInputSchema),z.lazy(() => VoteUncheckedCreateWithoutPollInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => VoteCreateOrConnectWithoutPollInputSchema),z.lazy(() => VoteCreateOrConnectWithoutPollInputSchema).array() ]).optional(),
+  upsert: z.union([ z.lazy(() => VoteUpsertWithWhereUniqueWithoutPollInputSchema),z.lazy(() => VoteUpsertWithWhereUniqueWithoutPollInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => VoteCreateManyPollInputEnvelopeSchema).optional(),
+  set: z.union([ z.lazy(() => VoteWhereUniqueInputSchema),z.lazy(() => VoteWhereUniqueInputSchema).array() ]).optional(),
+  disconnect: z.union([ z.lazy(() => VoteWhereUniqueInputSchema),z.lazy(() => VoteWhereUniqueInputSchema).array() ]).optional(),
+  delete: z.union([ z.lazy(() => VoteWhereUniqueInputSchema),z.lazy(() => VoteWhereUniqueInputSchema).array() ]).optional(),
+  connect: z.union([ z.lazy(() => VoteWhereUniqueInputSchema),z.lazy(() => VoteWhereUniqueInputSchema).array() ]).optional(),
+  update: z.union([ z.lazy(() => VoteUpdateWithWhereUniqueWithoutPollInputSchema),z.lazy(() => VoteUpdateWithWhereUniqueWithoutPollInputSchema).array() ]).optional(),
+  updateMany: z.union([ z.lazy(() => VoteUpdateManyWithWhereWithoutPollInputSchema),z.lazy(() => VoteUpdateManyWithWhereWithoutPollInputSchema).array() ]).optional(),
+  deleteMany: z.union([ z.lazy(() => VoteScalarWhereInputSchema),z.lazy(() => VoteScalarWhereInputSchema).array() ]).optional(),
+}).strict();
+
+export const NewsItemUpdateOneWithoutPollNestedInputSchema: z.ZodType<Prisma.NewsItemUpdateOneWithoutPollNestedInput> = z.object({
+  create: z.union([ z.lazy(() => NewsItemCreateWithoutPollInputSchema),z.lazy(() => NewsItemUncheckedCreateWithoutPollInputSchema) ]).optional(),
+  connectOrCreate: z.lazy(() => NewsItemCreateOrConnectWithoutPollInputSchema).optional(),
+  upsert: z.lazy(() => NewsItemUpsertWithoutPollInputSchema).optional(),
+  disconnect: z.union([ z.boolean(),z.lazy(() => NewsItemWhereInputSchema) ]).optional(),
+  delete: z.union([ z.boolean(),z.lazy(() => NewsItemWhereInputSchema) ]).optional(),
+  connect: z.lazy(() => NewsItemWhereUniqueInputSchema).optional(),
+  update: z.union([ z.lazy(() => NewsItemUpdateToOneWithWhereWithoutPollInputSchema),z.lazy(() => NewsItemUpdateWithoutPollInputSchema),z.lazy(() => NewsItemUncheckedUpdateWithoutPollInputSchema) ]).optional(),
+}).strict();
+
+export const ImageUpdateManyWithoutPollNestedInputSchema: z.ZodType<Prisma.ImageUpdateManyWithoutPollNestedInput> = z.object({
+  create: z.union([ z.lazy(() => ImageCreateWithoutPollInputSchema),z.lazy(() => ImageCreateWithoutPollInputSchema).array(),z.lazy(() => ImageUncheckedCreateWithoutPollInputSchema),z.lazy(() => ImageUncheckedCreateWithoutPollInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => ImageCreateOrConnectWithoutPollInputSchema),z.lazy(() => ImageCreateOrConnectWithoutPollInputSchema).array() ]).optional(),
+  upsert: z.union([ z.lazy(() => ImageUpsertWithWhereUniqueWithoutPollInputSchema),z.lazy(() => ImageUpsertWithWhereUniqueWithoutPollInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => ImageCreateManyPollInputEnvelopeSchema).optional(),
+  set: z.union([ z.lazy(() => ImageWhereUniqueInputSchema),z.lazy(() => ImageWhereUniqueInputSchema).array() ]).optional(),
+  disconnect: z.union([ z.lazy(() => ImageWhereUniqueInputSchema),z.lazy(() => ImageWhereUniqueInputSchema).array() ]).optional(),
+  delete: z.union([ z.lazy(() => ImageWhereUniqueInputSchema),z.lazy(() => ImageWhereUniqueInputSchema).array() ]).optional(),
+  connect: z.union([ z.lazy(() => ImageWhereUniqueInputSchema),z.lazy(() => ImageWhereUniqueInputSchema).array() ]).optional(),
+  update: z.union([ z.lazy(() => ImageUpdateWithWhereUniqueWithoutPollInputSchema),z.lazy(() => ImageUpdateWithWhereUniqueWithoutPollInputSchema).array() ]).optional(),
+  updateMany: z.union([ z.lazy(() => ImageUpdateManyWithWhereWithoutPollInputSchema),z.lazy(() => ImageUpdateManyWithWhereWithoutPollInputSchema).array() ]).optional(),
+  deleteMany: z.union([ z.lazy(() => ImageScalarWhereInputSchema),z.lazy(() => ImageScalarWhereInputSchema).array() ]).optional(),
+}).strict();
+
+export const PollUncheckedUpdateManyWithoutOriginalPollNestedInputSchema: z.ZodType<Prisma.PollUncheckedUpdateManyWithoutOriginalPollNestedInput> = z.object({
+  create: z.union([ z.lazy(() => PollCreateWithoutOriginalPollInputSchema),z.lazy(() => PollCreateWithoutOriginalPollInputSchema).array(),z.lazy(() => PollUncheckedCreateWithoutOriginalPollInputSchema),z.lazy(() => PollUncheckedCreateWithoutOriginalPollInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => PollCreateOrConnectWithoutOriginalPollInputSchema),z.lazy(() => PollCreateOrConnectWithoutOriginalPollInputSchema).array() ]).optional(),
+  upsert: z.union([ z.lazy(() => PollUpsertWithWhereUniqueWithoutOriginalPollInputSchema),z.lazy(() => PollUpsertWithWhereUniqueWithoutOriginalPollInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => PollCreateManyOriginalPollInputEnvelopeSchema).optional(),
+  set: z.union([ z.lazy(() => PollWhereUniqueInputSchema),z.lazy(() => PollWhereUniqueInputSchema).array() ]).optional(),
+  disconnect: z.union([ z.lazy(() => PollWhereUniqueInputSchema),z.lazy(() => PollWhereUniqueInputSchema).array() ]).optional(),
+  delete: z.union([ z.lazy(() => PollWhereUniqueInputSchema),z.lazy(() => PollWhereUniqueInputSchema).array() ]).optional(),
+  connect: z.union([ z.lazy(() => PollWhereUniqueInputSchema),z.lazy(() => PollWhereUniqueInputSchema).array() ]).optional(),
+  update: z.union([ z.lazy(() => PollUpdateWithWhereUniqueWithoutOriginalPollInputSchema),z.lazy(() => PollUpdateWithWhereUniqueWithoutOriginalPollInputSchema).array() ]).optional(),
+  updateMany: z.union([ z.lazy(() => PollUpdateManyWithWhereWithoutOriginalPollInputSchema),z.lazy(() => PollUpdateManyWithWhereWithoutOriginalPollInputSchema).array() ]).optional(),
+  deleteMany: z.union([ z.lazy(() => PollScalarWhereInputSchema),z.lazy(() => PollScalarWhereInputSchema).array() ]).optional(),
+}).strict();
+
+export const PollOptionUncheckedUpdateManyWithoutPollNestedInputSchema: z.ZodType<Prisma.PollOptionUncheckedUpdateManyWithoutPollNestedInput> = z.object({
+  create: z.union([ z.lazy(() => PollOptionCreateWithoutPollInputSchema),z.lazy(() => PollOptionCreateWithoutPollInputSchema).array(),z.lazy(() => PollOptionUncheckedCreateWithoutPollInputSchema),z.lazy(() => PollOptionUncheckedCreateWithoutPollInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => PollOptionCreateOrConnectWithoutPollInputSchema),z.lazy(() => PollOptionCreateOrConnectWithoutPollInputSchema).array() ]).optional(),
+  upsert: z.union([ z.lazy(() => PollOptionUpsertWithWhereUniqueWithoutPollInputSchema),z.lazy(() => PollOptionUpsertWithWhereUniqueWithoutPollInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => PollOptionCreateManyPollInputEnvelopeSchema).optional(),
+  set: z.union([ z.lazy(() => PollOptionWhereUniqueInputSchema),z.lazy(() => PollOptionWhereUniqueInputSchema).array() ]).optional(),
+  disconnect: z.union([ z.lazy(() => PollOptionWhereUniqueInputSchema),z.lazy(() => PollOptionWhereUniqueInputSchema).array() ]).optional(),
+  delete: z.union([ z.lazy(() => PollOptionWhereUniqueInputSchema),z.lazy(() => PollOptionWhereUniqueInputSchema).array() ]).optional(),
+  connect: z.union([ z.lazy(() => PollOptionWhereUniqueInputSchema),z.lazy(() => PollOptionWhereUniqueInputSchema).array() ]).optional(),
+  update: z.union([ z.lazy(() => PollOptionUpdateWithWhereUniqueWithoutPollInputSchema),z.lazy(() => PollOptionUpdateWithWhereUniqueWithoutPollInputSchema).array() ]).optional(),
+  updateMany: z.union([ z.lazy(() => PollOptionUpdateManyWithWhereWithoutPollInputSchema),z.lazy(() => PollOptionUpdateManyWithWhereWithoutPollInputSchema).array() ]).optional(),
+  deleteMany: z.union([ z.lazy(() => PollOptionScalarWhereInputSchema),z.lazy(() => PollOptionScalarWhereInputSchema).array() ]).optional(),
+}).strict();
+
+export const VoteUncheckedUpdateManyWithoutPollNestedInputSchema: z.ZodType<Prisma.VoteUncheckedUpdateManyWithoutPollNestedInput> = z.object({
+  create: z.union([ z.lazy(() => VoteCreateWithoutPollInputSchema),z.lazy(() => VoteCreateWithoutPollInputSchema).array(),z.lazy(() => VoteUncheckedCreateWithoutPollInputSchema),z.lazy(() => VoteUncheckedCreateWithoutPollInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => VoteCreateOrConnectWithoutPollInputSchema),z.lazy(() => VoteCreateOrConnectWithoutPollInputSchema).array() ]).optional(),
+  upsert: z.union([ z.lazy(() => VoteUpsertWithWhereUniqueWithoutPollInputSchema),z.lazy(() => VoteUpsertWithWhereUniqueWithoutPollInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => VoteCreateManyPollInputEnvelopeSchema).optional(),
+  set: z.union([ z.lazy(() => VoteWhereUniqueInputSchema),z.lazy(() => VoteWhereUniqueInputSchema).array() ]).optional(),
+  disconnect: z.union([ z.lazy(() => VoteWhereUniqueInputSchema),z.lazy(() => VoteWhereUniqueInputSchema).array() ]).optional(),
+  delete: z.union([ z.lazy(() => VoteWhereUniqueInputSchema),z.lazy(() => VoteWhereUniqueInputSchema).array() ]).optional(),
+  connect: z.union([ z.lazy(() => VoteWhereUniqueInputSchema),z.lazy(() => VoteWhereUniqueInputSchema).array() ]).optional(),
+  update: z.union([ z.lazy(() => VoteUpdateWithWhereUniqueWithoutPollInputSchema),z.lazy(() => VoteUpdateWithWhereUniqueWithoutPollInputSchema).array() ]).optional(),
+  updateMany: z.union([ z.lazy(() => VoteUpdateManyWithWhereWithoutPollInputSchema),z.lazy(() => VoteUpdateManyWithWhereWithoutPollInputSchema).array() ]).optional(),
+  deleteMany: z.union([ z.lazy(() => VoteScalarWhereInputSchema),z.lazy(() => VoteScalarWhereInputSchema).array() ]).optional(),
+}).strict();
+
+export const ImageUncheckedUpdateManyWithoutPollNestedInputSchema: z.ZodType<Prisma.ImageUncheckedUpdateManyWithoutPollNestedInput> = z.object({
+  create: z.union([ z.lazy(() => ImageCreateWithoutPollInputSchema),z.lazy(() => ImageCreateWithoutPollInputSchema).array(),z.lazy(() => ImageUncheckedCreateWithoutPollInputSchema),z.lazy(() => ImageUncheckedCreateWithoutPollInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => ImageCreateOrConnectWithoutPollInputSchema),z.lazy(() => ImageCreateOrConnectWithoutPollInputSchema).array() ]).optional(),
+  upsert: z.union([ z.lazy(() => ImageUpsertWithWhereUniqueWithoutPollInputSchema),z.lazy(() => ImageUpsertWithWhereUniqueWithoutPollInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => ImageCreateManyPollInputEnvelopeSchema).optional(),
+  set: z.union([ z.lazy(() => ImageWhereUniqueInputSchema),z.lazy(() => ImageWhereUniqueInputSchema).array() ]).optional(),
+  disconnect: z.union([ z.lazy(() => ImageWhereUniqueInputSchema),z.lazy(() => ImageWhereUniqueInputSchema).array() ]).optional(),
+  delete: z.union([ z.lazy(() => ImageWhereUniqueInputSchema),z.lazy(() => ImageWhereUniqueInputSchema).array() ]).optional(),
+  connect: z.union([ z.lazy(() => ImageWhereUniqueInputSchema),z.lazy(() => ImageWhereUniqueInputSchema).array() ]).optional(),
+  update: z.union([ z.lazy(() => ImageUpdateWithWhereUniqueWithoutPollInputSchema),z.lazy(() => ImageUpdateWithWhereUniqueWithoutPollInputSchema).array() ]).optional(),
+  updateMany: z.union([ z.lazy(() => ImageUpdateManyWithWhereWithoutPollInputSchema),z.lazy(() => ImageUpdateManyWithWhereWithoutPollInputSchema).array() ]).optional(),
+  deleteMany: z.union([ z.lazy(() => ImageScalarWhereInputSchema),z.lazy(() => ImageScalarWhereInputSchema).array() ]).optional(),
 }).strict();
 
 export const UserCreateinterestsInputSchema: z.ZodType<Prisma.UserCreateinterestsInput> = z.object({
@@ -6216,18 +7262,6 @@ export const ReadingHistoryUncheckedCreateNestedManyWithoutUserInputSchema: z.Zo
   connectOrCreate: z.union([ z.lazy(() => ReadingHistoryCreateOrConnectWithoutUserInputSchema),z.lazy(() => ReadingHistoryCreateOrConnectWithoutUserInputSchema).array() ]).optional(),
   createMany: z.lazy(() => ReadingHistoryCreateManyUserInputEnvelopeSchema).optional(),
   connect: z.union([ z.lazy(() => ReadingHistoryWhereUniqueInputSchema),z.lazy(() => ReadingHistoryWhereUniqueInputSchema).array() ]).optional(),
-}).strict();
-
-export const NullableStringFieldUpdateOperationsInputSchema: z.ZodType<Prisma.NullableStringFieldUpdateOperationsInput> = z.object({
-  set: z.string().optional().nullable()
-}).strict();
-
-export const NullableDateTimeFieldUpdateOperationsInputSchema: z.ZodType<Prisma.NullableDateTimeFieldUpdateOperationsInput> = z.object({
-  set: z.coerce.date().optional().nullable()
-}).strict();
-
-export const BoolFieldUpdateOperationsInputSchema: z.ZodType<Prisma.BoolFieldUpdateOperationsInput> = z.object({
-  set: z.boolean().optional()
 }).strict();
 
 export const EnumRoleFieldUpdateOperationsInputSchema: z.ZodType<Prisma.EnumRoleFieldUpdateOperationsInput> = z.object({
@@ -6489,14 +7523,6 @@ export const UserCreateNestedOneWithoutReadingHistoryInputSchema: z.ZodType<Pris
   connect: z.lazy(() => UserWhereUniqueInputSchema).optional()
 }).strict();
 
-export const IntFieldUpdateOperationsInputSchema: z.ZodType<Prisma.IntFieldUpdateOperationsInput> = z.object({
-  set: z.number().optional(),
-  increment: z.number().optional(),
-  decrement: z.number().optional(),
-  multiply: z.number().optional(),
-  divide: z.number().optional()
-}).strict();
-
 export const UserUpdateOneRequiredWithoutReadingHistoryNestedInputSchema: z.ZodType<Prisma.UserUpdateOneRequiredWithoutReadingHistoryNestedInput> = z.object({
   create: z.union([ z.lazy(() => UserCreateWithoutReadingHistoryInputSchema),z.lazy(() => UserUncheckedCreateWithoutReadingHistoryInputSchema) ]).optional(),
   connectOrCreate: z.lazy(() => UserCreateOrConnectWithoutReadingHistoryInputSchema).optional(),
@@ -6523,14 +7549,6 @@ export const UserCreateNestedOneWithoutAccountsInputSchema: z.ZodType<Prisma.Use
   create: z.union([ z.lazy(() => UserCreateWithoutAccountsInputSchema),z.lazy(() => UserUncheckedCreateWithoutAccountsInputSchema) ]).optional(),
   connectOrCreate: z.lazy(() => UserCreateOrConnectWithoutAccountsInputSchema).optional(),
   connect: z.lazy(() => UserWhereUniqueInputSchema).optional()
-}).strict();
-
-export const NullableIntFieldUpdateOperationsInputSchema: z.ZodType<Prisma.NullableIntFieldUpdateOperationsInput> = z.object({
-  set: z.number().optional().nullable(),
-  increment: z.number().optional(),
-  decrement: z.number().optional(),
-  multiply: z.number().optional(),
-  divide: z.number().optional()
 }).strict();
 
 export const UserUpdateOneRequiredWithoutAccountsNestedInputSchema: z.ZodType<Prisma.UserUpdateOneRequiredWithoutAccountsNestedInput> = z.object({
@@ -6597,132 +7615,6 @@ export const UserUpdateOneWithoutVotesNestedInputSchema: z.ZodType<Prisma.UserUp
   delete: z.union([ z.boolean(),z.lazy(() => UserWhereInputSchema) ]).optional(),
   connect: z.lazy(() => UserWhereUniqueInputSchema).optional(),
   update: z.union([ z.lazy(() => UserUpdateToOneWithWhereWithoutVotesInputSchema),z.lazy(() => UserUpdateWithoutVotesInputSchema),z.lazy(() => UserUncheckedUpdateWithoutVotesInputSchema) ]).optional(),
-}).strict();
-
-export const PollCreateNestedManyWithoutCategoryInputSchema: z.ZodType<Prisma.PollCreateNestedManyWithoutCategoryInput> = z.object({
-  create: z.union([ z.lazy(() => PollCreateWithoutCategoryInputSchema),z.lazy(() => PollCreateWithoutCategoryInputSchema).array(),z.lazy(() => PollUncheckedCreateWithoutCategoryInputSchema),z.lazy(() => PollUncheckedCreateWithoutCategoryInputSchema).array() ]).optional(),
-  connectOrCreate: z.union([ z.lazy(() => PollCreateOrConnectWithoutCategoryInputSchema),z.lazy(() => PollCreateOrConnectWithoutCategoryInputSchema).array() ]).optional(),
-  createMany: z.lazy(() => PollCreateManyCategoryInputEnvelopeSchema).optional(),
-  connect: z.union([ z.lazy(() => PollWhereUniqueInputSchema),z.lazy(() => PollWhereUniqueInputSchema).array() ]).optional(),
-}).strict();
-
-export const ImageCreateNestedManyWithoutCategoryInputSchema: z.ZodType<Prisma.ImageCreateNestedManyWithoutCategoryInput> = z.object({
-  create: z.union([ z.lazy(() => ImageCreateWithoutCategoryInputSchema),z.lazy(() => ImageCreateWithoutCategoryInputSchema).array(),z.lazy(() => ImageUncheckedCreateWithoutCategoryInputSchema),z.lazy(() => ImageUncheckedCreateWithoutCategoryInputSchema).array() ]).optional(),
-  connectOrCreate: z.union([ z.lazy(() => ImageCreateOrConnectWithoutCategoryInputSchema),z.lazy(() => ImageCreateOrConnectWithoutCategoryInputSchema).array() ]).optional(),
-  createMany: z.lazy(() => ImageCreateManyCategoryInputEnvelopeSchema).optional(),
-  connect: z.union([ z.lazy(() => ImageWhereUniqueInputSchema),z.lazy(() => ImageWhereUniqueInputSchema).array() ]).optional(),
-}).strict();
-
-export const BlogCreateNestedManyWithoutCategoryInputSchema: z.ZodType<Prisma.BlogCreateNestedManyWithoutCategoryInput> = z.object({
-  create: z.union([ z.lazy(() => BlogCreateWithoutCategoryInputSchema),z.lazy(() => BlogCreateWithoutCategoryInputSchema).array(),z.lazy(() => BlogUncheckedCreateWithoutCategoryInputSchema),z.lazy(() => BlogUncheckedCreateWithoutCategoryInputSchema).array() ]).optional(),
-  connectOrCreate: z.union([ z.lazy(() => BlogCreateOrConnectWithoutCategoryInputSchema),z.lazy(() => BlogCreateOrConnectWithoutCategoryInputSchema).array() ]).optional(),
-  createMany: z.lazy(() => BlogCreateManyCategoryInputEnvelopeSchema).optional(),
-  connect: z.union([ z.lazy(() => BlogWhereUniqueInputSchema),z.lazy(() => BlogWhereUniqueInputSchema).array() ]).optional(),
-}).strict();
-
-export const PollUncheckedCreateNestedManyWithoutCategoryInputSchema: z.ZodType<Prisma.PollUncheckedCreateNestedManyWithoutCategoryInput> = z.object({
-  create: z.union([ z.lazy(() => PollCreateWithoutCategoryInputSchema),z.lazy(() => PollCreateWithoutCategoryInputSchema).array(),z.lazy(() => PollUncheckedCreateWithoutCategoryInputSchema),z.lazy(() => PollUncheckedCreateWithoutCategoryInputSchema).array() ]).optional(),
-  connectOrCreate: z.union([ z.lazy(() => PollCreateOrConnectWithoutCategoryInputSchema),z.lazy(() => PollCreateOrConnectWithoutCategoryInputSchema).array() ]).optional(),
-  createMany: z.lazy(() => PollCreateManyCategoryInputEnvelopeSchema).optional(),
-  connect: z.union([ z.lazy(() => PollWhereUniqueInputSchema),z.lazy(() => PollWhereUniqueInputSchema).array() ]).optional(),
-}).strict();
-
-export const ImageUncheckedCreateNestedManyWithoutCategoryInputSchema: z.ZodType<Prisma.ImageUncheckedCreateNestedManyWithoutCategoryInput> = z.object({
-  create: z.union([ z.lazy(() => ImageCreateWithoutCategoryInputSchema),z.lazy(() => ImageCreateWithoutCategoryInputSchema).array(),z.lazy(() => ImageUncheckedCreateWithoutCategoryInputSchema),z.lazy(() => ImageUncheckedCreateWithoutCategoryInputSchema).array() ]).optional(),
-  connectOrCreate: z.union([ z.lazy(() => ImageCreateOrConnectWithoutCategoryInputSchema),z.lazy(() => ImageCreateOrConnectWithoutCategoryInputSchema).array() ]).optional(),
-  createMany: z.lazy(() => ImageCreateManyCategoryInputEnvelopeSchema).optional(),
-  connect: z.union([ z.lazy(() => ImageWhereUniqueInputSchema),z.lazy(() => ImageWhereUniqueInputSchema).array() ]).optional(),
-}).strict();
-
-export const BlogUncheckedCreateNestedManyWithoutCategoryInputSchema: z.ZodType<Prisma.BlogUncheckedCreateNestedManyWithoutCategoryInput> = z.object({
-  create: z.union([ z.lazy(() => BlogCreateWithoutCategoryInputSchema),z.lazy(() => BlogCreateWithoutCategoryInputSchema).array(),z.lazy(() => BlogUncheckedCreateWithoutCategoryInputSchema),z.lazy(() => BlogUncheckedCreateWithoutCategoryInputSchema).array() ]).optional(),
-  connectOrCreate: z.union([ z.lazy(() => BlogCreateOrConnectWithoutCategoryInputSchema),z.lazy(() => BlogCreateOrConnectWithoutCategoryInputSchema).array() ]).optional(),
-  createMany: z.lazy(() => BlogCreateManyCategoryInputEnvelopeSchema).optional(),
-  connect: z.union([ z.lazy(() => BlogWhereUniqueInputSchema),z.lazy(() => BlogWhereUniqueInputSchema).array() ]).optional(),
-}).strict();
-
-export const PollUpdateManyWithoutCategoryNestedInputSchema: z.ZodType<Prisma.PollUpdateManyWithoutCategoryNestedInput> = z.object({
-  create: z.union([ z.lazy(() => PollCreateWithoutCategoryInputSchema),z.lazy(() => PollCreateWithoutCategoryInputSchema).array(),z.lazy(() => PollUncheckedCreateWithoutCategoryInputSchema),z.lazy(() => PollUncheckedCreateWithoutCategoryInputSchema).array() ]).optional(),
-  connectOrCreate: z.union([ z.lazy(() => PollCreateOrConnectWithoutCategoryInputSchema),z.lazy(() => PollCreateOrConnectWithoutCategoryInputSchema).array() ]).optional(),
-  upsert: z.union([ z.lazy(() => PollUpsertWithWhereUniqueWithoutCategoryInputSchema),z.lazy(() => PollUpsertWithWhereUniqueWithoutCategoryInputSchema).array() ]).optional(),
-  createMany: z.lazy(() => PollCreateManyCategoryInputEnvelopeSchema).optional(),
-  set: z.union([ z.lazy(() => PollWhereUniqueInputSchema),z.lazy(() => PollWhereUniqueInputSchema).array() ]).optional(),
-  disconnect: z.union([ z.lazy(() => PollWhereUniqueInputSchema),z.lazy(() => PollWhereUniqueInputSchema).array() ]).optional(),
-  delete: z.union([ z.lazy(() => PollWhereUniqueInputSchema),z.lazy(() => PollWhereUniqueInputSchema).array() ]).optional(),
-  connect: z.union([ z.lazy(() => PollWhereUniqueInputSchema),z.lazy(() => PollWhereUniqueInputSchema).array() ]).optional(),
-  update: z.union([ z.lazy(() => PollUpdateWithWhereUniqueWithoutCategoryInputSchema),z.lazy(() => PollUpdateWithWhereUniqueWithoutCategoryInputSchema).array() ]).optional(),
-  updateMany: z.union([ z.lazy(() => PollUpdateManyWithWhereWithoutCategoryInputSchema),z.lazy(() => PollUpdateManyWithWhereWithoutCategoryInputSchema).array() ]).optional(),
-  deleteMany: z.union([ z.lazy(() => PollScalarWhereInputSchema),z.lazy(() => PollScalarWhereInputSchema).array() ]).optional(),
-}).strict();
-
-export const ImageUpdateManyWithoutCategoryNestedInputSchema: z.ZodType<Prisma.ImageUpdateManyWithoutCategoryNestedInput> = z.object({
-  create: z.union([ z.lazy(() => ImageCreateWithoutCategoryInputSchema),z.lazy(() => ImageCreateWithoutCategoryInputSchema).array(),z.lazy(() => ImageUncheckedCreateWithoutCategoryInputSchema),z.lazy(() => ImageUncheckedCreateWithoutCategoryInputSchema).array() ]).optional(),
-  connectOrCreate: z.union([ z.lazy(() => ImageCreateOrConnectWithoutCategoryInputSchema),z.lazy(() => ImageCreateOrConnectWithoutCategoryInputSchema).array() ]).optional(),
-  upsert: z.union([ z.lazy(() => ImageUpsertWithWhereUniqueWithoutCategoryInputSchema),z.lazy(() => ImageUpsertWithWhereUniqueWithoutCategoryInputSchema).array() ]).optional(),
-  createMany: z.lazy(() => ImageCreateManyCategoryInputEnvelopeSchema).optional(),
-  set: z.union([ z.lazy(() => ImageWhereUniqueInputSchema),z.lazy(() => ImageWhereUniqueInputSchema).array() ]).optional(),
-  disconnect: z.union([ z.lazy(() => ImageWhereUniqueInputSchema),z.lazy(() => ImageWhereUniqueInputSchema).array() ]).optional(),
-  delete: z.union([ z.lazy(() => ImageWhereUniqueInputSchema),z.lazy(() => ImageWhereUniqueInputSchema).array() ]).optional(),
-  connect: z.union([ z.lazy(() => ImageWhereUniqueInputSchema),z.lazy(() => ImageWhereUniqueInputSchema).array() ]).optional(),
-  update: z.union([ z.lazy(() => ImageUpdateWithWhereUniqueWithoutCategoryInputSchema),z.lazy(() => ImageUpdateWithWhereUniqueWithoutCategoryInputSchema).array() ]).optional(),
-  updateMany: z.union([ z.lazy(() => ImageUpdateManyWithWhereWithoutCategoryInputSchema),z.lazy(() => ImageUpdateManyWithWhereWithoutCategoryInputSchema).array() ]).optional(),
-  deleteMany: z.union([ z.lazy(() => ImageScalarWhereInputSchema),z.lazy(() => ImageScalarWhereInputSchema).array() ]).optional(),
-}).strict();
-
-export const BlogUpdateManyWithoutCategoryNestedInputSchema: z.ZodType<Prisma.BlogUpdateManyWithoutCategoryNestedInput> = z.object({
-  create: z.union([ z.lazy(() => BlogCreateWithoutCategoryInputSchema),z.lazy(() => BlogCreateWithoutCategoryInputSchema).array(),z.lazy(() => BlogUncheckedCreateWithoutCategoryInputSchema),z.lazy(() => BlogUncheckedCreateWithoutCategoryInputSchema).array() ]).optional(),
-  connectOrCreate: z.union([ z.lazy(() => BlogCreateOrConnectWithoutCategoryInputSchema),z.lazy(() => BlogCreateOrConnectWithoutCategoryInputSchema).array() ]).optional(),
-  upsert: z.union([ z.lazy(() => BlogUpsertWithWhereUniqueWithoutCategoryInputSchema),z.lazy(() => BlogUpsertWithWhereUniqueWithoutCategoryInputSchema).array() ]).optional(),
-  createMany: z.lazy(() => BlogCreateManyCategoryInputEnvelopeSchema).optional(),
-  set: z.union([ z.lazy(() => BlogWhereUniqueInputSchema),z.lazy(() => BlogWhereUniqueInputSchema).array() ]).optional(),
-  disconnect: z.union([ z.lazy(() => BlogWhereUniqueInputSchema),z.lazy(() => BlogWhereUniqueInputSchema).array() ]).optional(),
-  delete: z.union([ z.lazy(() => BlogWhereUniqueInputSchema),z.lazy(() => BlogWhereUniqueInputSchema).array() ]).optional(),
-  connect: z.union([ z.lazy(() => BlogWhereUniqueInputSchema),z.lazy(() => BlogWhereUniqueInputSchema).array() ]).optional(),
-  update: z.union([ z.lazy(() => BlogUpdateWithWhereUniqueWithoutCategoryInputSchema),z.lazy(() => BlogUpdateWithWhereUniqueWithoutCategoryInputSchema).array() ]).optional(),
-  updateMany: z.union([ z.lazy(() => BlogUpdateManyWithWhereWithoutCategoryInputSchema),z.lazy(() => BlogUpdateManyWithWhereWithoutCategoryInputSchema).array() ]).optional(),
-  deleteMany: z.union([ z.lazy(() => BlogScalarWhereInputSchema),z.lazy(() => BlogScalarWhereInputSchema).array() ]).optional(),
-}).strict();
-
-export const PollUncheckedUpdateManyWithoutCategoryNestedInputSchema: z.ZodType<Prisma.PollUncheckedUpdateManyWithoutCategoryNestedInput> = z.object({
-  create: z.union([ z.lazy(() => PollCreateWithoutCategoryInputSchema),z.lazy(() => PollCreateWithoutCategoryInputSchema).array(),z.lazy(() => PollUncheckedCreateWithoutCategoryInputSchema),z.lazy(() => PollUncheckedCreateWithoutCategoryInputSchema).array() ]).optional(),
-  connectOrCreate: z.union([ z.lazy(() => PollCreateOrConnectWithoutCategoryInputSchema),z.lazy(() => PollCreateOrConnectWithoutCategoryInputSchema).array() ]).optional(),
-  upsert: z.union([ z.lazy(() => PollUpsertWithWhereUniqueWithoutCategoryInputSchema),z.lazy(() => PollUpsertWithWhereUniqueWithoutCategoryInputSchema).array() ]).optional(),
-  createMany: z.lazy(() => PollCreateManyCategoryInputEnvelopeSchema).optional(),
-  set: z.union([ z.lazy(() => PollWhereUniqueInputSchema),z.lazy(() => PollWhereUniqueInputSchema).array() ]).optional(),
-  disconnect: z.union([ z.lazy(() => PollWhereUniqueInputSchema),z.lazy(() => PollWhereUniqueInputSchema).array() ]).optional(),
-  delete: z.union([ z.lazy(() => PollWhereUniqueInputSchema),z.lazy(() => PollWhereUniqueInputSchema).array() ]).optional(),
-  connect: z.union([ z.lazy(() => PollWhereUniqueInputSchema),z.lazy(() => PollWhereUniqueInputSchema).array() ]).optional(),
-  update: z.union([ z.lazy(() => PollUpdateWithWhereUniqueWithoutCategoryInputSchema),z.lazy(() => PollUpdateWithWhereUniqueWithoutCategoryInputSchema).array() ]).optional(),
-  updateMany: z.union([ z.lazy(() => PollUpdateManyWithWhereWithoutCategoryInputSchema),z.lazy(() => PollUpdateManyWithWhereWithoutCategoryInputSchema).array() ]).optional(),
-  deleteMany: z.union([ z.lazy(() => PollScalarWhereInputSchema),z.lazy(() => PollScalarWhereInputSchema).array() ]).optional(),
-}).strict();
-
-export const ImageUncheckedUpdateManyWithoutCategoryNestedInputSchema: z.ZodType<Prisma.ImageUncheckedUpdateManyWithoutCategoryNestedInput> = z.object({
-  create: z.union([ z.lazy(() => ImageCreateWithoutCategoryInputSchema),z.lazy(() => ImageCreateWithoutCategoryInputSchema).array(),z.lazy(() => ImageUncheckedCreateWithoutCategoryInputSchema),z.lazy(() => ImageUncheckedCreateWithoutCategoryInputSchema).array() ]).optional(),
-  connectOrCreate: z.union([ z.lazy(() => ImageCreateOrConnectWithoutCategoryInputSchema),z.lazy(() => ImageCreateOrConnectWithoutCategoryInputSchema).array() ]).optional(),
-  upsert: z.union([ z.lazy(() => ImageUpsertWithWhereUniqueWithoutCategoryInputSchema),z.lazy(() => ImageUpsertWithWhereUniqueWithoutCategoryInputSchema).array() ]).optional(),
-  createMany: z.lazy(() => ImageCreateManyCategoryInputEnvelopeSchema).optional(),
-  set: z.union([ z.lazy(() => ImageWhereUniqueInputSchema),z.lazy(() => ImageWhereUniqueInputSchema).array() ]).optional(),
-  disconnect: z.union([ z.lazy(() => ImageWhereUniqueInputSchema),z.lazy(() => ImageWhereUniqueInputSchema).array() ]).optional(),
-  delete: z.union([ z.lazy(() => ImageWhereUniqueInputSchema),z.lazy(() => ImageWhereUniqueInputSchema).array() ]).optional(),
-  connect: z.union([ z.lazy(() => ImageWhereUniqueInputSchema),z.lazy(() => ImageWhereUniqueInputSchema).array() ]).optional(),
-  update: z.union([ z.lazy(() => ImageUpdateWithWhereUniqueWithoutCategoryInputSchema),z.lazy(() => ImageUpdateWithWhereUniqueWithoutCategoryInputSchema).array() ]).optional(),
-  updateMany: z.union([ z.lazy(() => ImageUpdateManyWithWhereWithoutCategoryInputSchema),z.lazy(() => ImageUpdateManyWithWhereWithoutCategoryInputSchema).array() ]).optional(),
-  deleteMany: z.union([ z.lazy(() => ImageScalarWhereInputSchema),z.lazy(() => ImageScalarWhereInputSchema).array() ]).optional(),
-}).strict();
-
-export const BlogUncheckedUpdateManyWithoutCategoryNestedInputSchema: z.ZodType<Prisma.BlogUncheckedUpdateManyWithoutCategoryNestedInput> = z.object({
-  create: z.union([ z.lazy(() => BlogCreateWithoutCategoryInputSchema),z.lazy(() => BlogCreateWithoutCategoryInputSchema).array(),z.lazy(() => BlogUncheckedCreateWithoutCategoryInputSchema),z.lazy(() => BlogUncheckedCreateWithoutCategoryInputSchema).array() ]).optional(),
-  connectOrCreate: z.union([ z.lazy(() => BlogCreateOrConnectWithoutCategoryInputSchema),z.lazy(() => BlogCreateOrConnectWithoutCategoryInputSchema).array() ]).optional(),
-  upsert: z.union([ z.lazy(() => BlogUpsertWithWhereUniqueWithoutCategoryInputSchema),z.lazy(() => BlogUpsertWithWhereUniqueWithoutCategoryInputSchema).array() ]).optional(),
-  createMany: z.lazy(() => BlogCreateManyCategoryInputEnvelopeSchema).optional(),
-  set: z.union([ z.lazy(() => BlogWhereUniqueInputSchema),z.lazy(() => BlogWhereUniqueInputSchema).array() ]).optional(),
-  disconnect: z.union([ z.lazy(() => BlogWhereUniqueInputSchema),z.lazy(() => BlogWhereUniqueInputSchema).array() ]).optional(),
-  delete: z.union([ z.lazy(() => BlogWhereUniqueInputSchema),z.lazy(() => BlogWhereUniqueInputSchema).array() ]).optional(),
-  connect: z.union([ z.lazy(() => BlogWhereUniqueInputSchema),z.lazy(() => BlogWhereUniqueInputSchema).array() ]).optional(),
-  update: z.union([ z.lazy(() => BlogUpdateWithWhereUniqueWithoutCategoryInputSchema),z.lazy(() => BlogUpdateWithWhereUniqueWithoutCategoryInputSchema).array() ]).optional(),
-  updateMany: z.union([ z.lazy(() => BlogUpdateManyWithWhereWithoutCategoryInputSchema),z.lazy(() => BlogUpdateManyWithWhereWithoutCategoryInputSchema).array() ]).optional(),
-  deleteMany: z.union([ z.lazy(() => BlogScalarWhereInputSchema),z.lazy(() => BlogScalarWhereInputSchema).array() ]).optional(),
 }).strict();
 
 export const PollCreateNestedOneWithoutNewsItemInputSchema: z.ZodType<Prisma.PollCreateNestedOneWithoutNewsItemInput> = z.object({
@@ -6829,478 +7721,6 @@ export const ImageUncheckedUpdateManyWithoutNewsItemNestedInputSchema: z.ZodType
   update: z.union([ z.lazy(() => ImageUpdateWithWhereUniqueWithoutNewsItemInputSchema),z.lazy(() => ImageUpdateWithWhereUniqueWithoutNewsItemInputSchema).array() ]).optional(),
   updateMany: z.union([ z.lazy(() => ImageUpdateManyWithWhereWithoutNewsItemInputSchema),z.lazy(() => ImageUpdateManyWithWhereWithoutNewsItemInputSchema).array() ]).optional(),
   deleteMany: z.union([ z.lazy(() => ImageScalarWhereInputSchema),z.lazy(() => ImageScalarWhereInputSchema).array() ]).optional(),
-}).strict();
-
-export const CategoryCreateNestedOneWithoutPollsInputSchema: z.ZodType<Prisma.CategoryCreateNestedOneWithoutPollsInput> = z.object({
-  create: z.union([ z.lazy(() => CategoryCreateWithoutPollsInputSchema),z.lazy(() => CategoryUncheckedCreateWithoutPollsInputSchema) ]).optional(),
-  connectOrCreate: z.lazy(() => CategoryCreateOrConnectWithoutPollsInputSchema).optional(),
-  connect: z.lazy(() => CategoryWhereUniqueInputSchema).optional()
-}).strict();
-
-export const PollOptionCreateNestedManyWithoutPollInputSchema: z.ZodType<Prisma.PollOptionCreateNestedManyWithoutPollInput> = z.object({
-  create: z.union([ z.lazy(() => PollOptionCreateWithoutPollInputSchema),z.lazy(() => PollOptionCreateWithoutPollInputSchema).array(),z.lazy(() => PollOptionUncheckedCreateWithoutPollInputSchema),z.lazy(() => PollOptionUncheckedCreateWithoutPollInputSchema).array() ]).optional(),
-  connectOrCreate: z.union([ z.lazy(() => PollOptionCreateOrConnectWithoutPollInputSchema),z.lazy(() => PollOptionCreateOrConnectWithoutPollInputSchema).array() ]).optional(),
-  createMany: z.lazy(() => PollOptionCreateManyPollInputEnvelopeSchema).optional(),
-  connect: z.union([ z.lazy(() => PollOptionWhereUniqueInputSchema),z.lazy(() => PollOptionWhereUniqueInputSchema).array() ]).optional(),
-}).strict();
-
-export const VoteCreateNestedManyWithoutPollInputSchema: z.ZodType<Prisma.VoteCreateNestedManyWithoutPollInput> = z.object({
-  create: z.union([ z.lazy(() => VoteCreateWithoutPollInputSchema),z.lazy(() => VoteCreateWithoutPollInputSchema).array(),z.lazy(() => VoteUncheckedCreateWithoutPollInputSchema),z.lazy(() => VoteUncheckedCreateWithoutPollInputSchema).array() ]).optional(),
-  connectOrCreate: z.union([ z.lazy(() => VoteCreateOrConnectWithoutPollInputSchema),z.lazy(() => VoteCreateOrConnectWithoutPollInputSchema).array() ]).optional(),
-  createMany: z.lazy(() => VoteCreateManyPollInputEnvelopeSchema).optional(),
-  connect: z.union([ z.lazy(() => VoteWhereUniqueInputSchema),z.lazy(() => VoteWhereUniqueInputSchema).array() ]).optional(),
-}).strict();
-
-export const NewsItemCreateNestedOneWithoutPollInputSchema: z.ZodType<Prisma.NewsItemCreateNestedOneWithoutPollInput> = z.object({
-  create: z.union([ z.lazy(() => NewsItemCreateWithoutPollInputSchema),z.lazy(() => NewsItemUncheckedCreateWithoutPollInputSchema) ]).optional(),
-  connectOrCreate: z.lazy(() => NewsItemCreateOrConnectWithoutPollInputSchema).optional(),
-  connect: z.lazy(() => NewsItemWhereUniqueInputSchema).optional()
-}).strict();
-
-export const ImageCreateNestedManyWithoutPollInputSchema: z.ZodType<Prisma.ImageCreateNestedManyWithoutPollInput> = z.object({
-  create: z.union([ z.lazy(() => ImageCreateWithoutPollInputSchema),z.lazy(() => ImageCreateWithoutPollInputSchema).array(),z.lazy(() => ImageUncheckedCreateWithoutPollInputSchema),z.lazy(() => ImageUncheckedCreateWithoutPollInputSchema).array() ]).optional(),
-  connectOrCreate: z.union([ z.lazy(() => ImageCreateOrConnectWithoutPollInputSchema),z.lazy(() => ImageCreateOrConnectWithoutPollInputSchema).array() ]).optional(),
-  createMany: z.lazy(() => ImageCreateManyPollInputEnvelopeSchema).optional(),
-  connect: z.union([ z.lazy(() => ImageWhereUniqueInputSchema),z.lazy(() => ImageWhereUniqueInputSchema).array() ]).optional(),
-}).strict();
-
-export const PollOptionUncheckedCreateNestedManyWithoutPollInputSchema: z.ZodType<Prisma.PollOptionUncheckedCreateNestedManyWithoutPollInput> = z.object({
-  create: z.union([ z.lazy(() => PollOptionCreateWithoutPollInputSchema),z.lazy(() => PollOptionCreateWithoutPollInputSchema).array(),z.lazy(() => PollOptionUncheckedCreateWithoutPollInputSchema),z.lazy(() => PollOptionUncheckedCreateWithoutPollInputSchema).array() ]).optional(),
-  connectOrCreate: z.union([ z.lazy(() => PollOptionCreateOrConnectWithoutPollInputSchema),z.lazy(() => PollOptionCreateOrConnectWithoutPollInputSchema).array() ]).optional(),
-  createMany: z.lazy(() => PollOptionCreateManyPollInputEnvelopeSchema).optional(),
-  connect: z.union([ z.lazy(() => PollOptionWhereUniqueInputSchema),z.lazy(() => PollOptionWhereUniqueInputSchema).array() ]).optional(),
-}).strict();
-
-export const VoteUncheckedCreateNestedManyWithoutPollInputSchema: z.ZodType<Prisma.VoteUncheckedCreateNestedManyWithoutPollInput> = z.object({
-  create: z.union([ z.lazy(() => VoteCreateWithoutPollInputSchema),z.lazy(() => VoteCreateWithoutPollInputSchema).array(),z.lazy(() => VoteUncheckedCreateWithoutPollInputSchema),z.lazy(() => VoteUncheckedCreateWithoutPollInputSchema).array() ]).optional(),
-  connectOrCreate: z.union([ z.lazy(() => VoteCreateOrConnectWithoutPollInputSchema),z.lazy(() => VoteCreateOrConnectWithoutPollInputSchema).array() ]).optional(),
-  createMany: z.lazy(() => VoteCreateManyPollInputEnvelopeSchema).optional(),
-  connect: z.union([ z.lazy(() => VoteWhereUniqueInputSchema),z.lazy(() => VoteWhereUniqueInputSchema).array() ]).optional(),
-}).strict();
-
-export const ImageUncheckedCreateNestedManyWithoutPollInputSchema: z.ZodType<Prisma.ImageUncheckedCreateNestedManyWithoutPollInput> = z.object({
-  create: z.union([ z.lazy(() => ImageCreateWithoutPollInputSchema),z.lazy(() => ImageCreateWithoutPollInputSchema).array(),z.lazy(() => ImageUncheckedCreateWithoutPollInputSchema),z.lazy(() => ImageUncheckedCreateWithoutPollInputSchema).array() ]).optional(),
-  connectOrCreate: z.union([ z.lazy(() => ImageCreateOrConnectWithoutPollInputSchema),z.lazy(() => ImageCreateOrConnectWithoutPollInputSchema).array() ]).optional(),
-  createMany: z.lazy(() => ImageCreateManyPollInputEnvelopeSchema).optional(),
-  connect: z.union([ z.lazy(() => ImageWhereUniqueInputSchema),z.lazy(() => ImageWhereUniqueInputSchema).array() ]).optional(),
-}).strict();
-
-export const CategoryUpdateOneRequiredWithoutPollsNestedInputSchema: z.ZodType<Prisma.CategoryUpdateOneRequiredWithoutPollsNestedInput> = z.object({
-  create: z.union([ z.lazy(() => CategoryCreateWithoutPollsInputSchema),z.lazy(() => CategoryUncheckedCreateWithoutPollsInputSchema) ]).optional(),
-  connectOrCreate: z.lazy(() => CategoryCreateOrConnectWithoutPollsInputSchema).optional(),
-  upsert: z.lazy(() => CategoryUpsertWithoutPollsInputSchema).optional(),
-  connect: z.lazy(() => CategoryWhereUniqueInputSchema).optional(),
-  update: z.union([ z.lazy(() => CategoryUpdateToOneWithWhereWithoutPollsInputSchema),z.lazy(() => CategoryUpdateWithoutPollsInputSchema),z.lazy(() => CategoryUncheckedUpdateWithoutPollsInputSchema) ]).optional(),
-}).strict();
-
-export const PollOptionUpdateManyWithoutPollNestedInputSchema: z.ZodType<Prisma.PollOptionUpdateManyWithoutPollNestedInput> = z.object({
-  create: z.union([ z.lazy(() => PollOptionCreateWithoutPollInputSchema),z.lazy(() => PollOptionCreateWithoutPollInputSchema).array(),z.lazy(() => PollOptionUncheckedCreateWithoutPollInputSchema),z.lazy(() => PollOptionUncheckedCreateWithoutPollInputSchema).array() ]).optional(),
-  connectOrCreate: z.union([ z.lazy(() => PollOptionCreateOrConnectWithoutPollInputSchema),z.lazy(() => PollOptionCreateOrConnectWithoutPollInputSchema).array() ]).optional(),
-  upsert: z.union([ z.lazy(() => PollOptionUpsertWithWhereUniqueWithoutPollInputSchema),z.lazy(() => PollOptionUpsertWithWhereUniqueWithoutPollInputSchema).array() ]).optional(),
-  createMany: z.lazy(() => PollOptionCreateManyPollInputEnvelopeSchema).optional(),
-  set: z.union([ z.lazy(() => PollOptionWhereUniqueInputSchema),z.lazy(() => PollOptionWhereUniqueInputSchema).array() ]).optional(),
-  disconnect: z.union([ z.lazy(() => PollOptionWhereUniqueInputSchema),z.lazy(() => PollOptionWhereUniqueInputSchema).array() ]).optional(),
-  delete: z.union([ z.lazy(() => PollOptionWhereUniqueInputSchema),z.lazy(() => PollOptionWhereUniqueInputSchema).array() ]).optional(),
-  connect: z.union([ z.lazy(() => PollOptionWhereUniqueInputSchema),z.lazy(() => PollOptionWhereUniqueInputSchema).array() ]).optional(),
-  update: z.union([ z.lazy(() => PollOptionUpdateWithWhereUniqueWithoutPollInputSchema),z.lazy(() => PollOptionUpdateWithWhereUniqueWithoutPollInputSchema).array() ]).optional(),
-  updateMany: z.union([ z.lazy(() => PollOptionUpdateManyWithWhereWithoutPollInputSchema),z.lazy(() => PollOptionUpdateManyWithWhereWithoutPollInputSchema).array() ]).optional(),
-  deleteMany: z.union([ z.lazy(() => PollOptionScalarWhereInputSchema),z.lazy(() => PollOptionScalarWhereInputSchema).array() ]).optional(),
-}).strict();
-
-export const VoteUpdateManyWithoutPollNestedInputSchema: z.ZodType<Prisma.VoteUpdateManyWithoutPollNestedInput> = z.object({
-  create: z.union([ z.lazy(() => VoteCreateWithoutPollInputSchema),z.lazy(() => VoteCreateWithoutPollInputSchema).array(),z.lazy(() => VoteUncheckedCreateWithoutPollInputSchema),z.lazy(() => VoteUncheckedCreateWithoutPollInputSchema).array() ]).optional(),
-  connectOrCreate: z.union([ z.lazy(() => VoteCreateOrConnectWithoutPollInputSchema),z.lazy(() => VoteCreateOrConnectWithoutPollInputSchema).array() ]).optional(),
-  upsert: z.union([ z.lazy(() => VoteUpsertWithWhereUniqueWithoutPollInputSchema),z.lazy(() => VoteUpsertWithWhereUniqueWithoutPollInputSchema).array() ]).optional(),
-  createMany: z.lazy(() => VoteCreateManyPollInputEnvelopeSchema).optional(),
-  set: z.union([ z.lazy(() => VoteWhereUniqueInputSchema),z.lazy(() => VoteWhereUniqueInputSchema).array() ]).optional(),
-  disconnect: z.union([ z.lazy(() => VoteWhereUniqueInputSchema),z.lazy(() => VoteWhereUniqueInputSchema).array() ]).optional(),
-  delete: z.union([ z.lazy(() => VoteWhereUniqueInputSchema),z.lazy(() => VoteWhereUniqueInputSchema).array() ]).optional(),
-  connect: z.union([ z.lazy(() => VoteWhereUniqueInputSchema),z.lazy(() => VoteWhereUniqueInputSchema).array() ]).optional(),
-  update: z.union([ z.lazy(() => VoteUpdateWithWhereUniqueWithoutPollInputSchema),z.lazy(() => VoteUpdateWithWhereUniqueWithoutPollInputSchema).array() ]).optional(),
-  updateMany: z.union([ z.lazy(() => VoteUpdateManyWithWhereWithoutPollInputSchema),z.lazy(() => VoteUpdateManyWithWhereWithoutPollInputSchema).array() ]).optional(),
-  deleteMany: z.union([ z.lazy(() => VoteScalarWhereInputSchema),z.lazy(() => VoteScalarWhereInputSchema).array() ]).optional(),
-}).strict();
-
-export const NewsItemUpdateOneWithoutPollNestedInputSchema: z.ZodType<Prisma.NewsItemUpdateOneWithoutPollNestedInput> = z.object({
-  create: z.union([ z.lazy(() => NewsItemCreateWithoutPollInputSchema),z.lazy(() => NewsItemUncheckedCreateWithoutPollInputSchema) ]).optional(),
-  connectOrCreate: z.lazy(() => NewsItemCreateOrConnectWithoutPollInputSchema).optional(),
-  upsert: z.lazy(() => NewsItemUpsertWithoutPollInputSchema).optional(),
-  disconnect: z.union([ z.boolean(),z.lazy(() => NewsItemWhereInputSchema) ]).optional(),
-  delete: z.union([ z.boolean(),z.lazy(() => NewsItemWhereInputSchema) ]).optional(),
-  connect: z.lazy(() => NewsItemWhereUniqueInputSchema).optional(),
-  update: z.union([ z.lazy(() => NewsItemUpdateToOneWithWhereWithoutPollInputSchema),z.lazy(() => NewsItemUpdateWithoutPollInputSchema),z.lazy(() => NewsItemUncheckedUpdateWithoutPollInputSchema) ]).optional(),
-}).strict();
-
-export const ImageUpdateManyWithoutPollNestedInputSchema: z.ZodType<Prisma.ImageUpdateManyWithoutPollNestedInput> = z.object({
-  create: z.union([ z.lazy(() => ImageCreateWithoutPollInputSchema),z.lazy(() => ImageCreateWithoutPollInputSchema).array(),z.lazy(() => ImageUncheckedCreateWithoutPollInputSchema),z.lazy(() => ImageUncheckedCreateWithoutPollInputSchema).array() ]).optional(),
-  connectOrCreate: z.union([ z.lazy(() => ImageCreateOrConnectWithoutPollInputSchema),z.lazy(() => ImageCreateOrConnectWithoutPollInputSchema).array() ]).optional(),
-  upsert: z.union([ z.lazy(() => ImageUpsertWithWhereUniqueWithoutPollInputSchema),z.lazy(() => ImageUpsertWithWhereUniqueWithoutPollInputSchema).array() ]).optional(),
-  createMany: z.lazy(() => ImageCreateManyPollInputEnvelopeSchema).optional(),
-  set: z.union([ z.lazy(() => ImageWhereUniqueInputSchema),z.lazy(() => ImageWhereUniqueInputSchema).array() ]).optional(),
-  disconnect: z.union([ z.lazy(() => ImageWhereUniqueInputSchema),z.lazy(() => ImageWhereUniqueInputSchema).array() ]).optional(),
-  delete: z.union([ z.lazy(() => ImageWhereUniqueInputSchema),z.lazy(() => ImageWhereUniqueInputSchema).array() ]).optional(),
-  connect: z.union([ z.lazy(() => ImageWhereUniqueInputSchema),z.lazy(() => ImageWhereUniqueInputSchema).array() ]).optional(),
-  update: z.union([ z.lazy(() => ImageUpdateWithWhereUniqueWithoutPollInputSchema),z.lazy(() => ImageUpdateWithWhereUniqueWithoutPollInputSchema).array() ]).optional(),
-  updateMany: z.union([ z.lazy(() => ImageUpdateManyWithWhereWithoutPollInputSchema),z.lazy(() => ImageUpdateManyWithWhereWithoutPollInputSchema).array() ]).optional(),
-  deleteMany: z.union([ z.lazy(() => ImageScalarWhereInputSchema),z.lazy(() => ImageScalarWhereInputSchema).array() ]).optional(),
-}).strict();
-
-export const PollOptionUncheckedUpdateManyWithoutPollNestedInputSchema: z.ZodType<Prisma.PollOptionUncheckedUpdateManyWithoutPollNestedInput> = z.object({
-  create: z.union([ z.lazy(() => PollOptionCreateWithoutPollInputSchema),z.lazy(() => PollOptionCreateWithoutPollInputSchema).array(),z.lazy(() => PollOptionUncheckedCreateWithoutPollInputSchema),z.lazy(() => PollOptionUncheckedCreateWithoutPollInputSchema).array() ]).optional(),
-  connectOrCreate: z.union([ z.lazy(() => PollOptionCreateOrConnectWithoutPollInputSchema),z.lazy(() => PollOptionCreateOrConnectWithoutPollInputSchema).array() ]).optional(),
-  upsert: z.union([ z.lazy(() => PollOptionUpsertWithWhereUniqueWithoutPollInputSchema),z.lazy(() => PollOptionUpsertWithWhereUniqueWithoutPollInputSchema).array() ]).optional(),
-  createMany: z.lazy(() => PollOptionCreateManyPollInputEnvelopeSchema).optional(),
-  set: z.union([ z.lazy(() => PollOptionWhereUniqueInputSchema),z.lazy(() => PollOptionWhereUniqueInputSchema).array() ]).optional(),
-  disconnect: z.union([ z.lazy(() => PollOptionWhereUniqueInputSchema),z.lazy(() => PollOptionWhereUniqueInputSchema).array() ]).optional(),
-  delete: z.union([ z.lazy(() => PollOptionWhereUniqueInputSchema),z.lazy(() => PollOptionWhereUniqueInputSchema).array() ]).optional(),
-  connect: z.union([ z.lazy(() => PollOptionWhereUniqueInputSchema),z.lazy(() => PollOptionWhereUniqueInputSchema).array() ]).optional(),
-  update: z.union([ z.lazy(() => PollOptionUpdateWithWhereUniqueWithoutPollInputSchema),z.lazy(() => PollOptionUpdateWithWhereUniqueWithoutPollInputSchema).array() ]).optional(),
-  updateMany: z.union([ z.lazy(() => PollOptionUpdateManyWithWhereWithoutPollInputSchema),z.lazy(() => PollOptionUpdateManyWithWhereWithoutPollInputSchema).array() ]).optional(),
-  deleteMany: z.union([ z.lazy(() => PollOptionScalarWhereInputSchema),z.lazy(() => PollOptionScalarWhereInputSchema).array() ]).optional(),
-}).strict();
-
-export const VoteUncheckedUpdateManyWithoutPollNestedInputSchema: z.ZodType<Prisma.VoteUncheckedUpdateManyWithoutPollNestedInput> = z.object({
-  create: z.union([ z.lazy(() => VoteCreateWithoutPollInputSchema),z.lazy(() => VoteCreateWithoutPollInputSchema).array(),z.lazy(() => VoteUncheckedCreateWithoutPollInputSchema),z.lazy(() => VoteUncheckedCreateWithoutPollInputSchema).array() ]).optional(),
-  connectOrCreate: z.union([ z.lazy(() => VoteCreateOrConnectWithoutPollInputSchema),z.lazy(() => VoteCreateOrConnectWithoutPollInputSchema).array() ]).optional(),
-  upsert: z.union([ z.lazy(() => VoteUpsertWithWhereUniqueWithoutPollInputSchema),z.lazy(() => VoteUpsertWithWhereUniqueWithoutPollInputSchema).array() ]).optional(),
-  createMany: z.lazy(() => VoteCreateManyPollInputEnvelopeSchema).optional(),
-  set: z.union([ z.lazy(() => VoteWhereUniqueInputSchema),z.lazy(() => VoteWhereUniqueInputSchema).array() ]).optional(),
-  disconnect: z.union([ z.lazy(() => VoteWhereUniqueInputSchema),z.lazy(() => VoteWhereUniqueInputSchema).array() ]).optional(),
-  delete: z.union([ z.lazy(() => VoteWhereUniqueInputSchema),z.lazy(() => VoteWhereUniqueInputSchema).array() ]).optional(),
-  connect: z.union([ z.lazy(() => VoteWhereUniqueInputSchema),z.lazy(() => VoteWhereUniqueInputSchema).array() ]).optional(),
-  update: z.union([ z.lazy(() => VoteUpdateWithWhereUniqueWithoutPollInputSchema),z.lazy(() => VoteUpdateWithWhereUniqueWithoutPollInputSchema).array() ]).optional(),
-  updateMany: z.union([ z.lazy(() => VoteUpdateManyWithWhereWithoutPollInputSchema),z.lazy(() => VoteUpdateManyWithWhereWithoutPollInputSchema).array() ]).optional(),
-  deleteMany: z.union([ z.lazy(() => VoteScalarWhereInputSchema),z.lazy(() => VoteScalarWhereInputSchema).array() ]).optional(),
-}).strict();
-
-export const ImageUncheckedUpdateManyWithoutPollNestedInputSchema: z.ZodType<Prisma.ImageUncheckedUpdateManyWithoutPollNestedInput> = z.object({
-  create: z.union([ z.lazy(() => ImageCreateWithoutPollInputSchema),z.lazy(() => ImageCreateWithoutPollInputSchema).array(),z.lazy(() => ImageUncheckedCreateWithoutPollInputSchema),z.lazy(() => ImageUncheckedCreateWithoutPollInputSchema).array() ]).optional(),
-  connectOrCreate: z.union([ z.lazy(() => ImageCreateOrConnectWithoutPollInputSchema),z.lazy(() => ImageCreateOrConnectWithoutPollInputSchema).array() ]).optional(),
-  upsert: z.union([ z.lazy(() => ImageUpsertWithWhereUniqueWithoutPollInputSchema),z.lazy(() => ImageUpsertWithWhereUniqueWithoutPollInputSchema).array() ]).optional(),
-  createMany: z.lazy(() => ImageCreateManyPollInputEnvelopeSchema).optional(),
-  set: z.union([ z.lazy(() => ImageWhereUniqueInputSchema),z.lazy(() => ImageWhereUniqueInputSchema).array() ]).optional(),
-  disconnect: z.union([ z.lazy(() => ImageWhereUniqueInputSchema),z.lazy(() => ImageWhereUniqueInputSchema).array() ]).optional(),
-  delete: z.union([ z.lazy(() => ImageWhereUniqueInputSchema),z.lazy(() => ImageWhereUniqueInputSchema).array() ]).optional(),
-  connect: z.union([ z.lazy(() => ImageWhereUniqueInputSchema),z.lazy(() => ImageWhereUniqueInputSchema).array() ]).optional(),
-  update: z.union([ z.lazy(() => ImageUpdateWithWhereUniqueWithoutPollInputSchema),z.lazy(() => ImageUpdateWithWhereUniqueWithoutPollInputSchema).array() ]).optional(),
-  updateMany: z.union([ z.lazy(() => ImageUpdateManyWithWhereWithoutPollInputSchema),z.lazy(() => ImageUpdateManyWithWhereWithoutPollInputSchema).array() ]).optional(),
-  deleteMany: z.union([ z.lazy(() => ImageScalarWhereInputSchema),z.lazy(() => ImageScalarWhereInputSchema).array() ]).optional(),
-}).strict();
-
-export const ImageCreateNestedOneWithoutBlogImagenSeoInputSchema: z.ZodType<Prisma.ImageCreateNestedOneWithoutBlogImagenSeoInput> = z.object({
-  create: z.union([ z.lazy(() => ImageCreateWithoutBlogImagenSeoInputSchema),z.lazy(() => ImageUncheckedCreateWithoutBlogImagenSeoInputSchema) ]).optional(),
-  connectOrCreate: z.lazy(() => ImageCreateOrConnectWithoutBlogImagenSeoInputSchema).optional(),
-  connect: z.lazy(() => ImageWhereUniqueInputSchema).optional()
-}).strict();
-
-export const ImageCreateNestedOneWithoutBlogImagenCardInputSchema: z.ZodType<Prisma.ImageCreateNestedOneWithoutBlogImagenCardInput> = z.object({
-  create: z.union([ z.lazy(() => ImageCreateWithoutBlogImagenCardInputSchema),z.lazy(() => ImageUncheckedCreateWithoutBlogImagenCardInputSchema) ]).optional(),
-  connectOrCreate: z.lazy(() => ImageCreateOrConnectWithoutBlogImagenCardInputSchema).optional(),
-  connect: z.lazy(() => ImageWhereUniqueInputSchema).optional()
-}).strict();
-
-export const NewsItemCreateNestedOneWithoutBlogInputSchema: z.ZodType<Prisma.NewsItemCreateNestedOneWithoutBlogInput> = z.object({
-  create: z.union([ z.lazy(() => NewsItemCreateWithoutBlogInputSchema),z.lazy(() => NewsItemUncheckedCreateWithoutBlogInputSchema) ]).optional(),
-  connectOrCreate: z.lazy(() => NewsItemCreateOrConnectWithoutBlogInputSchema).optional(),
-  connect: z.lazy(() => NewsItemWhereUniqueInputSchema).optional()
-}).strict();
-
-export const ImageCreateNestedManyWithoutBlogInputSchema: z.ZodType<Prisma.ImageCreateNestedManyWithoutBlogInput> = z.object({
-  create: z.union([ z.lazy(() => ImageCreateWithoutBlogInputSchema),z.lazy(() => ImageCreateWithoutBlogInputSchema).array(),z.lazy(() => ImageUncheckedCreateWithoutBlogInputSchema),z.lazy(() => ImageUncheckedCreateWithoutBlogInputSchema).array() ]).optional(),
-  connectOrCreate: z.union([ z.lazy(() => ImageCreateOrConnectWithoutBlogInputSchema),z.lazy(() => ImageCreateOrConnectWithoutBlogInputSchema).array() ]).optional(),
-  createMany: z.lazy(() => ImageCreateManyBlogInputEnvelopeSchema).optional(),
-  connect: z.union([ z.lazy(() => ImageWhereUniqueInputSchema),z.lazy(() => ImageWhereUniqueInputSchema).array() ]).optional(),
-}).strict();
-
-export const BlogAuthorCreateNestedManyWithoutBlogInputSchema: z.ZodType<Prisma.BlogAuthorCreateNestedManyWithoutBlogInput> = z.object({
-  create: z.union([ z.lazy(() => BlogAuthorCreateWithoutBlogInputSchema),z.lazy(() => BlogAuthorCreateWithoutBlogInputSchema).array(),z.lazy(() => BlogAuthorUncheckedCreateWithoutBlogInputSchema),z.lazy(() => BlogAuthorUncheckedCreateWithoutBlogInputSchema).array() ]).optional(),
-  connectOrCreate: z.union([ z.lazy(() => BlogAuthorCreateOrConnectWithoutBlogInputSchema),z.lazy(() => BlogAuthorCreateOrConnectWithoutBlogInputSchema).array() ]).optional(),
-  createMany: z.lazy(() => BlogAuthorCreateManyBlogInputEnvelopeSchema).optional(),
-  connect: z.union([ z.lazy(() => BlogAuthorWhereUniqueInputSchema),z.lazy(() => BlogAuthorWhereUniqueInputSchema).array() ]).optional(),
-}).strict();
-
-export const BlogLikeCreateNestedManyWithoutBlogInputSchema: z.ZodType<Prisma.BlogLikeCreateNestedManyWithoutBlogInput> = z.object({
-  create: z.union([ z.lazy(() => BlogLikeCreateWithoutBlogInputSchema),z.lazy(() => BlogLikeCreateWithoutBlogInputSchema).array(),z.lazy(() => BlogLikeUncheckedCreateWithoutBlogInputSchema),z.lazy(() => BlogLikeUncheckedCreateWithoutBlogInputSchema).array() ]).optional(),
-  connectOrCreate: z.union([ z.lazy(() => BlogLikeCreateOrConnectWithoutBlogInputSchema),z.lazy(() => BlogLikeCreateOrConnectWithoutBlogInputSchema).array() ]).optional(),
-  createMany: z.lazy(() => BlogLikeCreateManyBlogInputEnvelopeSchema).optional(),
-  connect: z.union([ z.lazy(() => BlogLikeWhereUniqueInputSchema),z.lazy(() => BlogLikeWhereUniqueInputSchema).array() ]).optional(),
-}).strict();
-
-export const BlogTagCreateNestedManyWithoutBlogInputSchema: z.ZodType<Prisma.BlogTagCreateNestedManyWithoutBlogInput> = z.object({
-  create: z.union([ z.lazy(() => BlogTagCreateWithoutBlogInputSchema),z.lazy(() => BlogTagCreateWithoutBlogInputSchema).array(),z.lazy(() => BlogTagUncheckedCreateWithoutBlogInputSchema),z.lazy(() => BlogTagUncheckedCreateWithoutBlogInputSchema).array() ]).optional(),
-  connectOrCreate: z.union([ z.lazy(() => BlogTagCreateOrConnectWithoutBlogInputSchema),z.lazy(() => BlogTagCreateOrConnectWithoutBlogInputSchema).array() ]).optional(),
-  createMany: z.lazy(() => BlogTagCreateManyBlogInputEnvelopeSchema).optional(),
-  connect: z.union([ z.lazy(() => BlogTagWhereUniqueInputSchema),z.lazy(() => BlogTagWhereUniqueInputSchema).array() ]).optional(),
-}).strict();
-
-export const CategoryCreateNestedOneWithoutBlogInputSchema: z.ZodType<Prisma.CategoryCreateNestedOneWithoutBlogInput> = z.object({
-  create: z.union([ z.lazy(() => CategoryCreateWithoutBlogInputSchema),z.lazy(() => CategoryUncheckedCreateWithoutBlogInputSchema) ]).optional(),
-  connectOrCreate: z.lazy(() => CategoryCreateOrConnectWithoutBlogInputSchema).optional(),
-  connect: z.lazy(() => CategoryWhereUniqueInputSchema).optional()
-}).strict();
-
-export const TranslationQueueCreateNestedManyWithoutBlogInputSchema: z.ZodType<Prisma.TranslationQueueCreateNestedManyWithoutBlogInput> = z.object({
-  create: z.union([ z.lazy(() => TranslationQueueCreateWithoutBlogInputSchema),z.lazy(() => TranslationQueueCreateWithoutBlogInputSchema).array(),z.lazy(() => TranslationQueueUncheckedCreateWithoutBlogInputSchema),z.lazy(() => TranslationQueueUncheckedCreateWithoutBlogInputSchema).array() ]).optional(),
-  connectOrCreate: z.union([ z.lazy(() => TranslationQueueCreateOrConnectWithoutBlogInputSchema),z.lazy(() => TranslationQueueCreateOrConnectWithoutBlogInputSchema).array() ]).optional(),
-  createMany: z.lazy(() => TranslationQueueCreateManyBlogInputEnvelopeSchema).optional(),
-  connect: z.union([ z.lazy(() => TranslationQueueWhereUniqueInputSchema),z.lazy(() => TranslationQueueWhereUniqueInputSchema).array() ]).optional(),
-}).strict();
-
-export const ImageUncheckedCreateNestedManyWithoutBlogInputSchema: z.ZodType<Prisma.ImageUncheckedCreateNestedManyWithoutBlogInput> = z.object({
-  create: z.union([ z.lazy(() => ImageCreateWithoutBlogInputSchema),z.lazy(() => ImageCreateWithoutBlogInputSchema).array(),z.lazy(() => ImageUncheckedCreateWithoutBlogInputSchema),z.lazy(() => ImageUncheckedCreateWithoutBlogInputSchema).array() ]).optional(),
-  connectOrCreate: z.union([ z.lazy(() => ImageCreateOrConnectWithoutBlogInputSchema),z.lazy(() => ImageCreateOrConnectWithoutBlogInputSchema).array() ]).optional(),
-  createMany: z.lazy(() => ImageCreateManyBlogInputEnvelopeSchema).optional(),
-  connect: z.union([ z.lazy(() => ImageWhereUniqueInputSchema),z.lazy(() => ImageWhereUniqueInputSchema).array() ]).optional(),
-}).strict();
-
-export const BlogAuthorUncheckedCreateNestedManyWithoutBlogInputSchema: z.ZodType<Prisma.BlogAuthorUncheckedCreateNestedManyWithoutBlogInput> = z.object({
-  create: z.union([ z.lazy(() => BlogAuthorCreateWithoutBlogInputSchema),z.lazy(() => BlogAuthorCreateWithoutBlogInputSchema).array(),z.lazy(() => BlogAuthorUncheckedCreateWithoutBlogInputSchema),z.lazy(() => BlogAuthorUncheckedCreateWithoutBlogInputSchema).array() ]).optional(),
-  connectOrCreate: z.union([ z.lazy(() => BlogAuthorCreateOrConnectWithoutBlogInputSchema),z.lazy(() => BlogAuthorCreateOrConnectWithoutBlogInputSchema).array() ]).optional(),
-  createMany: z.lazy(() => BlogAuthorCreateManyBlogInputEnvelopeSchema).optional(),
-  connect: z.union([ z.lazy(() => BlogAuthorWhereUniqueInputSchema),z.lazy(() => BlogAuthorWhereUniqueInputSchema).array() ]).optional(),
-}).strict();
-
-export const BlogLikeUncheckedCreateNestedManyWithoutBlogInputSchema: z.ZodType<Prisma.BlogLikeUncheckedCreateNestedManyWithoutBlogInput> = z.object({
-  create: z.union([ z.lazy(() => BlogLikeCreateWithoutBlogInputSchema),z.lazy(() => BlogLikeCreateWithoutBlogInputSchema).array(),z.lazy(() => BlogLikeUncheckedCreateWithoutBlogInputSchema),z.lazy(() => BlogLikeUncheckedCreateWithoutBlogInputSchema).array() ]).optional(),
-  connectOrCreate: z.union([ z.lazy(() => BlogLikeCreateOrConnectWithoutBlogInputSchema),z.lazy(() => BlogLikeCreateOrConnectWithoutBlogInputSchema).array() ]).optional(),
-  createMany: z.lazy(() => BlogLikeCreateManyBlogInputEnvelopeSchema).optional(),
-  connect: z.union([ z.lazy(() => BlogLikeWhereUniqueInputSchema),z.lazy(() => BlogLikeWhereUniqueInputSchema).array() ]).optional(),
-}).strict();
-
-export const BlogTagUncheckedCreateNestedManyWithoutBlogInputSchema: z.ZodType<Prisma.BlogTagUncheckedCreateNestedManyWithoutBlogInput> = z.object({
-  create: z.union([ z.lazy(() => BlogTagCreateWithoutBlogInputSchema),z.lazy(() => BlogTagCreateWithoutBlogInputSchema).array(),z.lazy(() => BlogTagUncheckedCreateWithoutBlogInputSchema),z.lazy(() => BlogTagUncheckedCreateWithoutBlogInputSchema).array() ]).optional(),
-  connectOrCreate: z.union([ z.lazy(() => BlogTagCreateOrConnectWithoutBlogInputSchema),z.lazy(() => BlogTagCreateOrConnectWithoutBlogInputSchema).array() ]).optional(),
-  createMany: z.lazy(() => BlogTagCreateManyBlogInputEnvelopeSchema).optional(),
-  connect: z.union([ z.lazy(() => BlogTagWhereUniqueInputSchema),z.lazy(() => BlogTagWhereUniqueInputSchema).array() ]).optional(),
-}).strict();
-
-export const TranslationQueueUncheckedCreateNestedManyWithoutBlogInputSchema: z.ZodType<Prisma.TranslationQueueUncheckedCreateNestedManyWithoutBlogInput> = z.object({
-  create: z.union([ z.lazy(() => TranslationQueueCreateWithoutBlogInputSchema),z.lazy(() => TranslationQueueCreateWithoutBlogInputSchema).array(),z.lazy(() => TranslationQueueUncheckedCreateWithoutBlogInputSchema),z.lazy(() => TranslationQueueUncheckedCreateWithoutBlogInputSchema).array() ]).optional(),
-  connectOrCreate: z.union([ z.lazy(() => TranslationQueueCreateOrConnectWithoutBlogInputSchema),z.lazy(() => TranslationQueueCreateOrConnectWithoutBlogInputSchema).array() ]).optional(),
-  createMany: z.lazy(() => TranslationQueueCreateManyBlogInputEnvelopeSchema).optional(),
-  connect: z.union([ z.lazy(() => TranslationQueueWhereUniqueInputSchema),z.lazy(() => TranslationQueueWhereUniqueInputSchema).array() ]).optional(),
-}).strict();
-
-export const ImageUpdateOneWithoutBlogImagenSeoNestedInputSchema: z.ZodType<Prisma.ImageUpdateOneWithoutBlogImagenSeoNestedInput> = z.object({
-  create: z.union([ z.lazy(() => ImageCreateWithoutBlogImagenSeoInputSchema),z.lazy(() => ImageUncheckedCreateWithoutBlogImagenSeoInputSchema) ]).optional(),
-  connectOrCreate: z.lazy(() => ImageCreateOrConnectWithoutBlogImagenSeoInputSchema).optional(),
-  upsert: z.lazy(() => ImageUpsertWithoutBlogImagenSeoInputSchema).optional(),
-  disconnect: z.union([ z.boolean(),z.lazy(() => ImageWhereInputSchema) ]).optional(),
-  delete: z.union([ z.boolean(),z.lazy(() => ImageWhereInputSchema) ]).optional(),
-  connect: z.lazy(() => ImageWhereUniqueInputSchema).optional(),
-  update: z.union([ z.lazy(() => ImageUpdateToOneWithWhereWithoutBlogImagenSeoInputSchema),z.lazy(() => ImageUpdateWithoutBlogImagenSeoInputSchema),z.lazy(() => ImageUncheckedUpdateWithoutBlogImagenSeoInputSchema) ]).optional(),
-}).strict();
-
-export const ImageUpdateOneWithoutBlogImagenCardNestedInputSchema: z.ZodType<Prisma.ImageUpdateOneWithoutBlogImagenCardNestedInput> = z.object({
-  create: z.union([ z.lazy(() => ImageCreateWithoutBlogImagenCardInputSchema),z.lazy(() => ImageUncheckedCreateWithoutBlogImagenCardInputSchema) ]).optional(),
-  connectOrCreate: z.lazy(() => ImageCreateOrConnectWithoutBlogImagenCardInputSchema).optional(),
-  upsert: z.lazy(() => ImageUpsertWithoutBlogImagenCardInputSchema).optional(),
-  disconnect: z.union([ z.boolean(),z.lazy(() => ImageWhereInputSchema) ]).optional(),
-  delete: z.union([ z.boolean(),z.lazy(() => ImageWhereInputSchema) ]).optional(),
-  connect: z.lazy(() => ImageWhereUniqueInputSchema).optional(),
-  update: z.union([ z.lazy(() => ImageUpdateToOneWithWhereWithoutBlogImagenCardInputSchema),z.lazy(() => ImageUpdateWithoutBlogImagenCardInputSchema),z.lazy(() => ImageUncheckedUpdateWithoutBlogImagenCardInputSchema) ]).optional(),
-}).strict();
-
-export const NewsItemUpdateOneWithoutBlogNestedInputSchema: z.ZodType<Prisma.NewsItemUpdateOneWithoutBlogNestedInput> = z.object({
-  create: z.union([ z.lazy(() => NewsItemCreateWithoutBlogInputSchema),z.lazy(() => NewsItemUncheckedCreateWithoutBlogInputSchema) ]).optional(),
-  connectOrCreate: z.lazy(() => NewsItemCreateOrConnectWithoutBlogInputSchema).optional(),
-  upsert: z.lazy(() => NewsItemUpsertWithoutBlogInputSchema).optional(),
-  disconnect: z.union([ z.boolean(),z.lazy(() => NewsItemWhereInputSchema) ]).optional(),
-  delete: z.union([ z.boolean(),z.lazy(() => NewsItemWhereInputSchema) ]).optional(),
-  connect: z.lazy(() => NewsItemWhereUniqueInputSchema).optional(),
-  update: z.union([ z.lazy(() => NewsItemUpdateToOneWithWhereWithoutBlogInputSchema),z.lazy(() => NewsItemUpdateWithoutBlogInputSchema),z.lazy(() => NewsItemUncheckedUpdateWithoutBlogInputSchema) ]).optional(),
-}).strict();
-
-export const ImageUpdateManyWithoutBlogNestedInputSchema: z.ZodType<Prisma.ImageUpdateManyWithoutBlogNestedInput> = z.object({
-  create: z.union([ z.lazy(() => ImageCreateWithoutBlogInputSchema),z.lazy(() => ImageCreateWithoutBlogInputSchema).array(),z.lazy(() => ImageUncheckedCreateWithoutBlogInputSchema),z.lazy(() => ImageUncheckedCreateWithoutBlogInputSchema).array() ]).optional(),
-  connectOrCreate: z.union([ z.lazy(() => ImageCreateOrConnectWithoutBlogInputSchema),z.lazy(() => ImageCreateOrConnectWithoutBlogInputSchema).array() ]).optional(),
-  upsert: z.union([ z.lazy(() => ImageUpsertWithWhereUniqueWithoutBlogInputSchema),z.lazy(() => ImageUpsertWithWhereUniqueWithoutBlogInputSchema).array() ]).optional(),
-  createMany: z.lazy(() => ImageCreateManyBlogInputEnvelopeSchema).optional(),
-  set: z.union([ z.lazy(() => ImageWhereUniqueInputSchema),z.lazy(() => ImageWhereUniqueInputSchema).array() ]).optional(),
-  disconnect: z.union([ z.lazy(() => ImageWhereUniqueInputSchema),z.lazy(() => ImageWhereUniqueInputSchema).array() ]).optional(),
-  delete: z.union([ z.lazy(() => ImageWhereUniqueInputSchema),z.lazy(() => ImageWhereUniqueInputSchema).array() ]).optional(),
-  connect: z.union([ z.lazy(() => ImageWhereUniqueInputSchema),z.lazy(() => ImageWhereUniqueInputSchema).array() ]).optional(),
-  update: z.union([ z.lazy(() => ImageUpdateWithWhereUniqueWithoutBlogInputSchema),z.lazy(() => ImageUpdateWithWhereUniqueWithoutBlogInputSchema).array() ]).optional(),
-  updateMany: z.union([ z.lazy(() => ImageUpdateManyWithWhereWithoutBlogInputSchema),z.lazy(() => ImageUpdateManyWithWhereWithoutBlogInputSchema).array() ]).optional(),
-  deleteMany: z.union([ z.lazy(() => ImageScalarWhereInputSchema),z.lazy(() => ImageScalarWhereInputSchema).array() ]).optional(),
-}).strict();
-
-export const BlogAuthorUpdateManyWithoutBlogNestedInputSchema: z.ZodType<Prisma.BlogAuthorUpdateManyWithoutBlogNestedInput> = z.object({
-  create: z.union([ z.lazy(() => BlogAuthorCreateWithoutBlogInputSchema),z.lazy(() => BlogAuthorCreateWithoutBlogInputSchema).array(),z.lazy(() => BlogAuthorUncheckedCreateWithoutBlogInputSchema),z.lazy(() => BlogAuthorUncheckedCreateWithoutBlogInputSchema).array() ]).optional(),
-  connectOrCreate: z.union([ z.lazy(() => BlogAuthorCreateOrConnectWithoutBlogInputSchema),z.lazy(() => BlogAuthorCreateOrConnectWithoutBlogInputSchema).array() ]).optional(),
-  upsert: z.union([ z.lazy(() => BlogAuthorUpsertWithWhereUniqueWithoutBlogInputSchema),z.lazy(() => BlogAuthorUpsertWithWhereUniqueWithoutBlogInputSchema).array() ]).optional(),
-  createMany: z.lazy(() => BlogAuthorCreateManyBlogInputEnvelopeSchema).optional(),
-  set: z.union([ z.lazy(() => BlogAuthorWhereUniqueInputSchema),z.lazy(() => BlogAuthorWhereUniqueInputSchema).array() ]).optional(),
-  disconnect: z.union([ z.lazy(() => BlogAuthorWhereUniqueInputSchema),z.lazy(() => BlogAuthorWhereUniqueInputSchema).array() ]).optional(),
-  delete: z.union([ z.lazy(() => BlogAuthorWhereUniqueInputSchema),z.lazy(() => BlogAuthorWhereUniqueInputSchema).array() ]).optional(),
-  connect: z.union([ z.lazy(() => BlogAuthorWhereUniqueInputSchema),z.lazy(() => BlogAuthorWhereUniqueInputSchema).array() ]).optional(),
-  update: z.union([ z.lazy(() => BlogAuthorUpdateWithWhereUniqueWithoutBlogInputSchema),z.lazy(() => BlogAuthorUpdateWithWhereUniqueWithoutBlogInputSchema).array() ]).optional(),
-  updateMany: z.union([ z.lazy(() => BlogAuthorUpdateManyWithWhereWithoutBlogInputSchema),z.lazy(() => BlogAuthorUpdateManyWithWhereWithoutBlogInputSchema).array() ]).optional(),
-  deleteMany: z.union([ z.lazy(() => BlogAuthorScalarWhereInputSchema),z.lazy(() => BlogAuthorScalarWhereInputSchema).array() ]).optional(),
-}).strict();
-
-export const BlogLikeUpdateManyWithoutBlogNestedInputSchema: z.ZodType<Prisma.BlogLikeUpdateManyWithoutBlogNestedInput> = z.object({
-  create: z.union([ z.lazy(() => BlogLikeCreateWithoutBlogInputSchema),z.lazy(() => BlogLikeCreateWithoutBlogInputSchema).array(),z.lazy(() => BlogLikeUncheckedCreateWithoutBlogInputSchema),z.lazy(() => BlogLikeUncheckedCreateWithoutBlogInputSchema).array() ]).optional(),
-  connectOrCreate: z.union([ z.lazy(() => BlogLikeCreateOrConnectWithoutBlogInputSchema),z.lazy(() => BlogLikeCreateOrConnectWithoutBlogInputSchema).array() ]).optional(),
-  upsert: z.union([ z.lazy(() => BlogLikeUpsertWithWhereUniqueWithoutBlogInputSchema),z.lazy(() => BlogLikeUpsertWithWhereUniqueWithoutBlogInputSchema).array() ]).optional(),
-  createMany: z.lazy(() => BlogLikeCreateManyBlogInputEnvelopeSchema).optional(),
-  set: z.union([ z.lazy(() => BlogLikeWhereUniqueInputSchema),z.lazy(() => BlogLikeWhereUniqueInputSchema).array() ]).optional(),
-  disconnect: z.union([ z.lazy(() => BlogLikeWhereUniqueInputSchema),z.lazy(() => BlogLikeWhereUniqueInputSchema).array() ]).optional(),
-  delete: z.union([ z.lazy(() => BlogLikeWhereUniqueInputSchema),z.lazy(() => BlogLikeWhereUniqueInputSchema).array() ]).optional(),
-  connect: z.union([ z.lazy(() => BlogLikeWhereUniqueInputSchema),z.lazy(() => BlogLikeWhereUniqueInputSchema).array() ]).optional(),
-  update: z.union([ z.lazy(() => BlogLikeUpdateWithWhereUniqueWithoutBlogInputSchema),z.lazy(() => BlogLikeUpdateWithWhereUniqueWithoutBlogInputSchema).array() ]).optional(),
-  updateMany: z.union([ z.lazy(() => BlogLikeUpdateManyWithWhereWithoutBlogInputSchema),z.lazy(() => BlogLikeUpdateManyWithWhereWithoutBlogInputSchema).array() ]).optional(),
-  deleteMany: z.union([ z.lazy(() => BlogLikeScalarWhereInputSchema),z.lazy(() => BlogLikeScalarWhereInputSchema).array() ]).optional(),
-}).strict();
-
-export const BlogTagUpdateManyWithoutBlogNestedInputSchema: z.ZodType<Prisma.BlogTagUpdateManyWithoutBlogNestedInput> = z.object({
-  create: z.union([ z.lazy(() => BlogTagCreateWithoutBlogInputSchema),z.lazy(() => BlogTagCreateWithoutBlogInputSchema).array(),z.lazy(() => BlogTagUncheckedCreateWithoutBlogInputSchema),z.lazy(() => BlogTagUncheckedCreateWithoutBlogInputSchema).array() ]).optional(),
-  connectOrCreate: z.union([ z.lazy(() => BlogTagCreateOrConnectWithoutBlogInputSchema),z.lazy(() => BlogTagCreateOrConnectWithoutBlogInputSchema).array() ]).optional(),
-  upsert: z.union([ z.lazy(() => BlogTagUpsertWithWhereUniqueWithoutBlogInputSchema),z.lazy(() => BlogTagUpsertWithWhereUniqueWithoutBlogInputSchema).array() ]).optional(),
-  createMany: z.lazy(() => BlogTagCreateManyBlogInputEnvelopeSchema).optional(),
-  set: z.union([ z.lazy(() => BlogTagWhereUniqueInputSchema),z.lazy(() => BlogTagWhereUniqueInputSchema).array() ]).optional(),
-  disconnect: z.union([ z.lazy(() => BlogTagWhereUniqueInputSchema),z.lazy(() => BlogTagWhereUniqueInputSchema).array() ]).optional(),
-  delete: z.union([ z.lazy(() => BlogTagWhereUniqueInputSchema),z.lazy(() => BlogTagWhereUniqueInputSchema).array() ]).optional(),
-  connect: z.union([ z.lazy(() => BlogTagWhereUniqueInputSchema),z.lazy(() => BlogTagWhereUniqueInputSchema).array() ]).optional(),
-  update: z.union([ z.lazy(() => BlogTagUpdateWithWhereUniqueWithoutBlogInputSchema),z.lazy(() => BlogTagUpdateWithWhereUniqueWithoutBlogInputSchema).array() ]).optional(),
-  updateMany: z.union([ z.lazy(() => BlogTagUpdateManyWithWhereWithoutBlogInputSchema),z.lazy(() => BlogTagUpdateManyWithWhereWithoutBlogInputSchema).array() ]).optional(),
-  deleteMany: z.union([ z.lazy(() => BlogTagScalarWhereInputSchema),z.lazy(() => BlogTagScalarWhereInputSchema).array() ]).optional(),
-}).strict();
-
-export const CategoryUpdateOneWithoutBlogNestedInputSchema: z.ZodType<Prisma.CategoryUpdateOneWithoutBlogNestedInput> = z.object({
-  create: z.union([ z.lazy(() => CategoryCreateWithoutBlogInputSchema),z.lazy(() => CategoryUncheckedCreateWithoutBlogInputSchema) ]).optional(),
-  connectOrCreate: z.lazy(() => CategoryCreateOrConnectWithoutBlogInputSchema).optional(),
-  upsert: z.lazy(() => CategoryUpsertWithoutBlogInputSchema).optional(),
-  disconnect: z.union([ z.boolean(),z.lazy(() => CategoryWhereInputSchema) ]).optional(),
-  delete: z.union([ z.boolean(),z.lazy(() => CategoryWhereInputSchema) ]).optional(),
-  connect: z.lazy(() => CategoryWhereUniqueInputSchema).optional(),
-  update: z.union([ z.lazy(() => CategoryUpdateToOneWithWhereWithoutBlogInputSchema),z.lazy(() => CategoryUpdateWithoutBlogInputSchema),z.lazy(() => CategoryUncheckedUpdateWithoutBlogInputSchema) ]).optional(),
-}).strict();
-
-export const TranslationQueueUpdateManyWithoutBlogNestedInputSchema: z.ZodType<Prisma.TranslationQueueUpdateManyWithoutBlogNestedInput> = z.object({
-  create: z.union([ z.lazy(() => TranslationQueueCreateWithoutBlogInputSchema),z.lazy(() => TranslationQueueCreateWithoutBlogInputSchema).array(),z.lazy(() => TranslationQueueUncheckedCreateWithoutBlogInputSchema),z.lazy(() => TranslationQueueUncheckedCreateWithoutBlogInputSchema).array() ]).optional(),
-  connectOrCreate: z.union([ z.lazy(() => TranslationQueueCreateOrConnectWithoutBlogInputSchema),z.lazy(() => TranslationQueueCreateOrConnectWithoutBlogInputSchema).array() ]).optional(),
-  upsert: z.union([ z.lazy(() => TranslationQueueUpsertWithWhereUniqueWithoutBlogInputSchema),z.lazy(() => TranslationQueueUpsertWithWhereUniqueWithoutBlogInputSchema).array() ]).optional(),
-  createMany: z.lazy(() => TranslationQueueCreateManyBlogInputEnvelopeSchema).optional(),
-  set: z.union([ z.lazy(() => TranslationQueueWhereUniqueInputSchema),z.lazy(() => TranslationQueueWhereUniqueInputSchema).array() ]).optional(),
-  disconnect: z.union([ z.lazy(() => TranslationQueueWhereUniqueInputSchema),z.lazy(() => TranslationQueueWhereUniqueInputSchema).array() ]).optional(),
-  delete: z.union([ z.lazy(() => TranslationQueueWhereUniqueInputSchema),z.lazy(() => TranslationQueueWhereUniqueInputSchema).array() ]).optional(),
-  connect: z.union([ z.lazy(() => TranslationQueueWhereUniqueInputSchema),z.lazy(() => TranslationQueueWhereUniqueInputSchema).array() ]).optional(),
-  update: z.union([ z.lazy(() => TranslationQueueUpdateWithWhereUniqueWithoutBlogInputSchema),z.lazy(() => TranslationQueueUpdateWithWhereUniqueWithoutBlogInputSchema).array() ]).optional(),
-  updateMany: z.union([ z.lazy(() => TranslationQueueUpdateManyWithWhereWithoutBlogInputSchema),z.lazy(() => TranslationQueueUpdateManyWithWhereWithoutBlogInputSchema).array() ]).optional(),
-  deleteMany: z.union([ z.lazy(() => TranslationQueueScalarWhereInputSchema),z.lazy(() => TranslationQueueScalarWhereInputSchema).array() ]).optional(),
-}).strict();
-
-export const ImageUncheckedUpdateManyWithoutBlogNestedInputSchema: z.ZodType<Prisma.ImageUncheckedUpdateManyWithoutBlogNestedInput> = z.object({
-  create: z.union([ z.lazy(() => ImageCreateWithoutBlogInputSchema),z.lazy(() => ImageCreateWithoutBlogInputSchema).array(),z.lazy(() => ImageUncheckedCreateWithoutBlogInputSchema),z.lazy(() => ImageUncheckedCreateWithoutBlogInputSchema).array() ]).optional(),
-  connectOrCreate: z.union([ z.lazy(() => ImageCreateOrConnectWithoutBlogInputSchema),z.lazy(() => ImageCreateOrConnectWithoutBlogInputSchema).array() ]).optional(),
-  upsert: z.union([ z.lazy(() => ImageUpsertWithWhereUniqueWithoutBlogInputSchema),z.lazy(() => ImageUpsertWithWhereUniqueWithoutBlogInputSchema).array() ]).optional(),
-  createMany: z.lazy(() => ImageCreateManyBlogInputEnvelopeSchema).optional(),
-  set: z.union([ z.lazy(() => ImageWhereUniqueInputSchema),z.lazy(() => ImageWhereUniqueInputSchema).array() ]).optional(),
-  disconnect: z.union([ z.lazy(() => ImageWhereUniqueInputSchema),z.lazy(() => ImageWhereUniqueInputSchema).array() ]).optional(),
-  delete: z.union([ z.lazy(() => ImageWhereUniqueInputSchema),z.lazy(() => ImageWhereUniqueInputSchema).array() ]).optional(),
-  connect: z.union([ z.lazy(() => ImageWhereUniqueInputSchema),z.lazy(() => ImageWhereUniqueInputSchema).array() ]).optional(),
-  update: z.union([ z.lazy(() => ImageUpdateWithWhereUniqueWithoutBlogInputSchema),z.lazy(() => ImageUpdateWithWhereUniqueWithoutBlogInputSchema).array() ]).optional(),
-  updateMany: z.union([ z.lazy(() => ImageUpdateManyWithWhereWithoutBlogInputSchema),z.lazy(() => ImageUpdateManyWithWhereWithoutBlogInputSchema).array() ]).optional(),
-  deleteMany: z.union([ z.lazy(() => ImageScalarWhereInputSchema),z.lazy(() => ImageScalarWhereInputSchema).array() ]).optional(),
-}).strict();
-
-export const BlogAuthorUncheckedUpdateManyWithoutBlogNestedInputSchema: z.ZodType<Prisma.BlogAuthorUncheckedUpdateManyWithoutBlogNestedInput> = z.object({
-  create: z.union([ z.lazy(() => BlogAuthorCreateWithoutBlogInputSchema),z.lazy(() => BlogAuthorCreateWithoutBlogInputSchema).array(),z.lazy(() => BlogAuthorUncheckedCreateWithoutBlogInputSchema),z.lazy(() => BlogAuthorUncheckedCreateWithoutBlogInputSchema).array() ]).optional(),
-  connectOrCreate: z.union([ z.lazy(() => BlogAuthorCreateOrConnectWithoutBlogInputSchema),z.lazy(() => BlogAuthorCreateOrConnectWithoutBlogInputSchema).array() ]).optional(),
-  upsert: z.union([ z.lazy(() => BlogAuthorUpsertWithWhereUniqueWithoutBlogInputSchema),z.lazy(() => BlogAuthorUpsertWithWhereUniqueWithoutBlogInputSchema).array() ]).optional(),
-  createMany: z.lazy(() => BlogAuthorCreateManyBlogInputEnvelopeSchema).optional(),
-  set: z.union([ z.lazy(() => BlogAuthorWhereUniqueInputSchema),z.lazy(() => BlogAuthorWhereUniqueInputSchema).array() ]).optional(),
-  disconnect: z.union([ z.lazy(() => BlogAuthorWhereUniqueInputSchema),z.lazy(() => BlogAuthorWhereUniqueInputSchema).array() ]).optional(),
-  delete: z.union([ z.lazy(() => BlogAuthorWhereUniqueInputSchema),z.lazy(() => BlogAuthorWhereUniqueInputSchema).array() ]).optional(),
-  connect: z.union([ z.lazy(() => BlogAuthorWhereUniqueInputSchema),z.lazy(() => BlogAuthorWhereUniqueInputSchema).array() ]).optional(),
-  update: z.union([ z.lazy(() => BlogAuthorUpdateWithWhereUniqueWithoutBlogInputSchema),z.lazy(() => BlogAuthorUpdateWithWhereUniqueWithoutBlogInputSchema).array() ]).optional(),
-  updateMany: z.union([ z.lazy(() => BlogAuthorUpdateManyWithWhereWithoutBlogInputSchema),z.lazy(() => BlogAuthorUpdateManyWithWhereWithoutBlogInputSchema).array() ]).optional(),
-  deleteMany: z.union([ z.lazy(() => BlogAuthorScalarWhereInputSchema),z.lazy(() => BlogAuthorScalarWhereInputSchema).array() ]).optional(),
-}).strict();
-
-export const BlogLikeUncheckedUpdateManyWithoutBlogNestedInputSchema: z.ZodType<Prisma.BlogLikeUncheckedUpdateManyWithoutBlogNestedInput> = z.object({
-  create: z.union([ z.lazy(() => BlogLikeCreateWithoutBlogInputSchema),z.lazy(() => BlogLikeCreateWithoutBlogInputSchema).array(),z.lazy(() => BlogLikeUncheckedCreateWithoutBlogInputSchema),z.lazy(() => BlogLikeUncheckedCreateWithoutBlogInputSchema).array() ]).optional(),
-  connectOrCreate: z.union([ z.lazy(() => BlogLikeCreateOrConnectWithoutBlogInputSchema),z.lazy(() => BlogLikeCreateOrConnectWithoutBlogInputSchema).array() ]).optional(),
-  upsert: z.union([ z.lazy(() => BlogLikeUpsertWithWhereUniqueWithoutBlogInputSchema),z.lazy(() => BlogLikeUpsertWithWhereUniqueWithoutBlogInputSchema).array() ]).optional(),
-  createMany: z.lazy(() => BlogLikeCreateManyBlogInputEnvelopeSchema).optional(),
-  set: z.union([ z.lazy(() => BlogLikeWhereUniqueInputSchema),z.lazy(() => BlogLikeWhereUniqueInputSchema).array() ]).optional(),
-  disconnect: z.union([ z.lazy(() => BlogLikeWhereUniqueInputSchema),z.lazy(() => BlogLikeWhereUniqueInputSchema).array() ]).optional(),
-  delete: z.union([ z.lazy(() => BlogLikeWhereUniqueInputSchema),z.lazy(() => BlogLikeWhereUniqueInputSchema).array() ]).optional(),
-  connect: z.union([ z.lazy(() => BlogLikeWhereUniqueInputSchema),z.lazy(() => BlogLikeWhereUniqueInputSchema).array() ]).optional(),
-  update: z.union([ z.lazy(() => BlogLikeUpdateWithWhereUniqueWithoutBlogInputSchema),z.lazy(() => BlogLikeUpdateWithWhereUniqueWithoutBlogInputSchema).array() ]).optional(),
-  updateMany: z.union([ z.lazy(() => BlogLikeUpdateManyWithWhereWithoutBlogInputSchema),z.lazy(() => BlogLikeUpdateManyWithWhereWithoutBlogInputSchema).array() ]).optional(),
-  deleteMany: z.union([ z.lazy(() => BlogLikeScalarWhereInputSchema),z.lazy(() => BlogLikeScalarWhereInputSchema).array() ]).optional(),
-}).strict();
-
-export const BlogTagUncheckedUpdateManyWithoutBlogNestedInputSchema: z.ZodType<Prisma.BlogTagUncheckedUpdateManyWithoutBlogNestedInput> = z.object({
-  create: z.union([ z.lazy(() => BlogTagCreateWithoutBlogInputSchema),z.lazy(() => BlogTagCreateWithoutBlogInputSchema).array(),z.lazy(() => BlogTagUncheckedCreateWithoutBlogInputSchema),z.lazy(() => BlogTagUncheckedCreateWithoutBlogInputSchema).array() ]).optional(),
-  connectOrCreate: z.union([ z.lazy(() => BlogTagCreateOrConnectWithoutBlogInputSchema),z.lazy(() => BlogTagCreateOrConnectWithoutBlogInputSchema).array() ]).optional(),
-  upsert: z.union([ z.lazy(() => BlogTagUpsertWithWhereUniqueWithoutBlogInputSchema),z.lazy(() => BlogTagUpsertWithWhereUniqueWithoutBlogInputSchema).array() ]).optional(),
-  createMany: z.lazy(() => BlogTagCreateManyBlogInputEnvelopeSchema).optional(),
-  set: z.union([ z.lazy(() => BlogTagWhereUniqueInputSchema),z.lazy(() => BlogTagWhereUniqueInputSchema).array() ]).optional(),
-  disconnect: z.union([ z.lazy(() => BlogTagWhereUniqueInputSchema),z.lazy(() => BlogTagWhereUniqueInputSchema).array() ]).optional(),
-  delete: z.union([ z.lazy(() => BlogTagWhereUniqueInputSchema),z.lazy(() => BlogTagWhereUniqueInputSchema).array() ]).optional(),
-  connect: z.union([ z.lazy(() => BlogTagWhereUniqueInputSchema),z.lazy(() => BlogTagWhereUniqueInputSchema).array() ]).optional(),
-  update: z.union([ z.lazy(() => BlogTagUpdateWithWhereUniqueWithoutBlogInputSchema),z.lazy(() => BlogTagUpdateWithWhereUniqueWithoutBlogInputSchema).array() ]).optional(),
-  updateMany: z.union([ z.lazy(() => BlogTagUpdateManyWithWhereWithoutBlogInputSchema),z.lazy(() => BlogTagUpdateManyWithWhereWithoutBlogInputSchema).array() ]).optional(),
-  deleteMany: z.union([ z.lazy(() => BlogTagScalarWhereInputSchema),z.lazy(() => BlogTagScalarWhereInputSchema).array() ]).optional(),
-}).strict();
-
-export const TranslationQueueUncheckedUpdateManyWithoutBlogNestedInputSchema: z.ZodType<Prisma.TranslationQueueUncheckedUpdateManyWithoutBlogNestedInput> = z.object({
-  create: z.union([ z.lazy(() => TranslationQueueCreateWithoutBlogInputSchema),z.lazy(() => TranslationQueueCreateWithoutBlogInputSchema).array(),z.lazy(() => TranslationQueueUncheckedCreateWithoutBlogInputSchema),z.lazy(() => TranslationQueueUncheckedCreateWithoutBlogInputSchema).array() ]).optional(),
-  connectOrCreate: z.union([ z.lazy(() => TranslationQueueCreateOrConnectWithoutBlogInputSchema),z.lazy(() => TranslationQueueCreateOrConnectWithoutBlogInputSchema).array() ]).optional(),
-  upsert: z.union([ z.lazy(() => TranslationQueueUpsertWithWhereUniqueWithoutBlogInputSchema),z.lazy(() => TranslationQueueUpsertWithWhereUniqueWithoutBlogInputSchema).array() ]).optional(),
-  createMany: z.lazy(() => TranslationQueueCreateManyBlogInputEnvelopeSchema).optional(),
-  set: z.union([ z.lazy(() => TranslationQueueWhereUniqueInputSchema),z.lazy(() => TranslationQueueWhereUniqueInputSchema).array() ]).optional(),
-  disconnect: z.union([ z.lazy(() => TranslationQueueWhereUniqueInputSchema),z.lazy(() => TranslationQueueWhereUniqueInputSchema).array() ]).optional(),
-  delete: z.union([ z.lazy(() => TranslationQueueWhereUniqueInputSchema),z.lazy(() => TranslationQueueWhereUniqueInputSchema).array() ]).optional(),
-  connect: z.union([ z.lazy(() => TranslationQueueWhereUniqueInputSchema),z.lazy(() => TranslationQueueWhereUniqueInputSchema).array() ]).optional(),
-  update: z.union([ z.lazy(() => TranslationQueueUpdateWithWhereUniqueWithoutBlogInputSchema),z.lazy(() => TranslationQueueUpdateWithWhereUniqueWithoutBlogInputSchema).array() ]).optional(),
-  updateMany: z.union([ z.lazy(() => TranslationQueueUpdateManyWithWhereWithoutBlogInputSchema),z.lazy(() => TranslationQueueUpdateManyWithWhereWithoutBlogInputSchema).array() ]).optional(),
-  deleteMany: z.union([ z.lazy(() => TranslationQueueScalarWhereInputSchema),z.lazy(() => TranslationQueueScalarWhereInputSchema).array() ]).optional(),
-}).strict();
-
-export const BlogTagCreateNestedManyWithoutTagInputSchema: z.ZodType<Prisma.BlogTagCreateNestedManyWithoutTagInput> = z.object({
-  create: z.union([ z.lazy(() => BlogTagCreateWithoutTagInputSchema),z.lazy(() => BlogTagCreateWithoutTagInputSchema).array(),z.lazy(() => BlogTagUncheckedCreateWithoutTagInputSchema),z.lazy(() => BlogTagUncheckedCreateWithoutTagInputSchema).array() ]).optional(),
-  connectOrCreate: z.union([ z.lazy(() => BlogTagCreateOrConnectWithoutTagInputSchema),z.lazy(() => BlogTagCreateOrConnectWithoutTagInputSchema).array() ]).optional(),
-  createMany: z.lazy(() => BlogTagCreateManyTagInputEnvelopeSchema).optional(),
-  connect: z.union([ z.lazy(() => BlogTagWhereUniqueInputSchema),z.lazy(() => BlogTagWhereUniqueInputSchema).array() ]).optional(),
-}).strict();
-
-export const BlogTagUncheckedCreateNestedManyWithoutTagInputSchema: z.ZodType<Prisma.BlogTagUncheckedCreateNestedManyWithoutTagInput> = z.object({
-  create: z.union([ z.lazy(() => BlogTagCreateWithoutTagInputSchema),z.lazy(() => BlogTagCreateWithoutTagInputSchema).array(),z.lazy(() => BlogTagUncheckedCreateWithoutTagInputSchema),z.lazy(() => BlogTagUncheckedCreateWithoutTagInputSchema).array() ]).optional(),
-  connectOrCreate: z.union([ z.lazy(() => BlogTagCreateOrConnectWithoutTagInputSchema),z.lazy(() => BlogTagCreateOrConnectWithoutTagInputSchema).array() ]).optional(),
-  createMany: z.lazy(() => BlogTagCreateManyTagInputEnvelopeSchema).optional(),
-  connect: z.union([ z.lazy(() => BlogTagWhereUniqueInputSchema),z.lazy(() => BlogTagWhereUniqueInputSchema).array() ]).optional(),
-}).strict();
-
-export const BlogTagUpdateManyWithoutTagNestedInputSchema: z.ZodType<Prisma.BlogTagUpdateManyWithoutTagNestedInput> = z.object({
-  create: z.union([ z.lazy(() => BlogTagCreateWithoutTagInputSchema),z.lazy(() => BlogTagCreateWithoutTagInputSchema).array(),z.lazy(() => BlogTagUncheckedCreateWithoutTagInputSchema),z.lazy(() => BlogTagUncheckedCreateWithoutTagInputSchema).array() ]).optional(),
-  connectOrCreate: z.union([ z.lazy(() => BlogTagCreateOrConnectWithoutTagInputSchema),z.lazy(() => BlogTagCreateOrConnectWithoutTagInputSchema).array() ]).optional(),
-  upsert: z.union([ z.lazy(() => BlogTagUpsertWithWhereUniqueWithoutTagInputSchema),z.lazy(() => BlogTagUpsertWithWhereUniqueWithoutTagInputSchema).array() ]).optional(),
-  createMany: z.lazy(() => BlogTagCreateManyTagInputEnvelopeSchema).optional(),
-  set: z.union([ z.lazy(() => BlogTagWhereUniqueInputSchema),z.lazy(() => BlogTagWhereUniqueInputSchema).array() ]).optional(),
-  disconnect: z.union([ z.lazy(() => BlogTagWhereUniqueInputSchema),z.lazy(() => BlogTagWhereUniqueInputSchema).array() ]).optional(),
-  delete: z.union([ z.lazy(() => BlogTagWhereUniqueInputSchema),z.lazy(() => BlogTagWhereUniqueInputSchema).array() ]).optional(),
-  connect: z.union([ z.lazy(() => BlogTagWhereUniqueInputSchema),z.lazy(() => BlogTagWhereUniqueInputSchema).array() ]).optional(),
-  update: z.union([ z.lazy(() => BlogTagUpdateWithWhereUniqueWithoutTagInputSchema),z.lazy(() => BlogTagUpdateWithWhereUniqueWithoutTagInputSchema).array() ]).optional(),
-  updateMany: z.union([ z.lazy(() => BlogTagUpdateManyWithWhereWithoutTagInputSchema),z.lazy(() => BlogTagUpdateManyWithWhereWithoutTagInputSchema).array() ]).optional(),
-  deleteMany: z.union([ z.lazy(() => BlogTagScalarWhereInputSchema),z.lazy(() => BlogTagScalarWhereInputSchema).array() ]).optional(),
-}).strict();
-
-export const BlogTagUncheckedUpdateManyWithoutTagNestedInputSchema: z.ZodType<Prisma.BlogTagUncheckedUpdateManyWithoutTagNestedInput> = z.object({
-  create: z.union([ z.lazy(() => BlogTagCreateWithoutTagInputSchema),z.lazy(() => BlogTagCreateWithoutTagInputSchema).array(),z.lazy(() => BlogTagUncheckedCreateWithoutTagInputSchema),z.lazy(() => BlogTagUncheckedCreateWithoutTagInputSchema).array() ]).optional(),
-  connectOrCreate: z.union([ z.lazy(() => BlogTagCreateOrConnectWithoutTagInputSchema),z.lazy(() => BlogTagCreateOrConnectWithoutTagInputSchema).array() ]).optional(),
-  upsert: z.union([ z.lazy(() => BlogTagUpsertWithWhereUniqueWithoutTagInputSchema),z.lazy(() => BlogTagUpsertWithWhereUniqueWithoutTagInputSchema).array() ]).optional(),
-  createMany: z.lazy(() => BlogTagCreateManyTagInputEnvelopeSchema).optional(),
-  set: z.union([ z.lazy(() => BlogTagWhereUniqueInputSchema),z.lazy(() => BlogTagWhereUniqueInputSchema).array() ]).optional(),
-  disconnect: z.union([ z.lazy(() => BlogTagWhereUniqueInputSchema),z.lazy(() => BlogTagWhereUniqueInputSchema).array() ]).optional(),
-  delete: z.union([ z.lazy(() => BlogTagWhereUniqueInputSchema),z.lazy(() => BlogTagWhereUniqueInputSchema).array() ]).optional(),
-  connect: z.union([ z.lazy(() => BlogTagWhereUniqueInputSchema),z.lazy(() => BlogTagWhereUniqueInputSchema).array() ]).optional(),
-  update: z.union([ z.lazy(() => BlogTagUpdateWithWhereUniqueWithoutTagInputSchema),z.lazy(() => BlogTagUpdateWithWhereUniqueWithoutTagInputSchema).array() ]).optional(),
-  updateMany: z.union([ z.lazy(() => BlogTagUpdateManyWithWhereWithoutTagInputSchema),z.lazy(() => BlogTagUpdateManyWithWhereWithoutTagInputSchema).array() ]).optional(),
-  deleteMany: z.union([ z.lazy(() => BlogTagScalarWhereInputSchema),z.lazy(() => BlogTagScalarWhereInputSchema).array() ]).optional(),
 }).strict();
 
 export const BlogCreateNestedOneWithoutTagsInputSchema: z.ZodType<Prisma.BlogCreateNestedOneWithoutTagsInput> = z.object({
@@ -7882,27 +8302,20 @@ export const NestedStringNullableFilterSchema: z.ZodType<Prisma.NestedStringNull
   not: z.union([ z.string(),z.lazy(() => NestedStringNullableFilterSchema) ]).optional().nullable(),
 }).strict();
 
-export const NestedDateTimeNullableFilterSchema: z.ZodType<Prisma.NestedDateTimeNullableFilter> = z.object({
-  equals: z.coerce.date().optional().nullable(),
-  in: z.coerce.date().array().optional().nullable(),
-  notIn: z.coerce.date().array().optional().nullable(),
-  lt: z.coerce.date().optional(),
-  lte: z.coerce.date().optional(),
-  gt: z.coerce.date().optional(),
-  gte: z.coerce.date().optional(),
-  not: z.union([ z.coerce.date(),z.lazy(() => NestedDateTimeNullableFilterSchema) ]).optional().nullable(),
-}).strict();
-
 export const NestedBoolFilterSchema: z.ZodType<Prisma.NestedBoolFilter> = z.object({
   equals: z.boolean().optional(),
   not: z.union([ z.boolean(),z.lazy(() => NestedBoolFilterSchema) ]).optional(),
 }).strict();
 
-export const NestedEnumRoleFilterSchema: z.ZodType<Prisma.NestedEnumRoleFilter> = z.object({
-  equals: z.lazy(() => RoleSchema).optional(),
-  in: z.lazy(() => RoleSchema).array().optional(),
-  notIn: z.lazy(() => RoleSchema).array().optional(),
-  not: z.union([ z.lazy(() => RoleSchema),z.lazy(() => NestedEnumRoleFilterSchema) ]).optional(),
+export const NestedIntNullableFilterSchema: z.ZodType<Prisma.NestedIntNullableFilter> = z.object({
+  equals: z.number().optional().nullable(),
+  in: z.number().array().optional().nullable(),
+  notIn: z.number().array().optional().nullable(),
+  lt: z.number().optional(),
+  lte: z.number().optional(),
+  gt: z.number().optional(),
+  gte: z.number().optional(),
+  not: z.union([ z.number(),z.lazy(() => NestedIntNullableFilterSchema) ]).optional().nullable(),
 }).strict();
 
 export const NestedStringNullableWithAggregatesFilterSchema: z.ZodType<Prisma.NestedStringNullableWithAggregatesFilter> = z.object({
@@ -7922,31 +8335,6 @@ export const NestedStringNullableWithAggregatesFilterSchema: z.ZodType<Prisma.Ne
   _max: z.lazy(() => NestedStringNullableFilterSchema).optional()
 }).strict();
 
-export const NestedIntNullableFilterSchema: z.ZodType<Prisma.NestedIntNullableFilter> = z.object({
-  equals: z.number().optional().nullable(),
-  in: z.number().array().optional().nullable(),
-  notIn: z.number().array().optional().nullable(),
-  lt: z.number().optional(),
-  lte: z.number().optional(),
-  gt: z.number().optional(),
-  gte: z.number().optional(),
-  not: z.union([ z.number(),z.lazy(() => NestedIntNullableFilterSchema) ]).optional().nullable(),
-}).strict();
-
-export const NestedDateTimeNullableWithAggregatesFilterSchema: z.ZodType<Prisma.NestedDateTimeNullableWithAggregatesFilter> = z.object({
-  equals: z.coerce.date().optional().nullable(),
-  in: z.coerce.date().array().optional().nullable(),
-  notIn: z.coerce.date().array().optional().nullable(),
-  lt: z.coerce.date().optional(),
-  lte: z.coerce.date().optional(),
-  gt: z.coerce.date().optional(),
-  gte: z.coerce.date().optional(),
-  not: z.union([ z.coerce.date(),z.lazy(() => NestedDateTimeNullableWithAggregatesFilterSchema) ]).optional().nullable(),
-  _count: z.lazy(() => NestedIntNullableFilterSchema).optional(),
-  _min: z.lazy(() => NestedDateTimeNullableFilterSchema).optional(),
-  _max: z.lazy(() => NestedDateTimeNullableFilterSchema).optional()
-}).strict();
-
 export const NestedBoolWithAggregatesFilterSchema: z.ZodType<Prisma.NestedBoolWithAggregatesFilter> = z.object({
   equals: z.boolean().optional(),
   not: z.union([ z.boolean(),z.lazy(() => NestedBoolWithAggregatesFilterSchema) ]).optional(),
@@ -7955,14 +8343,31 @@ export const NestedBoolWithAggregatesFilterSchema: z.ZodType<Prisma.NestedBoolWi
   _max: z.lazy(() => NestedBoolFilterSchema).optional()
 }).strict();
 
-export const NestedEnumRoleWithAggregatesFilterSchema: z.ZodType<Prisma.NestedEnumRoleWithAggregatesFilter> = z.object({
-  equals: z.lazy(() => RoleSchema).optional(),
-  in: z.lazy(() => RoleSchema).array().optional(),
-  notIn: z.lazy(() => RoleSchema).array().optional(),
-  not: z.union([ z.lazy(() => RoleSchema),z.lazy(() => NestedEnumRoleWithAggregatesFilterSchema) ]).optional(),
-  _count: z.lazy(() => NestedIntFilterSchema).optional(),
-  _min: z.lazy(() => NestedEnumRoleFilterSchema).optional(),
-  _max: z.lazy(() => NestedEnumRoleFilterSchema).optional()
+export const NestedIntNullableWithAggregatesFilterSchema: z.ZodType<Prisma.NestedIntNullableWithAggregatesFilter> = z.object({
+  equals: z.number().optional().nullable(),
+  in: z.number().array().optional().nullable(),
+  notIn: z.number().array().optional().nullable(),
+  lt: z.number().optional(),
+  lte: z.number().optional(),
+  gt: z.number().optional(),
+  gte: z.number().optional(),
+  not: z.union([ z.number(),z.lazy(() => NestedIntNullableWithAggregatesFilterSchema) ]).optional().nullable(),
+  _count: z.lazy(() => NestedIntNullableFilterSchema).optional(),
+  _avg: z.lazy(() => NestedFloatNullableFilterSchema).optional(),
+  _sum: z.lazy(() => NestedIntNullableFilterSchema).optional(),
+  _min: z.lazy(() => NestedIntNullableFilterSchema).optional(),
+  _max: z.lazy(() => NestedIntNullableFilterSchema).optional()
+}).strict();
+
+export const NestedFloatNullableFilterSchema: z.ZodType<Prisma.NestedFloatNullableFilter> = z.object({
+  equals: z.number().optional().nullable(),
+  in: z.number().array().optional().nullable(),
+  notIn: z.number().array().optional().nullable(),
+  lt: z.number().optional(),
+  lte: z.number().optional(),
+  gt: z.number().optional(),
+  gte: z.number().optional(),
+  not: z.union([ z.number(),z.lazy(() => NestedFloatNullableFilterSchema) ]).optional().nullable(),
 }).strict();
 
 export const NestedIntWithAggregatesFilterSchema: z.ZodType<Prisma.NestedIntWithAggregatesFilter> = z.object({
@@ -7992,31 +8397,1888 @@ export const NestedFloatFilterSchema: z.ZodType<Prisma.NestedFloatFilter> = z.ob
   not: z.union([ z.number(),z.lazy(() => NestedFloatFilterSchema) ]).optional(),
 }).strict();
 
-export const NestedIntNullableWithAggregatesFilterSchema: z.ZodType<Prisma.NestedIntNullableWithAggregatesFilter> = z.object({
-  equals: z.number().optional().nullable(),
-  in: z.number().array().optional().nullable(),
-  notIn: z.number().array().optional().nullable(),
-  lt: z.number().optional(),
-  lte: z.number().optional(),
-  gt: z.number().optional(),
-  gte: z.number().optional(),
-  not: z.union([ z.number(),z.lazy(() => NestedIntNullableWithAggregatesFilterSchema) ]).optional().nullable(),
-  _count: z.lazy(() => NestedIntNullableFilterSchema).optional(),
-  _avg: z.lazy(() => NestedFloatNullableFilterSchema).optional(),
-  _sum: z.lazy(() => NestedIntNullableFilterSchema).optional(),
-  _min: z.lazy(() => NestedIntNullableFilterSchema).optional(),
-  _max: z.lazy(() => NestedIntNullableFilterSchema).optional()
+export const NestedDateTimeNullableFilterSchema: z.ZodType<Prisma.NestedDateTimeNullableFilter> = z.object({
+  equals: z.coerce.date().optional().nullable(),
+  in: z.coerce.date().array().optional().nullable(),
+  notIn: z.coerce.date().array().optional().nullable(),
+  lt: z.coerce.date().optional(),
+  lte: z.coerce.date().optional(),
+  gt: z.coerce.date().optional(),
+  gte: z.coerce.date().optional(),
+  not: z.union([ z.coerce.date(),z.lazy(() => NestedDateTimeNullableFilterSchema) ]).optional().nullable(),
 }).strict();
 
-export const NestedFloatNullableFilterSchema: z.ZodType<Prisma.NestedFloatNullableFilter> = z.object({
-  equals: z.number().optional().nullable(),
-  in: z.number().array().optional().nullable(),
-  notIn: z.number().array().optional().nullable(),
-  lt: z.number().optional(),
-  lte: z.number().optional(),
-  gt: z.number().optional(),
-  gte: z.number().optional(),
-  not: z.union([ z.number(),z.lazy(() => NestedFloatNullableFilterSchema) ]).optional().nullable(),
+export const NestedDateTimeNullableWithAggregatesFilterSchema: z.ZodType<Prisma.NestedDateTimeNullableWithAggregatesFilter> = z.object({
+  equals: z.coerce.date().optional().nullable(),
+  in: z.coerce.date().array().optional().nullable(),
+  notIn: z.coerce.date().array().optional().nullable(),
+  lt: z.coerce.date().optional(),
+  lte: z.coerce.date().optional(),
+  gt: z.coerce.date().optional(),
+  gte: z.coerce.date().optional(),
+  not: z.union([ z.coerce.date(),z.lazy(() => NestedDateTimeNullableWithAggregatesFilterSchema) ]).optional().nullable(),
+  _count: z.lazy(() => NestedIntNullableFilterSchema).optional(),
+  _min: z.lazy(() => NestedDateTimeNullableFilterSchema).optional(),
+  _max: z.lazy(() => NestedDateTimeNullableFilterSchema).optional()
+}).strict();
+
+export const NestedEnumRoleFilterSchema: z.ZodType<Prisma.NestedEnumRoleFilter> = z.object({
+  equals: z.lazy(() => RoleSchema).optional(),
+  in: z.lazy(() => RoleSchema).array().optional(),
+  notIn: z.lazy(() => RoleSchema).array().optional(),
+  not: z.union([ z.lazy(() => RoleSchema),z.lazy(() => NestedEnumRoleFilterSchema) ]).optional(),
+}).strict();
+
+export const NestedEnumRoleWithAggregatesFilterSchema: z.ZodType<Prisma.NestedEnumRoleWithAggregatesFilter> = z.object({
+  equals: z.lazy(() => RoleSchema).optional(),
+  in: z.lazy(() => RoleSchema).array().optional(),
+  notIn: z.lazy(() => RoleSchema).array().optional(),
+  not: z.union([ z.lazy(() => RoleSchema),z.lazy(() => NestedEnumRoleWithAggregatesFilterSchema) ]).optional(),
+  _count: z.lazy(() => NestedIntFilterSchema).optional(),
+  _min: z.lazy(() => NestedEnumRoleFilterSchema).optional(),
+  _max: z.lazy(() => NestedEnumRoleFilterSchema).optional()
+}).strict();
+
+export const BlogCreateWithoutTranslationsInputSchema: z.ZodType<Prisma.BlogCreateWithoutTranslationsInput> = z.object({
+  id: z.string().cuid().optional(),
+  title: z.string(),
+  content: z.string(),
+  titlePunch: z.string().optional().nullable(),
+  slug: z.string(),
+  seoDescription: z.string().optional().nullable(),
+  baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
+  dateNews: z.coerce.date(),
+  readTime: z.number().int().optional().nullable(),
+  views: z.number().int().optional(),
+  dateCreated: z.coerce.date().optional(),
+  originalBlog: z.lazy(() => BlogCreateNestedOneWithoutTranslationsInputSchema).optional(),
+  imagenSeo: z.lazy(() => ImageCreateNestedOneWithoutBlogImagenSeoInputSchema).optional(),
+  imagenCard: z.lazy(() => ImageCreateNestedOneWithoutBlogImagenCardInputSchema).optional(),
+  newsItem: z.lazy(() => NewsItemCreateNestedOneWithoutBlogInputSchema).optional(),
+  Image: z.lazy(() => ImageCreateNestedManyWithoutBlogInputSchema).optional(),
+  blogAuthors: z.lazy(() => BlogAuthorCreateNestedManyWithoutBlogInputSchema).optional(),
+  likes: z.lazy(() => BlogLikeCreateNestedManyWithoutBlogInputSchema).optional(),
+  tags: z.lazy(() => BlogTagCreateNestedManyWithoutBlogInputSchema).optional(),
+  Category: z.lazy(() => CategoryCreateNestedOneWithoutBlogInputSchema).optional(),
+  TranslationQueue: z.lazy(() => TranslationQueueCreateNestedManyWithoutBlogInputSchema).optional()
+}).strict();
+
+export const BlogUncheckedCreateWithoutTranslationsInputSchema: z.ZodType<Prisma.BlogUncheckedCreateWithoutTranslationsInput> = z.object({
+  id: z.string().cuid().optional(),
+  title: z.string(),
+  content: z.string(),
+  titlePunch: z.string().optional().nullable(),
+  slug: z.string(),
+  seoDescription: z.string().optional().nullable(),
+  baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
+  originalBlogId: z.string().optional().nullable(),
+  imagenSeoId: z.string().optional().nullable(),
+  dateNews: z.coerce.date(),
+  imagenCardId: z.string().optional().nullable(),
+  newsItemId: z.string().optional().nullable(),
+  readTime: z.number().int().optional().nullable(),
+  views: z.number().int().optional(),
+  dateCreated: z.coerce.date().optional(),
+  categoryId: z.string().optional().nullable(),
+  Image: z.lazy(() => ImageUncheckedCreateNestedManyWithoutBlogInputSchema).optional(),
+  blogAuthors: z.lazy(() => BlogAuthorUncheckedCreateNestedManyWithoutBlogInputSchema).optional(),
+  likes: z.lazy(() => BlogLikeUncheckedCreateNestedManyWithoutBlogInputSchema).optional(),
+  tags: z.lazy(() => BlogTagUncheckedCreateNestedManyWithoutBlogInputSchema).optional(),
+  TranslationQueue: z.lazy(() => TranslationQueueUncheckedCreateNestedManyWithoutBlogInputSchema).optional()
+}).strict();
+
+export const BlogCreateOrConnectWithoutTranslationsInputSchema: z.ZodType<Prisma.BlogCreateOrConnectWithoutTranslationsInput> = z.object({
+  where: z.lazy(() => BlogWhereUniqueInputSchema),
+  create: z.union([ z.lazy(() => BlogCreateWithoutTranslationsInputSchema),z.lazy(() => BlogUncheckedCreateWithoutTranslationsInputSchema) ]),
+}).strict();
+
+export const BlogCreateWithoutOriginalBlogInputSchema: z.ZodType<Prisma.BlogCreateWithoutOriginalBlogInput> = z.object({
+  id: z.string().cuid().optional(),
+  title: z.string(),
+  content: z.string(),
+  titlePunch: z.string().optional().nullable(),
+  slug: z.string(),
+  seoDescription: z.string().optional().nullable(),
+  baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
+  dateNews: z.coerce.date(),
+  readTime: z.number().int().optional().nullable(),
+  views: z.number().int().optional(),
+  dateCreated: z.coerce.date().optional(),
+  translations: z.lazy(() => BlogCreateNestedManyWithoutOriginalBlogInputSchema).optional(),
+  imagenSeo: z.lazy(() => ImageCreateNestedOneWithoutBlogImagenSeoInputSchema).optional(),
+  imagenCard: z.lazy(() => ImageCreateNestedOneWithoutBlogImagenCardInputSchema).optional(),
+  newsItem: z.lazy(() => NewsItemCreateNestedOneWithoutBlogInputSchema).optional(),
+  Image: z.lazy(() => ImageCreateNestedManyWithoutBlogInputSchema).optional(),
+  blogAuthors: z.lazy(() => BlogAuthorCreateNestedManyWithoutBlogInputSchema).optional(),
+  likes: z.lazy(() => BlogLikeCreateNestedManyWithoutBlogInputSchema).optional(),
+  tags: z.lazy(() => BlogTagCreateNestedManyWithoutBlogInputSchema).optional(),
+  Category: z.lazy(() => CategoryCreateNestedOneWithoutBlogInputSchema).optional(),
+  TranslationQueue: z.lazy(() => TranslationQueueCreateNestedManyWithoutBlogInputSchema).optional()
+}).strict();
+
+export const BlogUncheckedCreateWithoutOriginalBlogInputSchema: z.ZodType<Prisma.BlogUncheckedCreateWithoutOriginalBlogInput> = z.object({
+  id: z.string().cuid().optional(),
+  title: z.string(),
+  content: z.string(),
+  titlePunch: z.string().optional().nullable(),
+  slug: z.string(),
+  seoDescription: z.string().optional().nullable(),
+  baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
+  imagenSeoId: z.string().optional().nullable(),
+  dateNews: z.coerce.date(),
+  imagenCardId: z.string().optional().nullable(),
+  newsItemId: z.string().optional().nullable(),
+  readTime: z.number().int().optional().nullable(),
+  views: z.number().int().optional(),
+  dateCreated: z.coerce.date().optional(),
+  categoryId: z.string().optional().nullable(),
+  translations: z.lazy(() => BlogUncheckedCreateNestedManyWithoutOriginalBlogInputSchema).optional(),
+  Image: z.lazy(() => ImageUncheckedCreateNestedManyWithoutBlogInputSchema).optional(),
+  blogAuthors: z.lazy(() => BlogAuthorUncheckedCreateNestedManyWithoutBlogInputSchema).optional(),
+  likes: z.lazy(() => BlogLikeUncheckedCreateNestedManyWithoutBlogInputSchema).optional(),
+  tags: z.lazy(() => BlogTagUncheckedCreateNestedManyWithoutBlogInputSchema).optional(),
+  TranslationQueue: z.lazy(() => TranslationQueueUncheckedCreateNestedManyWithoutBlogInputSchema).optional()
+}).strict();
+
+export const BlogCreateOrConnectWithoutOriginalBlogInputSchema: z.ZodType<Prisma.BlogCreateOrConnectWithoutOriginalBlogInput> = z.object({
+  where: z.lazy(() => BlogWhereUniqueInputSchema),
+  create: z.union([ z.lazy(() => BlogCreateWithoutOriginalBlogInputSchema),z.lazy(() => BlogUncheckedCreateWithoutOriginalBlogInputSchema) ]),
+}).strict();
+
+export const BlogCreateManyOriginalBlogInputEnvelopeSchema: z.ZodType<Prisma.BlogCreateManyOriginalBlogInputEnvelope> = z.object({
+  data: z.union([ z.lazy(() => BlogCreateManyOriginalBlogInputSchema),z.lazy(() => BlogCreateManyOriginalBlogInputSchema).array() ]),
+  skipDuplicates: z.boolean().optional()
+}).strict();
+
+export const ImageCreateWithoutBlogImagenSeoInputSchema: z.ZodType<Prisma.ImageCreateWithoutBlogImagenSeoInput> = z.object({
+  id: z.string().cuid().optional(),
+  url: z.string(),
+  alt: z.string().optional().nullable(),
+  width: z.number().int().optional().nullable(),
+  height: z.number().int().optional().nullable(),
+  format: z.string().optional().nullable(),
+  publicId: z.string(),
+  folder: z.string().optional().nullable(),
+  size: z.number().int().optional().nullable(),
+  createdAt: z.coerce.date().optional(),
+  updatedAt: z.coerce.date().optional(),
+  user: z.lazy(() => UserCreateNestedOneWithoutImageInputSchema).optional(),
+  category: z.lazy(() => CategoryCreateNestedOneWithoutImageInputSchema).optional(),
+  newsItem: z.lazy(() => NewsItemCreateNestedOneWithoutImageInputSchema).optional(),
+  poll: z.lazy(() => PollCreateNestedOneWithoutImageInputSchema).optional(),
+  blogImagenCard: z.lazy(() => BlogCreateNestedManyWithoutImagenCardInputSchema).optional(),
+  authorProfileImage: z.lazy(() => AuthorCreateNestedOneWithoutProfileImageInputSchema).optional(),
+  Blog: z.lazy(() => BlogCreateNestedOneWithoutImageInputSchema).optional()
+}).strict();
+
+export const ImageUncheckedCreateWithoutBlogImagenSeoInputSchema: z.ZodType<Prisma.ImageUncheckedCreateWithoutBlogImagenSeoInput> = z.object({
+  id: z.string().cuid().optional(),
+  url: z.string(),
+  alt: z.string().optional().nullable(),
+  width: z.number().int().optional().nullable(),
+  height: z.number().int().optional().nullable(),
+  format: z.string().optional().nullable(),
+  publicId: z.string(),
+  folder: z.string().optional().nullable(),
+  size: z.number().int().optional().nullable(),
+  createdAt: z.coerce.date().optional(),
+  updatedAt: z.coerce.date().optional(),
+  userId: z.string().optional().nullable(),
+  categoryId: z.string().optional().nullable(),
+  newsItemId: z.string().optional().nullable(),
+  pollId: z.string().optional().nullable(),
+  blogId: z.string().optional().nullable(),
+  blogImagenCard: z.lazy(() => BlogUncheckedCreateNestedManyWithoutImagenCardInputSchema).optional(),
+  authorProfileImage: z.lazy(() => AuthorUncheckedCreateNestedOneWithoutProfileImageInputSchema).optional()
+}).strict();
+
+export const ImageCreateOrConnectWithoutBlogImagenSeoInputSchema: z.ZodType<Prisma.ImageCreateOrConnectWithoutBlogImagenSeoInput> = z.object({
+  where: z.lazy(() => ImageWhereUniqueInputSchema),
+  create: z.union([ z.lazy(() => ImageCreateWithoutBlogImagenSeoInputSchema),z.lazy(() => ImageUncheckedCreateWithoutBlogImagenSeoInputSchema) ]),
+}).strict();
+
+export const ImageCreateWithoutBlogImagenCardInputSchema: z.ZodType<Prisma.ImageCreateWithoutBlogImagenCardInput> = z.object({
+  id: z.string().cuid().optional(),
+  url: z.string(),
+  alt: z.string().optional().nullable(),
+  width: z.number().int().optional().nullable(),
+  height: z.number().int().optional().nullable(),
+  format: z.string().optional().nullable(),
+  publicId: z.string(),
+  folder: z.string().optional().nullable(),
+  size: z.number().int().optional().nullable(),
+  createdAt: z.coerce.date().optional(),
+  updatedAt: z.coerce.date().optional(),
+  user: z.lazy(() => UserCreateNestedOneWithoutImageInputSchema).optional(),
+  category: z.lazy(() => CategoryCreateNestedOneWithoutImageInputSchema).optional(),
+  newsItem: z.lazy(() => NewsItemCreateNestedOneWithoutImageInputSchema).optional(),
+  poll: z.lazy(() => PollCreateNestedOneWithoutImageInputSchema).optional(),
+  blogImagenSeo: z.lazy(() => BlogCreateNestedManyWithoutImagenSeoInputSchema).optional(),
+  authorProfileImage: z.lazy(() => AuthorCreateNestedOneWithoutProfileImageInputSchema).optional(),
+  Blog: z.lazy(() => BlogCreateNestedOneWithoutImageInputSchema).optional()
+}).strict();
+
+export const ImageUncheckedCreateWithoutBlogImagenCardInputSchema: z.ZodType<Prisma.ImageUncheckedCreateWithoutBlogImagenCardInput> = z.object({
+  id: z.string().cuid().optional(),
+  url: z.string(),
+  alt: z.string().optional().nullable(),
+  width: z.number().int().optional().nullable(),
+  height: z.number().int().optional().nullable(),
+  format: z.string().optional().nullable(),
+  publicId: z.string(),
+  folder: z.string().optional().nullable(),
+  size: z.number().int().optional().nullable(),
+  createdAt: z.coerce.date().optional(),
+  updatedAt: z.coerce.date().optional(),
+  userId: z.string().optional().nullable(),
+  categoryId: z.string().optional().nullable(),
+  newsItemId: z.string().optional().nullable(),
+  pollId: z.string().optional().nullable(),
+  blogId: z.string().optional().nullable(),
+  blogImagenSeo: z.lazy(() => BlogUncheckedCreateNestedManyWithoutImagenSeoInputSchema).optional(),
+  authorProfileImage: z.lazy(() => AuthorUncheckedCreateNestedOneWithoutProfileImageInputSchema).optional()
+}).strict();
+
+export const ImageCreateOrConnectWithoutBlogImagenCardInputSchema: z.ZodType<Prisma.ImageCreateOrConnectWithoutBlogImagenCardInput> = z.object({
+  where: z.lazy(() => ImageWhereUniqueInputSchema),
+  create: z.union([ z.lazy(() => ImageCreateWithoutBlogImagenCardInputSchema),z.lazy(() => ImageUncheckedCreateWithoutBlogImagenCardInputSchema) ]),
+}).strict();
+
+export const NewsItemCreateWithoutBlogInputSchema: z.ZodType<Prisma.NewsItemCreateWithoutBlogInput> = z.object({
+  id: z.string().cuid().optional(),
+  title: z.string(),
+  content: z.string(),
+  baseLanguage: z.string().optional(),
+  createdAt: z.coerce.date().optional(),
+  pollId: z.string().optional().nullable(),
+  blogId: z.string().optional().nullable(),
+  poll: z.lazy(() => PollCreateNestedOneWithoutNewsItemInputSchema).optional(),
+  Image: z.lazy(() => ImageCreateNestedManyWithoutNewsItemInputSchema).optional()
+}).strict();
+
+export const NewsItemUncheckedCreateWithoutBlogInputSchema: z.ZodType<Prisma.NewsItemUncheckedCreateWithoutBlogInput> = z.object({
+  id: z.string().cuid().optional(),
+  title: z.string(),
+  content: z.string(),
+  baseLanguage: z.string().optional(),
+  createdAt: z.coerce.date().optional(),
+  pollId: z.string().optional().nullable(),
+  blogId: z.string().optional().nullable(),
+  poll: z.lazy(() => PollUncheckedCreateNestedOneWithoutNewsItemInputSchema).optional(),
+  Image: z.lazy(() => ImageUncheckedCreateNestedManyWithoutNewsItemInputSchema).optional()
+}).strict();
+
+export const NewsItemCreateOrConnectWithoutBlogInputSchema: z.ZodType<Prisma.NewsItemCreateOrConnectWithoutBlogInput> = z.object({
+  where: z.lazy(() => NewsItemWhereUniqueInputSchema),
+  create: z.union([ z.lazy(() => NewsItemCreateWithoutBlogInputSchema),z.lazy(() => NewsItemUncheckedCreateWithoutBlogInputSchema) ]),
+}).strict();
+
+export const ImageCreateWithoutBlogInputSchema: z.ZodType<Prisma.ImageCreateWithoutBlogInput> = z.object({
+  id: z.string().cuid().optional(),
+  url: z.string(),
+  alt: z.string().optional().nullable(),
+  width: z.number().int().optional().nullable(),
+  height: z.number().int().optional().nullable(),
+  format: z.string().optional().nullable(),
+  publicId: z.string(),
+  folder: z.string().optional().nullable(),
+  size: z.number().int().optional().nullable(),
+  createdAt: z.coerce.date().optional(),
+  updatedAt: z.coerce.date().optional(),
+  user: z.lazy(() => UserCreateNestedOneWithoutImageInputSchema).optional(),
+  category: z.lazy(() => CategoryCreateNestedOneWithoutImageInputSchema).optional(),
+  newsItem: z.lazy(() => NewsItemCreateNestedOneWithoutImageInputSchema).optional(),
+  poll: z.lazy(() => PollCreateNestedOneWithoutImageInputSchema).optional(),
+  blogImagenSeo: z.lazy(() => BlogCreateNestedManyWithoutImagenSeoInputSchema).optional(),
+  blogImagenCard: z.lazy(() => BlogCreateNestedManyWithoutImagenCardInputSchema).optional(),
+  authorProfileImage: z.lazy(() => AuthorCreateNestedOneWithoutProfileImageInputSchema).optional()
+}).strict();
+
+export const ImageUncheckedCreateWithoutBlogInputSchema: z.ZodType<Prisma.ImageUncheckedCreateWithoutBlogInput> = z.object({
+  id: z.string().cuid().optional(),
+  url: z.string(),
+  alt: z.string().optional().nullable(),
+  width: z.number().int().optional().nullable(),
+  height: z.number().int().optional().nullable(),
+  format: z.string().optional().nullable(),
+  publicId: z.string(),
+  folder: z.string().optional().nullable(),
+  size: z.number().int().optional().nullable(),
+  createdAt: z.coerce.date().optional(),
+  updatedAt: z.coerce.date().optional(),
+  userId: z.string().optional().nullable(),
+  categoryId: z.string().optional().nullable(),
+  newsItemId: z.string().optional().nullable(),
+  pollId: z.string().optional().nullable(),
+  blogImagenSeo: z.lazy(() => BlogUncheckedCreateNestedManyWithoutImagenSeoInputSchema).optional(),
+  blogImagenCard: z.lazy(() => BlogUncheckedCreateNestedManyWithoutImagenCardInputSchema).optional(),
+  authorProfileImage: z.lazy(() => AuthorUncheckedCreateNestedOneWithoutProfileImageInputSchema).optional()
+}).strict();
+
+export const ImageCreateOrConnectWithoutBlogInputSchema: z.ZodType<Prisma.ImageCreateOrConnectWithoutBlogInput> = z.object({
+  where: z.lazy(() => ImageWhereUniqueInputSchema),
+  create: z.union([ z.lazy(() => ImageCreateWithoutBlogInputSchema),z.lazy(() => ImageUncheckedCreateWithoutBlogInputSchema) ]),
+}).strict();
+
+export const ImageCreateManyBlogInputEnvelopeSchema: z.ZodType<Prisma.ImageCreateManyBlogInputEnvelope> = z.object({
+  data: z.union([ z.lazy(() => ImageCreateManyBlogInputSchema),z.lazy(() => ImageCreateManyBlogInputSchema).array() ]),
+  skipDuplicates: z.boolean().optional()
+}).strict();
+
+export const BlogAuthorCreateWithoutBlogInputSchema: z.ZodType<Prisma.BlogAuthorCreateWithoutBlogInput> = z.object({
+  id: z.string().cuid().optional(),
+  author: z.lazy(() => AuthorCreateNestedOneWithoutBlogAuthorsInputSchema)
+}).strict();
+
+export const BlogAuthorUncheckedCreateWithoutBlogInputSchema: z.ZodType<Prisma.BlogAuthorUncheckedCreateWithoutBlogInput> = z.object({
+  id: z.string().cuid().optional(),
+  authorId: z.string()
+}).strict();
+
+export const BlogAuthorCreateOrConnectWithoutBlogInputSchema: z.ZodType<Prisma.BlogAuthorCreateOrConnectWithoutBlogInput> = z.object({
+  where: z.lazy(() => BlogAuthorWhereUniqueInputSchema),
+  create: z.union([ z.lazy(() => BlogAuthorCreateWithoutBlogInputSchema),z.lazy(() => BlogAuthorUncheckedCreateWithoutBlogInputSchema) ]),
+}).strict();
+
+export const BlogAuthorCreateManyBlogInputEnvelopeSchema: z.ZodType<Prisma.BlogAuthorCreateManyBlogInputEnvelope> = z.object({
+  data: z.union([ z.lazy(() => BlogAuthorCreateManyBlogInputSchema),z.lazy(() => BlogAuthorCreateManyBlogInputSchema).array() ]),
+  skipDuplicates: z.boolean().optional()
+}).strict();
+
+export const BlogLikeCreateWithoutBlogInputSchema: z.ZodType<Prisma.BlogLikeCreateWithoutBlogInput> = z.object({
+  id: z.string().cuid().optional(),
+  createdAt: z.coerce.date().optional(),
+  user: z.lazy(() => UserCreateNestedOneWithoutBlogLikesInputSchema)
+}).strict();
+
+export const BlogLikeUncheckedCreateWithoutBlogInputSchema: z.ZodType<Prisma.BlogLikeUncheckedCreateWithoutBlogInput> = z.object({
+  id: z.string().cuid().optional(),
+  userId: z.string(),
+  createdAt: z.coerce.date().optional()
+}).strict();
+
+export const BlogLikeCreateOrConnectWithoutBlogInputSchema: z.ZodType<Prisma.BlogLikeCreateOrConnectWithoutBlogInput> = z.object({
+  where: z.lazy(() => BlogLikeWhereUniqueInputSchema),
+  create: z.union([ z.lazy(() => BlogLikeCreateWithoutBlogInputSchema),z.lazy(() => BlogLikeUncheckedCreateWithoutBlogInputSchema) ]),
+}).strict();
+
+export const BlogLikeCreateManyBlogInputEnvelopeSchema: z.ZodType<Prisma.BlogLikeCreateManyBlogInputEnvelope> = z.object({
+  data: z.union([ z.lazy(() => BlogLikeCreateManyBlogInputSchema),z.lazy(() => BlogLikeCreateManyBlogInputSchema).array() ]),
+  skipDuplicates: z.boolean().optional()
+}).strict();
+
+export const BlogTagCreateWithoutBlogInputSchema: z.ZodType<Prisma.BlogTagCreateWithoutBlogInput> = z.object({
+  id: z.string().cuid().optional(),
+  tag: z.lazy(() => TagCreateNestedOneWithoutBlogsInputSchema)
+}).strict();
+
+export const BlogTagUncheckedCreateWithoutBlogInputSchema: z.ZodType<Prisma.BlogTagUncheckedCreateWithoutBlogInput> = z.object({
+  id: z.string().cuid().optional(),
+  tagId: z.string()
+}).strict();
+
+export const BlogTagCreateOrConnectWithoutBlogInputSchema: z.ZodType<Prisma.BlogTagCreateOrConnectWithoutBlogInput> = z.object({
+  where: z.lazy(() => BlogTagWhereUniqueInputSchema),
+  create: z.union([ z.lazy(() => BlogTagCreateWithoutBlogInputSchema),z.lazy(() => BlogTagUncheckedCreateWithoutBlogInputSchema) ]),
+}).strict();
+
+export const BlogTagCreateManyBlogInputEnvelopeSchema: z.ZodType<Prisma.BlogTagCreateManyBlogInputEnvelope> = z.object({
+  data: z.union([ z.lazy(() => BlogTagCreateManyBlogInputSchema),z.lazy(() => BlogTagCreateManyBlogInputSchema).array() ]),
+  skipDuplicates: z.boolean().optional()
+}).strict();
+
+export const CategoryCreateWithoutBlogInputSchema: z.ZodType<Prisma.CategoryCreateWithoutBlogInput> = z.object({
+  id: z.string().uuid().optional(),
+  name: z.string(),
+  slug: z.string(),
+  baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
+  originalCategory: z.lazy(() => CategoryCreateNestedOneWithoutTranslationsInputSchema).optional(),
+  translations: z.lazy(() => CategoryCreateNestedManyWithoutOriginalCategoryInputSchema).optional(),
+  polls: z.lazy(() => PollCreateNestedManyWithoutCategoryInputSchema).optional(),
+  Image: z.lazy(() => ImageCreateNestedManyWithoutCategoryInputSchema).optional()
+}).strict();
+
+export const CategoryUncheckedCreateWithoutBlogInputSchema: z.ZodType<Prisma.CategoryUncheckedCreateWithoutBlogInput> = z.object({
+  id: z.string().uuid().optional(),
+  name: z.string(),
+  slug: z.string(),
+  baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
+  originalCategoryId: z.string().optional().nullable(),
+  translations: z.lazy(() => CategoryUncheckedCreateNestedManyWithoutOriginalCategoryInputSchema).optional(),
+  polls: z.lazy(() => PollUncheckedCreateNestedManyWithoutCategoryInputSchema).optional(),
+  Image: z.lazy(() => ImageUncheckedCreateNestedManyWithoutCategoryInputSchema).optional()
+}).strict();
+
+export const CategoryCreateOrConnectWithoutBlogInputSchema: z.ZodType<Prisma.CategoryCreateOrConnectWithoutBlogInput> = z.object({
+  where: z.lazy(() => CategoryWhereUniqueInputSchema),
+  create: z.union([ z.lazy(() => CategoryCreateWithoutBlogInputSchema),z.lazy(() => CategoryUncheckedCreateWithoutBlogInputSchema) ]),
+}).strict();
+
+export const TranslationQueueCreateWithoutBlogInputSchema: z.ZodType<Prisma.TranslationQueueCreateWithoutBlogInput> = z.object({
+  id: z.string().cuid().optional(),
+  targetLanguage: z.string(),
+  status: z.string().optional(),
+  retryCount: z.number().int().optional(),
+  errorMessage: z.string().optional().nullable(),
+  priority: z.number().int().optional(),
+  createdAt: z.coerce.date().optional(),
+  processedAt: z.coerce.date().optional().nullable(),
+  completedAt: z.coerce.date().optional().nullable()
+}).strict();
+
+export const TranslationQueueUncheckedCreateWithoutBlogInputSchema: z.ZodType<Prisma.TranslationQueueUncheckedCreateWithoutBlogInput> = z.object({
+  id: z.string().cuid().optional(),
+  targetLanguage: z.string(),
+  status: z.string().optional(),
+  retryCount: z.number().int().optional(),
+  errorMessage: z.string().optional().nullable(),
+  priority: z.number().int().optional(),
+  createdAt: z.coerce.date().optional(),
+  processedAt: z.coerce.date().optional().nullable(),
+  completedAt: z.coerce.date().optional().nullable()
+}).strict();
+
+export const TranslationQueueCreateOrConnectWithoutBlogInputSchema: z.ZodType<Prisma.TranslationQueueCreateOrConnectWithoutBlogInput> = z.object({
+  where: z.lazy(() => TranslationQueueWhereUniqueInputSchema),
+  create: z.union([ z.lazy(() => TranslationQueueCreateWithoutBlogInputSchema),z.lazy(() => TranslationQueueUncheckedCreateWithoutBlogInputSchema) ]),
+}).strict();
+
+export const TranslationQueueCreateManyBlogInputEnvelopeSchema: z.ZodType<Prisma.TranslationQueueCreateManyBlogInputEnvelope> = z.object({
+  data: z.union([ z.lazy(() => TranslationQueueCreateManyBlogInputSchema),z.lazy(() => TranslationQueueCreateManyBlogInputSchema).array() ]),
+  skipDuplicates: z.boolean().optional()
+}).strict();
+
+export const BlogUpsertWithoutTranslationsInputSchema: z.ZodType<Prisma.BlogUpsertWithoutTranslationsInput> = z.object({
+  update: z.union([ z.lazy(() => BlogUpdateWithoutTranslationsInputSchema),z.lazy(() => BlogUncheckedUpdateWithoutTranslationsInputSchema) ]),
+  create: z.union([ z.lazy(() => BlogCreateWithoutTranslationsInputSchema),z.lazy(() => BlogUncheckedCreateWithoutTranslationsInputSchema) ]),
+  where: z.lazy(() => BlogWhereInputSchema).optional()
+}).strict();
+
+export const BlogUpdateToOneWithWhereWithoutTranslationsInputSchema: z.ZodType<Prisma.BlogUpdateToOneWithWhereWithoutTranslationsInput> = z.object({
+  where: z.lazy(() => BlogWhereInputSchema).optional(),
+  data: z.union([ z.lazy(() => BlogUpdateWithoutTranslationsInputSchema),z.lazy(() => BlogUncheckedUpdateWithoutTranslationsInputSchema) ]),
+}).strict();
+
+export const BlogUpdateWithoutTranslationsInputSchema: z.ZodType<Prisma.BlogUpdateWithoutTranslationsInput> = z.object({
+  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  title: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  content: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  titlePunch: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  seoDescription: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  dateNews: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  readTime: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  views: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
+  dateCreated: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  originalBlog: z.lazy(() => BlogUpdateOneWithoutTranslationsNestedInputSchema).optional(),
+  imagenSeo: z.lazy(() => ImageUpdateOneWithoutBlogImagenSeoNestedInputSchema).optional(),
+  imagenCard: z.lazy(() => ImageUpdateOneWithoutBlogImagenCardNestedInputSchema).optional(),
+  newsItem: z.lazy(() => NewsItemUpdateOneWithoutBlogNestedInputSchema).optional(),
+  Image: z.lazy(() => ImageUpdateManyWithoutBlogNestedInputSchema).optional(),
+  blogAuthors: z.lazy(() => BlogAuthorUpdateManyWithoutBlogNestedInputSchema).optional(),
+  likes: z.lazy(() => BlogLikeUpdateManyWithoutBlogNestedInputSchema).optional(),
+  tags: z.lazy(() => BlogTagUpdateManyWithoutBlogNestedInputSchema).optional(),
+  Category: z.lazy(() => CategoryUpdateOneWithoutBlogNestedInputSchema).optional(),
+  TranslationQueue: z.lazy(() => TranslationQueueUpdateManyWithoutBlogNestedInputSchema).optional()
+}).strict();
+
+export const BlogUncheckedUpdateWithoutTranslationsInputSchema: z.ZodType<Prisma.BlogUncheckedUpdateWithoutTranslationsInput> = z.object({
+  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  title: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  content: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  titlePunch: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  seoDescription: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  originalBlogId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  imagenSeoId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  dateNews: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  imagenCardId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  newsItemId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  readTime: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  views: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
+  dateCreated: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  categoryId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  Image: z.lazy(() => ImageUncheckedUpdateManyWithoutBlogNestedInputSchema).optional(),
+  blogAuthors: z.lazy(() => BlogAuthorUncheckedUpdateManyWithoutBlogNestedInputSchema).optional(),
+  likes: z.lazy(() => BlogLikeUncheckedUpdateManyWithoutBlogNestedInputSchema).optional(),
+  tags: z.lazy(() => BlogTagUncheckedUpdateManyWithoutBlogNestedInputSchema).optional(),
+  TranslationQueue: z.lazy(() => TranslationQueueUncheckedUpdateManyWithoutBlogNestedInputSchema).optional()
+}).strict();
+
+export const BlogUpsertWithWhereUniqueWithoutOriginalBlogInputSchema: z.ZodType<Prisma.BlogUpsertWithWhereUniqueWithoutOriginalBlogInput> = z.object({
+  where: z.lazy(() => BlogWhereUniqueInputSchema),
+  update: z.union([ z.lazy(() => BlogUpdateWithoutOriginalBlogInputSchema),z.lazy(() => BlogUncheckedUpdateWithoutOriginalBlogInputSchema) ]),
+  create: z.union([ z.lazy(() => BlogCreateWithoutOriginalBlogInputSchema),z.lazy(() => BlogUncheckedCreateWithoutOriginalBlogInputSchema) ]),
+}).strict();
+
+export const BlogUpdateWithWhereUniqueWithoutOriginalBlogInputSchema: z.ZodType<Prisma.BlogUpdateWithWhereUniqueWithoutOriginalBlogInput> = z.object({
+  where: z.lazy(() => BlogWhereUniqueInputSchema),
+  data: z.union([ z.lazy(() => BlogUpdateWithoutOriginalBlogInputSchema),z.lazy(() => BlogUncheckedUpdateWithoutOriginalBlogInputSchema) ]),
+}).strict();
+
+export const BlogUpdateManyWithWhereWithoutOriginalBlogInputSchema: z.ZodType<Prisma.BlogUpdateManyWithWhereWithoutOriginalBlogInput> = z.object({
+  where: z.lazy(() => BlogScalarWhereInputSchema),
+  data: z.union([ z.lazy(() => BlogUpdateManyMutationInputSchema),z.lazy(() => BlogUncheckedUpdateManyWithoutOriginalBlogInputSchema) ]),
+}).strict();
+
+export const BlogScalarWhereInputSchema: z.ZodType<Prisma.BlogScalarWhereInput> = z.object({
+  AND: z.union([ z.lazy(() => BlogScalarWhereInputSchema),z.lazy(() => BlogScalarWhereInputSchema).array() ]).optional(),
+  OR: z.lazy(() => BlogScalarWhereInputSchema).array().optional(),
+  NOT: z.union([ z.lazy(() => BlogScalarWhereInputSchema),z.lazy(() => BlogScalarWhereInputSchema).array() ]).optional(),
+  id: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  title: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  content: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  titlePunch: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
+  slug: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  seoDescription: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
+  baseLanguage: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  isTranslation: z.union([ z.lazy(() => BoolFilterSchema),z.boolean() ]).optional(),
+  originalBlogId: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
+  imagenSeoId: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
+  dateNews: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
+  imagenCardId: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
+  newsItemId: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
+  readTime: z.union([ z.lazy(() => IntNullableFilterSchema),z.number() ]).optional().nullable(),
+  views: z.union([ z.lazy(() => IntFilterSchema),z.number() ]).optional(),
+  dateCreated: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
+  categoryId: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
+}).strict();
+
+export const ImageUpsertWithoutBlogImagenSeoInputSchema: z.ZodType<Prisma.ImageUpsertWithoutBlogImagenSeoInput> = z.object({
+  update: z.union([ z.lazy(() => ImageUpdateWithoutBlogImagenSeoInputSchema),z.lazy(() => ImageUncheckedUpdateWithoutBlogImagenSeoInputSchema) ]),
+  create: z.union([ z.lazy(() => ImageCreateWithoutBlogImagenSeoInputSchema),z.lazy(() => ImageUncheckedCreateWithoutBlogImagenSeoInputSchema) ]),
+  where: z.lazy(() => ImageWhereInputSchema).optional()
+}).strict();
+
+export const ImageUpdateToOneWithWhereWithoutBlogImagenSeoInputSchema: z.ZodType<Prisma.ImageUpdateToOneWithWhereWithoutBlogImagenSeoInput> = z.object({
+  where: z.lazy(() => ImageWhereInputSchema).optional(),
+  data: z.union([ z.lazy(() => ImageUpdateWithoutBlogImagenSeoInputSchema),z.lazy(() => ImageUncheckedUpdateWithoutBlogImagenSeoInputSchema) ]),
+}).strict();
+
+export const ImageUpdateWithoutBlogImagenSeoInputSchema: z.ZodType<Prisma.ImageUpdateWithoutBlogImagenSeoInput> = z.object({
+  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  url: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  alt: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  width: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  height: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  format: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  publicId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  folder: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  size: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  user: z.lazy(() => UserUpdateOneWithoutImageNestedInputSchema).optional(),
+  category: z.lazy(() => CategoryUpdateOneWithoutImageNestedInputSchema).optional(),
+  newsItem: z.lazy(() => NewsItemUpdateOneWithoutImageNestedInputSchema).optional(),
+  poll: z.lazy(() => PollUpdateOneWithoutImageNestedInputSchema).optional(),
+  blogImagenCard: z.lazy(() => BlogUpdateManyWithoutImagenCardNestedInputSchema).optional(),
+  authorProfileImage: z.lazy(() => AuthorUpdateOneWithoutProfileImageNestedInputSchema).optional(),
+  Blog: z.lazy(() => BlogUpdateOneWithoutImageNestedInputSchema).optional()
+}).strict();
+
+export const ImageUncheckedUpdateWithoutBlogImagenSeoInputSchema: z.ZodType<Prisma.ImageUncheckedUpdateWithoutBlogImagenSeoInput> = z.object({
+  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  url: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  alt: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  width: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  height: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  format: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  publicId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  folder: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  size: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  userId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  categoryId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  newsItemId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  pollId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  blogId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  blogImagenCard: z.lazy(() => BlogUncheckedUpdateManyWithoutImagenCardNestedInputSchema).optional(),
+  authorProfileImage: z.lazy(() => AuthorUncheckedUpdateOneWithoutProfileImageNestedInputSchema).optional()
+}).strict();
+
+export const ImageUpsertWithoutBlogImagenCardInputSchema: z.ZodType<Prisma.ImageUpsertWithoutBlogImagenCardInput> = z.object({
+  update: z.union([ z.lazy(() => ImageUpdateWithoutBlogImagenCardInputSchema),z.lazy(() => ImageUncheckedUpdateWithoutBlogImagenCardInputSchema) ]),
+  create: z.union([ z.lazy(() => ImageCreateWithoutBlogImagenCardInputSchema),z.lazy(() => ImageUncheckedCreateWithoutBlogImagenCardInputSchema) ]),
+  where: z.lazy(() => ImageWhereInputSchema).optional()
+}).strict();
+
+export const ImageUpdateToOneWithWhereWithoutBlogImagenCardInputSchema: z.ZodType<Prisma.ImageUpdateToOneWithWhereWithoutBlogImagenCardInput> = z.object({
+  where: z.lazy(() => ImageWhereInputSchema).optional(),
+  data: z.union([ z.lazy(() => ImageUpdateWithoutBlogImagenCardInputSchema),z.lazy(() => ImageUncheckedUpdateWithoutBlogImagenCardInputSchema) ]),
+}).strict();
+
+export const ImageUpdateWithoutBlogImagenCardInputSchema: z.ZodType<Prisma.ImageUpdateWithoutBlogImagenCardInput> = z.object({
+  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  url: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  alt: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  width: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  height: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  format: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  publicId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  folder: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  size: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  user: z.lazy(() => UserUpdateOneWithoutImageNestedInputSchema).optional(),
+  category: z.lazy(() => CategoryUpdateOneWithoutImageNestedInputSchema).optional(),
+  newsItem: z.lazy(() => NewsItemUpdateOneWithoutImageNestedInputSchema).optional(),
+  poll: z.lazy(() => PollUpdateOneWithoutImageNestedInputSchema).optional(),
+  blogImagenSeo: z.lazy(() => BlogUpdateManyWithoutImagenSeoNestedInputSchema).optional(),
+  authorProfileImage: z.lazy(() => AuthorUpdateOneWithoutProfileImageNestedInputSchema).optional(),
+  Blog: z.lazy(() => BlogUpdateOneWithoutImageNestedInputSchema).optional()
+}).strict();
+
+export const ImageUncheckedUpdateWithoutBlogImagenCardInputSchema: z.ZodType<Prisma.ImageUncheckedUpdateWithoutBlogImagenCardInput> = z.object({
+  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  url: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  alt: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  width: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  height: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  format: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  publicId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  folder: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  size: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  userId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  categoryId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  newsItemId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  pollId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  blogId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  blogImagenSeo: z.lazy(() => BlogUncheckedUpdateManyWithoutImagenSeoNestedInputSchema).optional(),
+  authorProfileImage: z.lazy(() => AuthorUncheckedUpdateOneWithoutProfileImageNestedInputSchema).optional()
+}).strict();
+
+export const NewsItemUpsertWithoutBlogInputSchema: z.ZodType<Prisma.NewsItemUpsertWithoutBlogInput> = z.object({
+  update: z.union([ z.lazy(() => NewsItemUpdateWithoutBlogInputSchema),z.lazy(() => NewsItemUncheckedUpdateWithoutBlogInputSchema) ]),
+  create: z.union([ z.lazy(() => NewsItemCreateWithoutBlogInputSchema),z.lazy(() => NewsItemUncheckedCreateWithoutBlogInputSchema) ]),
+  where: z.lazy(() => NewsItemWhereInputSchema).optional()
+}).strict();
+
+export const NewsItemUpdateToOneWithWhereWithoutBlogInputSchema: z.ZodType<Prisma.NewsItemUpdateToOneWithWhereWithoutBlogInput> = z.object({
+  where: z.lazy(() => NewsItemWhereInputSchema).optional(),
+  data: z.union([ z.lazy(() => NewsItemUpdateWithoutBlogInputSchema),z.lazy(() => NewsItemUncheckedUpdateWithoutBlogInputSchema) ]),
+}).strict();
+
+export const NewsItemUpdateWithoutBlogInputSchema: z.ZodType<Prisma.NewsItemUpdateWithoutBlogInput> = z.object({
+  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  title: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  content: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  pollId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  blogId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  poll: z.lazy(() => PollUpdateOneWithoutNewsItemNestedInputSchema).optional(),
+  Image: z.lazy(() => ImageUpdateManyWithoutNewsItemNestedInputSchema).optional()
+}).strict();
+
+export const NewsItemUncheckedUpdateWithoutBlogInputSchema: z.ZodType<Prisma.NewsItemUncheckedUpdateWithoutBlogInput> = z.object({
+  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  title: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  content: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  pollId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  blogId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  poll: z.lazy(() => PollUncheckedUpdateOneWithoutNewsItemNestedInputSchema).optional(),
+  Image: z.lazy(() => ImageUncheckedUpdateManyWithoutNewsItemNestedInputSchema).optional()
+}).strict();
+
+export const ImageUpsertWithWhereUniqueWithoutBlogInputSchema: z.ZodType<Prisma.ImageUpsertWithWhereUniqueWithoutBlogInput> = z.object({
+  where: z.lazy(() => ImageWhereUniqueInputSchema),
+  update: z.union([ z.lazy(() => ImageUpdateWithoutBlogInputSchema),z.lazy(() => ImageUncheckedUpdateWithoutBlogInputSchema) ]),
+  create: z.union([ z.lazy(() => ImageCreateWithoutBlogInputSchema),z.lazy(() => ImageUncheckedCreateWithoutBlogInputSchema) ]),
+}).strict();
+
+export const ImageUpdateWithWhereUniqueWithoutBlogInputSchema: z.ZodType<Prisma.ImageUpdateWithWhereUniqueWithoutBlogInput> = z.object({
+  where: z.lazy(() => ImageWhereUniqueInputSchema),
+  data: z.union([ z.lazy(() => ImageUpdateWithoutBlogInputSchema),z.lazy(() => ImageUncheckedUpdateWithoutBlogInputSchema) ]),
+}).strict();
+
+export const ImageUpdateManyWithWhereWithoutBlogInputSchema: z.ZodType<Prisma.ImageUpdateManyWithWhereWithoutBlogInput> = z.object({
+  where: z.lazy(() => ImageScalarWhereInputSchema),
+  data: z.union([ z.lazy(() => ImageUpdateManyMutationInputSchema),z.lazy(() => ImageUncheckedUpdateManyWithoutBlogInputSchema) ]),
+}).strict();
+
+export const ImageScalarWhereInputSchema: z.ZodType<Prisma.ImageScalarWhereInput> = z.object({
+  AND: z.union([ z.lazy(() => ImageScalarWhereInputSchema),z.lazy(() => ImageScalarWhereInputSchema).array() ]).optional(),
+  OR: z.lazy(() => ImageScalarWhereInputSchema).array().optional(),
+  NOT: z.union([ z.lazy(() => ImageScalarWhereInputSchema),z.lazy(() => ImageScalarWhereInputSchema).array() ]).optional(),
+  id: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  url: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  alt: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
+  width: z.union([ z.lazy(() => IntNullableFilterSchema),z.number() ]).optional().nullable(),
+  height: z.union([ z.lazy(() => IntNullableFilterSchema),z.number() ]).optional().nullable(),
+  format: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
+  publicId: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  folder: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
+  size: z.union([ z.lazy(() => IntNullableFilterSchema),z.number() ]).optional().nullable(),
+  createdAt: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
+  updatedAt: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
+  userId: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
+  categoryId: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
+  newsItemId: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
+  pollId: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
+  blogId: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
+}).strict();
+
+export const BlogAuthorUpsertWithWhereUniqueWithoutBlogInputSchema: z.ZodType<Prisma.BlogAuthorUpsertWithWhereUniqueWithoutBlogInput> = z.object({
+  where: z.lazy(() => BlogAuthorWhereUniqueInputSchema),
+  update: z.union([ z.lazy(() => BlogAuthorUpdateWithoutBlogInputSchema),z.lazy(() => BlogAuthorUncheckedUpdateWithoutBlogInputSchema) ]),
+  create: z.union([ z.lazy(() => BlogAuthorCreateWithoutBlogInputSchema),z.lazy(() => BlogAuthorUncheckedCreateWithoutBlogInputSchema) ]),
+}).strict();
+
+export const BlogAuthorUpdateWithWhereUniqueWithoutBlogInputSchema: z.ZodType<Prisma.BlogAuthorUpdateWithWhereUniqueWithoutBlogInput> = z.object({
+  where: z.lazy(() => BlogAuthorWhereUniqueInputSchema),
+  data: z.union([ z.lazy(() => BlogAuthorUpdateWithoutBlogInputSchema),z.lazy(() => BlogAuthorUncheckedUpdateWithoutBlogInputSchema) ]),
+}).strict();
+
+export const BlogAuthorUpdateManyWithWhereWithoutBlogInputSchema: z.ZodType<Prisma.BlogAuthorUpdateManyWithWhereWithoutBlogInput> = z.object({
+  where: z.lazy(() => BlogAuthorScalarWhereInputSchema),
+  data: z.union([ z.lazy(() => BlogAuthorUpdateManyMutationInputSchema),z.lazy(() => BlogAuthorUncheckedUpdateManyWithoutBlogInputSchema) ]),
+}).strict();
+
+export const BlogAuthorScalarWhereInputSchema: z.ZodType<Prisma.BlogAuthorScalarWhereInput> = z.object({
+  AND: z.union([ z.lazy(() => BlogAuthorScalarWhereInputSchema),z.lazy(() => BlogAuthorScalarWhereInputSchema).array() ]).optional(),
+  OR: z.lazy(() => BlogAuthorScalarWhereInputSchema).array().optional(),
+  NOT: z.union([ z.lazy(() => BlogAuthorScalarWhereInputSchema),z.lazy(() => BlogAuthorScalarWhereInputSchema).array() ]).optional(),
+  id: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  blogId: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  authorId: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+}).strict();
+
+export const BlogLikeUpsertWithWhereUniqueWithoutBlogInputSchema: z.ZodType<Prisma.BlogLikeUpsertWithWhereUniqueWithoutBlogInput> = z.object({
+  where: z.lazy(() => BlogLikeWhereUniqueInputSchema),
+  update: z.union([ z.lazy(() => BlogLikeUpdateWithoutBlogInputSchema),z.lazy(() => BlogLikeUncheckedUpdateWithoutBlogInputSchema) ]),
+  create: z.union([ z.lazy(() => BlogLikeCreateWithoutBlogInputSchema),z.lazy(() => BlogLikeUncheckedCreateWithoutBlogInputSchema) ]),
+}).strict();
+
+export const BlogLikeUpdateWithWhereUniqueWithoutBlogInputSchema: z.ZodType<Prisma.BlogLikeUpdateWithWhereUniqueWithoutBlogInput> = z.object({
+  where: z.lazy(() => BlogLikeWhereUniqueInputSchema),
+  data: z.union([ z.lazy(() => BlogLikeUpdateWithoutBlogInputSchema),z.lazy(() => BlogLikeUncheckedUpdateWithoutBlogInputSchema) ]),
+}).strict();
+
+export const BlogLikeUpdateManyWithWhereWithoutBlogInputSchema: z.ZodType<Prisma.BlogLikeUpdateManyWithWhereWithoutBlogInput> = z.object({
+  where: z.lazy(() => BlogLikeScalarWhereInputSchema),
+  data: z.union([ z.lazy(() => BlogLikeUpdateManyMutationInputSchema),z.lazy(() => BlogLikeUncheckedUpdateManyWithoutBlogInputSchema) ]),
+}).strict();
+
+export const BlogLikeScalarWhereInputSchema: z.ZodType<Prisma.BlogLikeScalarWhereInput> = z.object({
+  AND: z.union([ z.lazy(() => BlogLikeScalarWhereInputSchema),z.lazy(() => BlogLikeScalarWhereInputSchema).array() ]).optional(),
+  OR: z.lazy(() => BlogLikeScalarWhereInputSchema).array().optional(),
+  NOT: z.union([ z.lazy(() => BlogLikeScalarWhereInputSchema),z.lazy(() => BlogLikeScalarWhereInputSchema).array() ]).optional(),
+  id: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  userId: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  blogId: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  createdAt: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
+}).strict();
+
+export const BlogTagUpsertWithWhereUniqueWithoutBlogInputSchema: z.ZodType<Prisma.BlogTagUpsertWithWhereUniqueWithoutBlogInput> = z.object({
+  where: z.lazy(() => BlogTagWhereUniqueInputSchema),
+  update: z.union([ z.lazy(() => BlogTagUpdateWithoutBlogInputSchema),z.lazy(() => BlogTagUncheckedUpdateWithoutBlogInputSchema) ]),
+  create: z.union([ z.lazy(() => BlogTagCreateWithoutBlogInputSchema),z.lazy(() => BlogTagUncheckedCreateWithoutBlogInputSchema) ]),
+}).strict();
+
+export const BlogTagUpdateWithWhereUniqueWithoutBlogInputSchema: z.ZodType<Prisma.BlogTagUpdateWithWhereUniqueWithoutBlogInput> = z.object({
+  where: z.lazy(() => BlogTagWhereUniqueInputSchema),
+  data: z.union([ z.lazy(() => BlogTagUpdateWithoutBlogInputSchema),z.lazy(() => BlogTagUncheckedUpdateWithoutBlogInputSchema) ]),
+}).strict();
+
+export const BlogTagUpdateManyWithWhereWithoutBlogInputSchema: z.ZodType<Prisma.BlogTagUpdateManyWithWhereWithoutBlogInput> = z.object({
+  where: z.lazy(() => BlogTagScalarWhereInputSchema),
+  data: z.union([ z.lazy(() => BlogTagUpdateManyMutationInputSchema),z.lazy(() => BlogTagUncheckedUpdateManyWithoutBlogInputSchema) ]),
+}).strict();
+
+export const BlogTagScalarWhereInputSchema: z.ZodType<Prisma.BlogTagScalarWhereInput> = z.object({
+  AND: z.union([ z.lazy(() => BlogTagScalarWhereInputSchema),z.lazy(() => BlogTagScalarWhereInputSchema).array() ]).optional(),
+  OR: z.lazy(() => BlogTagScalarWhereInputSchema).array().optional(),
+  NOT: z.union([ z.lazy(() => BlogTagScalarWhereInputSchema),z.lazy(() => BlogTagScalarWhereInputSchema).array() ]).optional(),
+  id: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  blogId: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  tagId: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+}).strict();
+
+export const CategoryUpsertWithoutBlogInputSchema: z.ZodType<Prisma.CategoryUpsertWithoutBlogInput> = z.object({
+  update: z.union([ z.lazy(() => CategoryUpdateWithoutBlogInputSchema),z.lazy(() => CategoryUncheckedUpdateWithoutBlogInputSchema) ]),
+  create: z.union([ z.lazy(() => CategoryCreateWithoutBlogInputSchema),z.lazy(() => CategoryUncheckedCreateWithoutBlogInputSchema) ]),
+  where: z.lazy(() => CategoryWhereInputSchema).optional()
+}).strict();
+
+export const CategoryUpdateToOneWithWhereWithoutBlogInputSchema: z.ZodType<Prisma.CategoryUpdateToOneWithWhereWithoutBlogInput> = z.object({
+  where: z.lazy(() => CategoryWhereInputSchema).optional(),
+  data: z.union([ z.lazy(() => CategoryUpdateWithoutBlogInputSchema),z.lazy(() => CategoryUncheckedUpdateWithoutBlogInputSchema) ]),
+}).strict();
+
+export const CategoryUpdateWithoutBlogInputSchema: z.ZodType<Prisma.CategoryUpdateWithoutBlogInput> = z.object({
+  id: z.union([ z.string().uuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  name: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  originalCategory: z.lazy(() => CategoryUpdateOneWithoutTranslationsNestedInputSchema).optional(),
+  translations: z.lazy(() => CategoryUpdateManyWithoutOriginalCategoryNestedInputSchema).optional(),
+  polls: z.lazy(() => PollUpdateManyWithoutCategoryNestedInputSchema).optional(),
+  Image: z.lazy(() => ImageUpdateManyWithoutCategoryNestedInputSchema).optional()
+}).strict();
+
+export const CategoryUncheckedUpdateWithoutBlogInputSchema: z.ZodType<Prisma.CategoryUncheckedUpdateWithoutBlogInput> = z.object({
+  id: z.union([ z.string().uuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  name: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  originalCategoryId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  translations: z.lazy(() => CategoryUncheckedUpdateManyWithoutOriginalCategoryNestedInputSchema).optional(),
+  polls: z.lazy(() => PollUncheckedUpdateManyWithoutCategoryNestedInputSchema).optional(),
+  Image: z.lazy(() => ImageUncheckedUpdateManyWithoutCategoryNestedInputSchema).optional()
+}).strict();
+
+export const TranslationQueueUpsertWithWhereUniqueWithoutBlogInputSchema: z.ZodType<Prisma.TranslationQueueUpsertWithWhereUniqueWithoutBlogInput> = z.object({
+  where: z.lazy(() => TranslationQueueWhereUniqueInputSchema),
+  update: z.union([ z.lazy(() => TranslationQueueUpdateWithoutBlogInputSchema),z.lazy(() => TranslationQueueUncheckedUpdateWithoutBlogInputSchema) ]),
+  create: z.union([ z.lazy(() => TranslationQueueCreateWithoutBlogInputSchema),z.lazy(() => TranslationQueueUncheckedCreateWithoutBlogInputSchema) ]),
+}).strict();
+
+export const TranslationQueueUpdateWithWhereUniqueWithoutBlogInputSchema: z.ZodType<Prisma.TranslationQueueUpdateWithWhereUniqueWithoutBlogInput> = z.object({
+  where: z.lazy(() => TranslationQueueWhereUniqueInputSchema),
+  data: z.union([ z.lazy(() => TranslationQueueUpdateWithoutBlogInputSchema),z.lazy(() => TranslationQueueUncheckedUpdateWithoutBlogInputSchema) ]),
+}).strict();
+
+export const TranslationQueueUpdateManyWithWhereWithoutBlogInputSchema: z.ZodType<Prisma.TranslationQueueUpdateManyWithWhereWithoutBlogInput> = z.object({
+  where: z.lazy(() => TranslationQueueScalarWhereInputSchema),
+  data: z.union([ z.lazy(() => TranslationQueueUpdateManyMutationInputSchema),z.lazy(() => TranslationQueueUncheckedUpdateManyWithoutBlogInputSchema) ]),
+}).strict();
+
+export const TranslationQueueScalarWhereInputSchema: z.ZodType<Prisma.TranslationQueueScalarWhereInput> = z.object({
+  AND: z.union([ z.lazy(() => TranslationQueueScalarWhereInputSchema),z.lazy(() => TranslationQueueScalarWhereInputSchema).array() ]).optional(),
+  OR: z.lazy(() => TranslationQueueScalarWhereInputSchema).array().optional(),
+  NOT: z.union([ z.lazy(() => TranslationQueueScalarWhereInputSchema),z.lazy(() => TranslationQueueScalarWhereInputSchema).array() ]).optional(),
+  id: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  blogId: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  targetLanguage: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  status: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  retryCount: z.union([ z.lazy(() => IntFilterSchema),z.number() ]).optional(),
+  errorMessage: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
+  priority: z.union([ z.lazy(() => IntFilterSchema),z.number() ]).optional(),
+  createdAt: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
+  processedAt: z.union([ z.lazy(() => DateTimeNullableFilterSchema),z.coerce.date() ]).optional().nullable(),
+  completedAt: z.union([ z.lazy(() => DateTimeNullableFilterSchema),z.coerce.date() ]).optional().nullable(),
+}).strict();
+
+export const CategoryCreateWithoutTranslationsInputSchema: z.ZodType<Prisma.CategoryCreateWithoutTranslationsInput> = z.object({
+  id: z.string().uuid().optional(),
+  name: z.string(),
+  slug: z.string(),
+  baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
+  originalCategory: z.lazy(() => CategoryCreateNestedOneWithoutTranslationsInputSchema).optional(),
+  polls: z.lazy(() => PollCreateNestedManyWithoutCategoryInputSchema).optional(),
+  Image: z.lazy(() => ImageCreateNestedManyWithoutCategoryInputSchema).optional(),
+  Blog: z.lazy(() => BlogCreateNestedManyWithoutCategoryInputSchema).optional()
+}).strict();
+
+export const CategoryUncheckedCreateWithoutTranslationsInputSchema: z.ZodType<Prisma.CategoryUncheckedCreateWithoutTranslationsInput> = z.object({
+  id: z.string().uuid().optional(),
+  name: z.string(),
+  slug: z.string(),
+  baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
+  originalCategoryId: z.string().optional().nullable(),
+  polls: z.lazy(() => PollUncheckedCreateNestedManyWithoutCategoryInputSchema).optional(),
+  Image: z.lazy(() => ImageUncheckedCreateNestedManyWithoutCategoryInputSchema).optional(),
+  Blog: z.lazy(() => BlogUncheckedCreateNestedManyWithoutCategoryInputSchema).optional()
+}).strict();
+
+export const CategoryCreateOrConnectWithoutTranslationsInputSchema: z.ZodType<Prisma.CategoryCreateOrConnectWithoutTranslationsInput> = z.object({
+  where: z.lazy(() => CategoryWhereUniqueInputSchema),
+  create: z.union([ z.lazy(() => CategoryCreateWithoutTranslationsInputSchema),z.lazy(() => CategoryUncheckedCreateWithoutTranslationsInputSchema) ]),
+}).strict();
+
+export const CategoryCreateWithoutOriginalCategoryInputSchema: z.ZodType<Prisma.CategoryCreateWithoutOriginalCategoryInput> = z.object({
+  id: z.string().uuid().optional(),
+  name: z.string(),
+  slug: z.string(),
+  baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
+  translations: z.lazy(() => CategoryCreateNestedManyWithoutOriginalCategoryInputSchema).optional(),
+  polls: z.lazy(() => PollCreateNestedManyWithoutCategoryInputSchema).optional(),
+  Image: z.lazy(() => ImageCreateNestedManyWithoutCategoryInputSchema).optional(),
+  Blog: z.lazy(() => BlogCreateNestedManyWithoutCategoryInputSchema).optional()
+}).strict();
+
+export const CategoryUncheckedCreateWithoutOriginalCategoryInputSchema: z.ZodType<Prisma.CategoryUncheckedCreateWithoutOriginalCategoryInput> = z.object({
+  id: z.string().uuid().optional(),
+  name: z.string(),
+  slug: z.string(),
+  baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
+  translations: z.lazy(() => CategoryUncheckedCreateNestedManyWithoutOriginalCategoryInputSchema).optional(),
+  polls: z.lazy(() => PollUncheckedCreateNestedManyWithoutCategoryInputSchema).optional(),
+  Image: z.lazy(() => ImageUncheckedCreateNestedManyWithoutCategoryInputSchema).optional(),
+  Blog: z.lazy(() => BlogUncheckedCreateNestedManyWithoutCategoryInputSchema).optional()
+}).strict();
+
+export const CategoryCreateOrConnectWithoutOriginalCategoryInputSchema: z.ZodType<Prisma.CategoryCreateOrConnectWithoutOriginalCategoryInput> = z.object({
+  where: z.lazy(() => CategoryWhereUniqueInputSchema),
+  create: z.union([ z.lazy(() => CategoryCreateWithoutOriginalCategoryInputSchema),z.lazy(() => CategoryUncheckedCreateWithoutOriginalCategoryInputSchema) ]),
+}).strict();
+
+export const CategoryCreateManyOriginalCategoryInputEnvelopeSchema: z.ZodType<Prisma.CategoryCreateManyOriginalCategoryInputEnvelope> = z.object({
+  data: z.union([ z.lazy(() => CategoryCreateManyOriginalCategoryInputSchema),z.lazy(() => CategoryCreateManyOriginalCategoryInputSchema).array() ]),
+  skipDuplicates: z.boolean().optional()
+}).strict();
+
+export const PollCreateWithoutCategoryInputSchema: z.ZodType<Prisma.PollCreateWithoutCategoryInput> = z.object({
+  id: z.string().uuid().optional(),
+  question: z.string(),
+  slug: z.string(),
+  description: z.string().optional().nullable(),
+  baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
+  startDate: z.coerce.date(),
+  endDate: z.coerce.date(),
+  createdAt: z.coerce.date().optional(),
+  Archived: z.boolean().optional(),
+  isPublic: z.boolean().optional(),
+  ArchivedAt: z.coerce.date().optional().nullable(),
+  Deleted: z.boolean().optional(),
+  DeletedAt: z.coerce.date().optional().nullable(),
+  originalPoll: z.lazy(() => PollCreateNestedOneWithoutTranslationsInputSchema).optional(),
+  translations: z.lazy(() => PollCreateNestedManyWithoutOriginalPollInputSchema).optional(),
+  options: z.lazy(() => PollOptionCreateNestedManyWithoutPollInputSchema).optional(),
+  Vote: z.lazy(() => VoteCreateNestedManyWithoutPollInputSchema).optional(),
+  newsItem: z.lazy(() => NewsItemCreateNestedOneWithoutPollInputSchema).optional(),
+  Image: z.lazy(() => ImageCreateNestedManyWithoutPollInputSchema).optional()
+}).strict();
+
+export const PollUncheckedCreateWithoutCategoryInputSchema: z.ZodType<Prisma.PollUncheckedCreateWithoutCategoryInput> = z.object({
+  id: z.string().uuid().optional(),
+  question: z.string(),
+  slug: z.string(),
+  description: z.string().optional().nullable(),
+  baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
+  originalPollId: z.string().optional().nullable(),
+  startDate: z.coerce.date(),
+  endDate: z.coerce.date(),
+  createdAt: z.coerce.date().optional(),
+  Archived: z.boolean().optional(),
+  isPublic: z.boolean().optional(),
+  ArchivedAt: z.coerce.date().optional().nullable(),
+  Deleted: z.boolean().optional(),
+  DeletedAt: z.coerce.date().optional().nullable(),
+  newsItemId: z.string().optional().nullable(),
+  translations: z.lazy(() => PollUncheckedCreateNestedManyWithoutOriginalPollInputSchema).optional(),
+  options: z.lazy(() => PollOptionUncheckedCreateNestedManyWithoutPollInputSchema).optional(),
+  Vote: z.lazy(() => VoteUncheckedCreateNestedManyWithoutPollInputSchema).optional(),
+  Image: z.lazy(() => ImageUncheckedCreateNestedManyWithoutPollInputSchema).optional()
+}).strict();
+
+export const PollCreateOrConnectWithoutCategoryInputSchema: z.ZodType<Prisma.PollCreateOrConnectWithoutCategoryInput> = z.object({
+  where: z.lazy(() => PollWhereUniqueInputSchema),
+  create: z.union([ z.lazy(() => PollCreateWithoutCategoryInputSchema),z.lazy(() => PollUncheckedCreateWithoutCategoryInputSchema) ]),
+}).strict();
+
+export const PollCreateManyCategoryInputEnvelopeSchema: z.ZodType<Prisma.PollCreateManyCategoryInputEnvelope> = z.object({
+  data: z.union([ z.lazy(() => PollCreateManyCategoryInputSchema),z.lazy(() => PollCreateManyCategoryInputSchema).array() ]),
+  skipDuplicates: z.boolean().optional()
+}).strict();
+
+export const ImageCreateWithoutCategoryInputSchema: z.ZodType<Prisma.ImageCreateWithoutCategoryInput> = z.object({
+  id: z.string().cuid().optional(),
+  url: z.string(),
+  alt: z.string().optional().nullable(),
+  width: z.number().int().optional().nullable(),
+  height: z.number().int().optional().nullable(),
+  format: z.string().optional().nullable(),
+  publicId: z.string(),
+  folder: z.string().optional().nullable(),
+  size: z.number().int().optional().nullable(),
+  createdAt: z.coerce.date().optional(),
+  updatedAt: z.coerce.date().optional(),
+  user: z.lazy(() => UserCreateNestedOneWithoutImageInputSchema).optional(),
+  newsItem: z.lazy(() => NewsItemCreateNestedOneWithoutImageInputSchema).optional(),
+  poll: z.lazy(() => PollCreateNestedOneWithoutImageInputSchema).optional(),
+  blogImagenSeo: z.lazy(() => BlogCreateNestedManyWithoutImagenSeoInputSchema).optional(),
+  blogImagenCard: z.lazy(() => BlogCreateNestedManyWithoutImagenCardInputSchema).optional(),
+  authorProfileImage: z.lazy(() => AuthorCreateNestedOneWithoutProfileImageInputSchema).optional(),
+  Blog: z.lazy(() => BlogCreateNestedOneWithoutImageInputSchema).optional()
+}).strict();
+
+export const ImageUncheckedCreateWithoutCategoryInputSchema: z.ZodType<Prisma.ImageUncheckedCreateWithoutCategoryInput> = z.object({
+  id: z.string().cuid().optional(),
+  url: z.string(),
+  alt: z.string().optional().nullable(),
+  width: z.number().int().optional().nullable(),
+  height: z.number().int().optional().nullable(),
+  format: z.string().optional().nullable(),
+  publicId: z.string(),
+  folder: z.string().optional().nullable(),
+  size: z.number().int().optional().nullable(),
+  createdAt: z.coerce.date().optional(),
+  updatedAt: z.coerce.date().optional(),
+  userId: z.string().optional().nullable(),
+  newsItemId: z.string().optional().nullable(),
+  pollId: z.string().optional().nullable(),
+  blogId: z.string().optional().nullable(),
+  blogImagenSeo: z.lazy(() => BlogUncheckedCreateNestedManyWithoutImagenSeoInputSchema).optional(),
+  blogImagenCard: z.lazy(() => BlogUncheckedCreateNestedManyWithoutImagenCardInputSchema).optional(),
+  authorProfileImage: z.lazy(() => AuthorUncheckedCreateNestedOneWithoutProfileImageInputSchema).optional()
+}).strict();
+
+export const ImageCreateOrConnectWithoutCategoryInputSchema: z.ZodType<Prisma.ImageCreateOrConnectWithoutCategoryInput> = z.object({
+  where: z.lazy(() => ImageWhereUniqueInputSchema),
+  create: z.union([ z.lazy(() => ImageCreateWithoutCategoryInputSchema),z.lazy(() => ImageUncheckedCreateWithoutCategoryInputSchema) ]),
+}).strict();
+
+export const ImageCreateManyCategoryInputEnvelopeSchema: z.ZodType<Prisma.ImageCreateManyCategoryInputEnvelope> = z.object({
+  data: z.union([ z.lazy(() => ImageCreateManyCategoryInputSchema),z.lazy(() => ImageCreateManyCategoryInputSchema).array() ]),
+  skipDuplicates: z.boolean().optional()
+}).strict();
+
+export const BlogCreateWithoutCategoryInputSchema: z.ZodType<Prisma.BlogCreateWithoutCategoryInput> = z.object({
+  id: z.string().cuid().optional(),
+  title: z.string(),
+  content: z.string(),
+  titlePunch: z.string().optional().nullable(),
+  slug: z.string(),
+  seoDescription: z.string().optional().nullable(),
+  baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
+  dateNews: z.coerce.date(),
+  readTime: z.number().int().optional().nullable(),
+  views: z.number().int().optional(),
+  dateCreated: z.coerce.date().optional(),
+  originalBlog: z.lazy(() => BlogCreateNestedOneWithoutTranslationsInputSchema).optional(),
+  translations: z.lazy(() => BlogCreateNestedManyWithoutOriginalBlogInputSchema).optional(),
+  imagenSeo: z.lazy(() => ImageCreateNestedOneWithoutBlogImagenSeoInputSchema).optional(),
+  imagenCard: z.lazy(() => ImageCreateNestedOneWithoutBlogImagenCardInputSchema).optional(),
+  newsItem: z.lazy(() => NewsItemCreateNestedOneWithoutBlogInputSchema).optional(),
+  Image: z.lazy(() => ImageCreateNestedManyWithoutBlogInputSchema).optional(),
+  blogAuthors: z.lazy(() => BlogAuthorCreateNestedManyWithoutBlogInputSchema).optional(),
+  likes: z.lazy(() => BlogLikeCreateNestedManyWithoutBlogInputSchema).optional(),
+  tags: z.lazy(() => BlogTagCreateNestedManyWithoutBlogInputSchema).optional(),
+  TranslationQueue: z.lazy(() => TranslationQueueCreateNestedManyWithoutBlogInputSchema).optional()
+}).strict();
+
+export const BlogUncheckedCreateWithoutCategoryInputSchema: z.ZodType<Prisma.BlogUncheckedCreateWithoutCategoryInput> = z.object({
+  id: z.string().cuid().optional(),
+  title: z.string(),
+  content: z.string(),
+  titlePunch: z.string().optional().nullable(),
+  slug: z.string(),
+  seoDescription: z.string().optional().nullable(),
+  baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
+  originalBlogId: z.string().optional().nullable(),
+  imagenSeoId: z.string().optional().nullable(),
+  dateNews: z.coerce.date(),
+  imagenCardId: z.string().optional().nullable(),
+  newsItemId: z.string().optional().nullable(),
+  readTime: z.number().int().optional().nullable(),
+  views: z.number().int().optional(),
+  dateCreated: z.coerce.date().optional(),
+  translations: z.lazy(() => BlogUncheckedCreateNestedManyWithoutOriginalBlogInputSchema).optional(),
+  Image: z.lazy(() => ImageUncheckedCreateNestedManyWithoutBlogInputSchema).optional(),
+  blogAuthors: z.lazy(() => BlogAuthorUncheckedCreateNestedManyWithoutBlogInputSchema).optional(),
+  likes: z.lazy(() => BlogLikeUncheckedCreateNestedManyWithoutBlogInputSchema).optional(),
+  tags: z.lazy(() => BlogTagUncheckedCreateNestedManyWithoutBlogInputSchema).optional(),
+  TranslationQueue: z.lazy(() => TranslationQueueUncheckedCreateNestedManyWithoutBlogInputSchema).optional()
+}).strict();
+
+export const BlogCreateOrConnectWithoutCategoryInputSchema: z.ZodType<Prisma.BlogCreateOrConnectWithoutCategoryInput> = z.object({
+  where: z.lazy(() => BlogWhereUniqueInputSchema),
+  create: z.union([ z.lazy(() => BlogCreateWithoutCategoryInputSchema),z.lazy(() => BlogUncheckedCreateWithoutCategoryInputSchema) ]),
+}).strict();
+
+export const BlogCreateManyCategoryInputEnvelopeSchema: z.ZodType<Prisma.BlogCreateManyCategoryInputEnvelope> = z.object({
+  data: z.union([ z.lazy(() => BlogCreateManyCategoryInputSchema),z.lazy(() => BlogCreateManyCategoryInputSchema).array() ]),
+  skipDuplicates: z.boolean().optional()
+}).strict();
+
+export const CategoryUpsertWithoutTranslationsInputSchema: z.ZodType<Prisma.CategoryUpsertWithoutTranslationsInput> = z.object({
+  update: z.union([ z.lazy(() => CategoryUpdateWithoutTranslationsInputSchema),z.lazy(() => CategoryUncheckedUpdateWithoutTranslationsInputSchema) ]),
+  create: z.union([ z.lazy(() => CategoryCreateWithoutTranslationsInputSchema),z.lazy(() => CategoryUncheckedCreateWithoutTranslationsInputSchema) ]),
+  where: z.lazy(() => CategoryWhereInputSchema).optional()
+}).strict();
+
+export const CategoryUpdateToOneWithWhereWithoutTranslationsInputSchema: z.ZodType<Prisma.CategoryUpdateToOneWithWhereWithoutTranslationsInput> = z.object({
+  where: z.lazy(() => CategoryWhereInputSchema).optional(),
+  data: z.union([ z.lazy(() => CategoryUpdateWithoutTranslationsInputSchema),z.lazy(() => CategoryUncheckedUpdateWithoutTranslationsInputSchema) ]),
+}).strict();
+
+export const CategoryUpdateWithoutTranslationsInputSchema: z.ZodType<Prisma.CategoryUpdateWithoutTranslationsInput> = z.object({
+  id: z.union([ z.string().uuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  name: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  originalCategory: z.lazy(() => CategoryUpdateOneWithoutTranslationsNestedInputSchema).optional(),
+  polls: z.lazy(() => PollUpdateManyWithoutCategoryNestedInputSchema).optional(),
+  Image: z.lazy(() => ImageUpdateManyWithoutCategoryNestedInputSchema).optional(),
+  Blog: z.lazy(() => BlogUpdateManyWithoutCategoryNestedInputSchema).optional()
+}).strict();
+
+export const CategoryUncheckedUpdateWithoutTranslationsInputSchema: z.ZodType<Prisma.CategoryUncheckedUpdateWithoutTranslationsInput> = z.object({
+  id: z.union([ z.string().uuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  name: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  originalCategoryId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  polls: z.lazy(() => PollUncheckedUpdateManyWithoutCategoryNestedInputSchema).optional(),
+  Image: z.lazy(() => ImageUncheckedUpdateManyWithoutCategoryNestedInputSchema).optional(),
+  Blog: z.lazy(() => BlogUncheckedUpdateManyWithoutCategoryNestedInputSchema).optional()
+}).strict();
+
+export const CategoryUpsertWithWhereUniqueWithoutOriginalCategoryInputSchema: z.ZodType<Prisma.CategoryUpsertWithWhereUniqueWithoutOriginalCategoryInput> = z.object({
+  where: z.lazy(() => CategoryWhereUniqueInputSchema),
+  update: z.union([ z.lazy(() => CategoryUpdateWithoutOriginalCategoryInputSchema),z.lazy(() => CategoryUncheckedUpdateWithoutOriginalCategoryInputSchema) ]),
+  create: z.union([ z.lazy(() => CategoryCreateWithoutOriginalCategoryInputSchema),z.lazy(() => CategoryUncheckedCreateWithoutOriginalCategoryInputSchema) ]),
+}).strict();
+
+export const CategoryUpdateWithWhereUniqueWithoutOriginalCategoryInputSchema: z.ZodType<Prisma.CategoryUpdateWithWhereUniqueWithoutOriginalCategoryInput> = z.object({
+  where: z.lazy(() => CategoryWhereUniqueInputSchema),
+  data: z.union([ z.lazy(() => CategoryUpdateWithoutOriginalCategoryInputSchema),z.lazy(() => CategoryUncheckedUpdateWithoutOriginalCategoryInputSchema) ]),
+}).strict();
+
+export const CategoryUpdateManyWithWhereWithoutOriginalCategoryInputSchema: z.ZodType<Prisma.CategoryUpdateManyWithWhereWithoutOriginalCategoryInput> = z.object({
+  where: z.lazy(() => CategoryScalarWhereInputSchema),
+  data: z.union([ z.lazy(() => CategoryUpdateManyMutationInputSchema),z.lazy(() => CategoryUncheckedUpdateManyWithoutOriginalCategoryInputSchema) ]),
+}).strict();
+
+export const CategoryScalarWhereInputSchema: z.ZodType<Prisma.CategoryScalarWhereInput> = z.object({
+  AND: z.union([ z.lazy(() => CategoryScalarWhereInputSchema),z.lazy(() => CategoryScalarWhereInputSchema).array() ]).optional(),
+  OR: z.lazy(() => CategoryScalarWhereInputSchema).array().optional(),
+  NOT: z.union([ z.lazy(() => CategoryScalarWhereInputSchema),z.lazy(() => CategoryScalarWhereInputSchema).array() ]).optional(),
+  id: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  name: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  slug: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  baseLanguage: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  isTranslation: z.union([ z.lazy(() => BoolFilterSchema),z.boolean() ]).optional(),
+  originalCategoryId: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
+}).strict();
+
+export const PollUpsertWithWhereUniqueWithoutCategoryInputSchema: z.ZodType<Prisma.PollUpsertWithWhereUniqueWithoutCategoryInput> = z.object({
+  where: z.lazy(() => PollWhereUniqueInputSchema),
+  update: z.union([ z.lazy(() => PollUpdateWithoutCategoryInputSchema),z.lazy(() => PollUncheckedUpdateWithoutCategoryInputSchema) ]),
+  create: z.union([ z.lazy(() => PollCreateWithoutCategoryInputSchema),z.lazy(() => PollUncheckedCreateWithoutCategoryInputSchema) ]),
+}).strict();
+
+export const PollUpdateWithWhereUniqueWithoutCategoryInputSchema: z.ZodType<Prisma.PollUpdateWithWhereUniqueWithoutCategoryInput> = z.object({
+  where: z.lazy(() => PollWhereUniqueInputSchema),
+  data: z.union([ z.lazy(() => PollUpdateWithoutCategoryInputSchema),z.lazy(() => PollUncheckedUpdateWithoutCategoryInputSchema) ]),
+}).strict();
+
+export const PollUpdateManyWithWhereWithoutCategoryInputSchema: z.ZodType<Prisma.PollUpdateManyWithWhereWithoutCategoryInput> = z.object({
+  where: z.lazy(() => PollScalarWhereInputSchema),
+  data: z.union([ z.lazy(() => PollUpdateManyMutationInputSchema),z.lazy(() => PollUncheckedUpdateManyWithoutCategoryInputSchema) ]),
+}).strict();
+
+export const PollScalarWhereInputSchema: z.ZodType<Prisma.PollScalarWhereInput> = z.object({
+  AND: z.union([ z.lazy(() => PollScalarWhereInputSchema),z.lazy(() => PollScalarWhereInputSchema).array() ]).optional(),
+  OR: z.lazy(() => PollScalarWhereInputSchema).array().optional(),
+  NOT: z.union([ z.lazy(() => PollScalarWhereInputSchema),z.lazy(() => PollScalarWhereInputSchema).array() ]).optional(),
+  id: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  question: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  slug: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  description: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
+  baseLanguage: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  isTranslation: z.union([ z.lazy(() => BoolFilterSchema),z.boolean() ]).optional(),
+  originalPollId: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
+  startDate: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
+  endDate: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
+  createdAt: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
+  Archived: z.union([ z.lazy(() => BoolFilterSchema),z.boolean() ]).optional(),
+  isPublic: z.union([ z.lazy(() => BoolFilterSchema),z.boolean() ]).optional(),
+  ArchivedAt: z.union([ z.lazy(() => DateTimeNullableFilterSchema),z.coerce.date() ]).optional().nullable(),
+  Deleted: z.union([ z.lazy(() => BoolFilterSchema),z.boolean() ]).optional(),
+  DeletedAt: z.union([ z.lazy(() => DateTimeNullableFilterSchema),z.coerce.date() ]).optional().nullable(),
+  categoryId: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  newsItemId: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
+}).strict();
+
+export const ImageUpsertWithWhereUniqueWithoutCategoryInputSchema: z.ZodType<Prisma.ImageUpsertWithWhereUniqueWithoutCategoryInput> = z.object({
+  where: z.lazy(() => ImageWhereUniqueInputSchema),
+  update: z.union([ z.lazy(() => ImageUpdateWithoutCategoryInputSchema),z.lazy(() => ImageUncheckedUpdateWithoutCategoryInputSchema) ]),
+  create: z.union([ z.lazy(() => ImageCreateWithoutCategoryInputSchema),z.lazy(() => ImageUncheckedCreateWithoutCategoryInputSchema) ]),
+}).strict();
+
+export const ImageUpdateWithWhereUniqueWithoutCategoryInputSchema: z.ZodType<Prisma.ImageUpdateWithWhereUniqueWithoutCategoryInput> = z.object({
+  where: z.lazy(() => ImageWhereUniqueInputSchema),
+  data: z.union([ z.lazy(() => ImageUpdateWithoutCategoryInputSchema),z.lazy(() => ImageUncheckedUpdateWithoutCategoryInputSchema) ]),
+}).strict();
+
+export const ImageUpdateManyWithWhereWithoutCategoryInputSchema: z.ZodType<Prisma.ImageUpdateManyWithWhereWithoutCategoryInput> = z.object({
+  where: z.lazy(() => ImageScalarWhereInputSchema),
+  data: z.union([ z.lazy(() => ImageUpdateManyMutationInputSchema),z.lazy(() => ImageUncheckedUpdateManyWithoutCategoryInputSchema) ]),
+}).strict();
+
+export const BlogUpsertWithWhereUniqueWithoutCategoryInputSchema: z.ZodType<Prisma.BlogUpsertWithWhereUniqueWithoutCategoryInput> = z.object({
+  where: z.lazy(() => BlogWhereUniqueInputSchema),
+  update: z.union([ z.lazy(() => BlogUpdateWithoutCategoryInputSchema),z.lazy(() => BlogUncheckedUpdateWithoutCategoryInputSchema) ]),
+  create: z.union([ z.lazy(() => BlogCreateWithoutCategoryInputSchema),z.lazy(() => BlogUncheckedCreateWithoutCategoryInputSchema) ]),
+}).strict();
+
+export const BlogUpdateWithWhereUniqueWithoutCategoryInputSchema: z.ZodType<Prisma.BlogUpdateWithWhereUniqueWithoutCategoryInput> = z.object({
+  where: z.lazy(() => BlogWhereUniqueInputSchema),
+  data: z.union([ z.lazy(() => BlogUpdateWithoutCategoryInputSchema),z.lazy(() => BlogUncheckedUpdateWithoutCategoryInputSchema) ]),
+}).strict();
+
+export const BlogUpdateManyWithWhereWithoutCategoryInputSchema: z.ZodType<Prisma.BlogUpdateManyWithWhereWithoutCategoryInput> = z.object({
+  where: z.lazy(() => BlogScalarWhereInputSchema),
+  data: z.union([ z.lazy(() => BlogUpdateManyMutationInputSchema),z.lazy(() => BlogUncheckedUpdateManyWithoutCategoryInputSchema) ]),
+}).strict();
+
+export const TagCreateWithoutTranslationsInputSchema: z.ZodType<Prisma.TagCreateWithoutTranslationsInput> = z.object({
+  id: z.string().cuid().optional(),
+  name: z.string(),
+  slug: z.string(),
+  description: z.string().optional().nullable(),
+  baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
+  originalTag: z.lazy(() => TagCreateNestedOneWithoutTranslationsInputSchema).optional(),
+  blogs: z.lazy(() => BlogTagCreateNestedManyWithoutTagInputSchema).optional()
+}).strict();
+
+export const TagUncheckedCreateWithoutTranslationsInputSchema: z.ZodType<Prisma.TagUncheckedCreateWithoutTranslationsInput> = z.object({
+  id: z.string().cuid().optional(),
+  name: z.string(),
+  slug: z.string(),
+  description: z.string().optional().nullable(),
+  baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
+  originalTagId: z.string().optional().nullable(),
+  blogs: z.lazy(() => BlogTagUncheckedCreateNestedManyWithoutTagInputSchema).optional()
+}).strict();
+
+export const TagCreateOrConnectWithoutTranslationsInputSchema: z.ZodType<Prisma.TagCreateOrConnectWithoutTranslationsInput> = z.object({
+  where: z.lazy(() => TagWhereUniqueInputSchema),
+  create: z.union([ z.lazy(() => TagCreateWithoutTranslationsInputSchema),z.lazy(() => TagUncheckedCreateWithoutTranslationsInputSchema) ]),
+}).strict();
+
+export const TagCreateWithoutOriginalTagInputSchema: z.ZodType<Prisma.TagCreateWithoutOriginalTagInput> = z.object({
+  id: z.string().cuid().optional(),
+  name: z.string(),
+  slug: z.string(),
+  description: z.string().optional().nullable(),
+  baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
+  translations: z.lazy(() => TagCreateNestedManyWithoutOriginalTagInputSchema).optional(),
+  blogs: z.lazy(() => BlogTagCreateNestedManyWithoutTagInputSchema).optional()
+}).strict();
+
+export const TagUncheckedCreateWithoutOriginalTagInputSchema: z.ZodType<Prisma.TagUncheckedCreateWithoutOriginalTagInput> = z.object({
+  id: z.string().cuid().optional(),
+  name: z.string(),
+  slug: z.string(),
+  description: z.string().optional().nullable(),
+  baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
+  translations: z.lazy(() => TagUncheckedCreateNestedManyWithoutOriginalTagInputSchema).optional(),
+  blogs: z.lazy(() => BlogTagUncheckedCreateNestedManyWithoutTagInputSchema).optional()
+}).strict();
+
+export const TagCreateOrConnectWithoutOriginalTagInputSchema: z.ZodType<Prisma.TagCreateOrConnectWithoutOriginalTagInput> = z.object({
+  where: z.lazy(() => TagWhereUniqueInputSchema),
+  create: z.union([ z.lazy(() => TagCreateWithoutOriginalTagInputSchema),z.lazy(() => TagUncheckedCreateWithoutOriginalTagInputSchema) ]),
+}).strict();
+
+export const TagCreateManyOriginalTagInputEnvelopeSchema: z.ZodType<Prisma.TagCreateManyOriginalTagInputEnvelope> = z.object({
+  data: z.union([ z.lazy(() => TagCreateManyOriginalTagInputSchema),z.lazy(() => TagCreateManyOriginalTagInputSchema).array() ]),
+  skipDuplicates: z.boolean().optional()
+}).strict();
+
+export const BlogTagCreateWithoutTagInputSchema: z.ZodType<Prisma.BlogTagCreateWithoutTagInput> = z.object({
+  id: z.string().cuid().optional(),
+  blog: z.lazy(() => BlogCreateNestedOneWithoutTagsInputSchema)
+}).strict();
+
+export const BlogTagUncheckedCreateWithoutTagInputSchema: z.ZodType<Prisma.BlogTagUncheckedCreateWithoutTagInput> = z.object({
+  id: z.string().cuid().optional(),
+  blogId: z.string()
+}).strict();
+
+export const BlogTagCreateOrConnectWithoutTagInputSchema: z.ZodType<Prisma.BlogTagCreateOrConnectWithoutTagInput> = z.object({
+  where: z.lazy(() => BlogTagWhereUniqueInputSchema),
+  create: z.union([ z.lazy(() => BlogTagCreateWithoutTagInputSchema),z.lazy(() => BlogTagUncheckedCreateWithoutTagInputSchema) ]),
+}).strict();
+
+export const BlogTagCreateManyTagInputEnvelopeSchema: z.ZodType<Prisma.BlogTagCreateManyTagInputEnvelope> = z.object({
+  data: z.union([ z.lazy(() => BlogTagCreateManyTagInputSchema),z.lazy(() => BlogTagCreateManyTagInputSchema).array() ]),
+  skipDuplicates: z.boolean().optional()
+}).strict();
+
+export const TagUpsertWithoutTranslationsInputSchema: z.ZodType<Prisma.TagUpsertWithoutTranslationsInput> = z.object({
+  update: z.union([ z.lazy(() => TagUpdateWithoutTranslationsInputSchema),z.lazy(() => TagUncheckedUpdateWithoutTranslationsInputSchema) ]),
+  create: z.union([ z.lazy(() => TagCreateWithoutTranslationsInputSchema),z.lazy(() => TagUncheckedCreateWithoutTranslationsInputSchema) ]),
+  where: z.lazy(() => TagWhereInputSchema).optional()
+}).strict();
+
+export const TagUpdateToOneWithWhereWithoutTranslationsInputSchema: z.ZodType<Prisma.TagUpdateToOneWithWhereWithoutTranslationsInput> = z.object({
+  where: z.lazy(() => TagWhereInputSchema).optional(),
+  data: z.union([ z.lazy(() => TagUpdateWithoutTranslationsInputSchema),z.lazy(() => TagUncheckedUpdateWithoutTranslationsInputSchema) ]),
+}).strict();
+
+export const TagUpdateWithoutTranslationsInputSchema: z.ZodType<Prisma.TagUpdateWithoutTranslationsInput> = z.object({
+  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  name: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  description: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  originalTag: z.lazy(() => TagUpdateOneWithoutTranslationsNestedInputSchema).optional(),
+  blogs: z.lazy(() => BlogTagUpdateManyWithoutTagNestedInputSchema).optional()
+}).strict();
+
+export const TagUncheckedUpdateWithoutTranslationsInputSchema: z.ZodType<Prisma.TagUncheckedUpdateWithoutTranslationsInput> = z.object({
+  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  name: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  description: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  originalTagId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  blogs: z.lazy(() => BlogTagUncheckedUpdateManyWithoutTagNestedInputSchema).optional()
+}).strict();
+
+export const TagUpsertWithWhereUniqueWithoutOriginalTagInputSchema: z.ZodType<Prisma.TagUpsertWithWhereUniqueWithoutOriginalTagInput> = z.object({
+  where: z.lazy(() => TagWhereUniqueInputSchema),
+  update: z.union([ z.lazy(() => TagUpdateWithoutOriginalTagInputSchema),z.lazy(() => TagUncheckedUpdateWithoutOriginalTagInputSchema) ]),
+  create: z.union([ z.lazy(() => TagCreateWithoutOriginalTagInputSchema),z.lazy(() => TagUncheckedCreateWithoutOriginalTagInputSchema) ]),
+}).strict();
+
+export const TagUpdateWithWhereUniqueWithoutOriginalTagInputSchema: z.ZodType<Prisma.TagUpdateWithWhereUniqueWithoutOriginalTagInput> = z.object({
+  where: z.lazy(() => TagWhereUniqueInputSchema),
+  data: z.union([ z.lazy(() => TagUpdateWithoutOriginalTagInputSchema),z.lazy(() => TagUncheckedUpdateWithoutOriginalTagInputSchema) ]),
+}).strict();
+
+export const TagUpdateManyWithWhereWithoutOriginalTagInputSchema: z.ZodType<Prisma.TagUpdateManyWithWhereWithoutOriginalTagInput> = z.object({
+  where: z.lazy(() => TagScalarWhereInputSchema),
+  data: z.union([ z.lazy(() => TagUpdateManyMutationInputSchema),z.lazy(() => TagUncheckedUpdateManyWithoutOriginalTagInputSchema) ]),
+}).strict();
+
+export const TagScalarWhereInputSchema: z.ZodType<Prisma.TagScalarWhereInput> = z.object({
+  AND: z.union([ z.lazy(() => TagScalarWhereInputSchema),z.lazy(() => TagScalarWhereInputSchema).array() ]).optional(),
+  OR: z.lazy(() => TagScalarWhereInputSchema).array().optional(),
+  NOT: z.union([ z.lazy(() => TagScalarWhereInputSchema),z.lazy(() => TagScalarWhereInputSchema).array() ]).optional(),
+  id: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  name: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  slug: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  description: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
+  baseLanguage: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  isTranslation: z.union([ z.lazy(() => BoolFilterSchema),z.boolean() ]).optional(),
+  originalTagId: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
+}).strict();
+
+export const BlogTagUpsertWithWhereUniqueWithoutTagInputSchema: z.ZodType<Prisma.BlogTagUpsertWithWhereUniqueWithoutTagInput> = z.object({
+  where: z.lazy(() => BlogTagWhereUniqueInputSchema),
+  update: z.union([ z.lazy(() => BlogTagUpdateWithoutTagInputSchema),z.lazy(() => BlogTagUncheckedUpdateWithoutTagInputSchema) ]),
+  create: z.union([ z.lazy(() => BlogTagCreateWithoutTagInputSchema),z.lazy(() => BlogTagUncheckedCreateWithoutTagInputSchema) ]),
+}).strict();
+
+export const BlogTagUpdateWithWhereUniqueWithoutTagInputSchema: z.ZodType<Prisma.BlogTagUpdateWithWhereUniqueWithoutTagInput> = z.object({
+  where: z.lazy(() => BlogTagWhereUniqueInputSchema),
+  data: z.union([ z.lazy(() => BlogTagUpdateWithoutTagInputSchema),z.lazy(() => BlogTagUncheckedUpdateWithoutTagInputSchema) ]),
+}).strict();
+
+export const BlogTagUpdateManyWithWhereWithoutTagInputSchema: z.ZodType<Prisma.BlogTagUpdateManyWithWhereWithoutTagInput> = z.object({
+  where: z.lazy(() => BlogTagScalarWhereInputSchema),
+  data: z.union([ z.lazy(() => BlogTagUpdateManyMutationInputSchema),z.lazy(() => BlogTagUncheckedUpdateManyWithoutTagInputSchema) ]),
+}).strict();
+
+export const PollCreateWithoutTranslationsInputSchema: z.ZodType<Prisma.PollCreateWithoutTranslationsInput> = z.object({
+  id: z.string().uuid().optional(),
+  question: z.string(),
+  slug: z.string(),
+  description: z.string().optional().nullable(),
+  baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
+  startDate: z.coerce.date(),
+  endDate: z.coerce.date(),
+  createdAt: z.coerce.date().optional(),
+  Archived: z.boolean().optional(),
+  isPublic: z.boolean().optional(),
+  ArchivedAt: z.coerce.date().optional().nullable(),
+  Deleted: z.boolean().optional(),
+  DeletedAt: z.coerce.date().optional().nullable(),
+  originalPoll: z.lazy(() => PollCreateNestedOneWithoutTranslationsInputSchema).optional(),
+  category: z.lazy(() => CategoryCreateNestedOneWithoutPollsInputSchema),
+  options: z.lazy(() => PollOptionCreateNestedManyWithoutPollInputSchema).optional(),
+  Vote: z.lazy(() => VoteCreateNestedManyWithoutPollInputSchema).optional(),
+  newsItem: z.lazy(() => NewsItemCreateNestedOneWithoutPollInputSchema).optional(),
+  Image: z.lazy(() => ImageCreateNestedManyWithoutPollInputSchema).optional()
+}).strict();
+
+export const PollUncheckedCreateWithoutTranslationsInputSchema: z.ZodType<Prisma.PollUncheckedCreateWithoutTranslationsInput> = z.object({
+  id: z.string().uuid().optional(),
+  question: z.string(),
+  slug: z.string(),
+  description: z.string().optional().nullable(),
+  baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
+  originalPollId: z.string().optional().nullable(),
+  startDate: z.coerce.date(),
+  endDate: z.coerce.date(),
+  createdAt: z.coerce.date().optional(),
+  Archived: z.boolean().optional(),
+  isPublic: z.boolean().optional(),
+  ArchivedAt: z.coerce.date().optional().nullable(),
+  Deleted: z.boolean().optional(),
+  DeletedAt: z.coerce.date().optional().nullable(),
+  categoryId: z.string(),
+  newsItemId: z.string().optional().nullable(),
+  options: z.lazy(() => PollOptionUncheckedCreateNestedManyWithoutPollInputSchema).optional(),
+  Vote: z.lazy(() => VoteUncheckedCreateNestedManyWithoutPollInputSchema).optional(),
+  Image: z.lazy(() => ImageUncheckedCreateNestedManyWithoutPollInputSchema).optional()
+}).strict();
+
+export const PollCreateOrConnectWithoutTranslationsInputSchema: z.ZodType<Prisma.PollCreateOrConnectWithoutTranslationsInput> = z.object({
+  where: z.lazy(() => PollWhereUniqueInputSchema),
+  create: z.union([ z.lazy(() => PollCreateWithoutTranslationsInputSchema),z.lazy(() => PollUncheckedCreateWithoutTranslationsInputSchema) ]),
+}).strict();
+
+export const PollCreateWithoutOriginalPollInputSchema: z.ZodType<Prisma.PollCreateWithoutOriginalPollInput> = z.object({
+  id: z.string().uuid().optional(),
+  question: z.string(),
+  slug: z.string(),
+  description: z.string().optional().nullable(),
+  baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
+  startDate: z.coerce.date(),
+  endDate: z.coerce.date(),
+  createdAt: z.coerce.date().optional(),
+  Archived: z.boolean().optional(),
+  isPublic: z.boolean().optional(),
+  ArchivedAt: z.coerce.date().optional().nullable(),
+  Deleted: z.boolean().optional(),
+  DeletedAt: z.coerce.date().optional().nullable(),
+  translations: z.lazy(() => PollCreateNestedManyWithoutOriginalPollInputSchema).optional(),
+  category: z.lazy(() => CategoryCreateNestedOneWithoutPollsInputSchema),
+  options: z.lazy(() => PollOptionCreateNestedManyWithoutPollInputSchema).optional(),
+  Vote: z.lazy(() => VoteCreateNestedManyWithoutPollInputSchema).optional(),
+  newsItem: z.lazy(() => NewsItemCreateNestedOneWithoutPollInputSchema).optional(),
+  Image: z.lazy(() => ImageCreateNestedManyWithoutPollInputSchema).optional()
+}).strict();
+
+export const PollUncheckedCreateWithoutOriginalPollInputSchema: z.ZodType<Prisma.PollUncheckedCreateWithoutOriginalPollInput> = z.object({
+  id: z.string().uuid().optional(),
+  question: z.string(),
+  slug: z.string(),
+  description: z.string().optional().nullable(),
+  baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
+  startDate: z.coerce.date(),
+  endDate: z.coerce.date(),
+  createdAt: z.coerce.date().optional(),
+  Archived: z.boolean().optional(),
+  isPublic: z.boolean().optional(),
+  ArchivedAt: z.coerce.date().optional().nullable(),
+  Deleted: z.boolean().optional(),
+  DeletedAt: z.coerce.date().optional().nullable(),
+  categoryId: z.string(),
+  newsItemId: z.string().optional().nullable(),
+  translations: z.lazy(() => PollUncheckedCreateNestedManyWithoutOriginalPollInputSchema).optional(),
+  options: z.lazy(() => PollOptionUncheckedCreateNestedManyWithoutPollInputSchema).optional(),
+  Vote: z.lazy(() => VoteUncheckedCreateNestedManyWithoutPollInputSchema).optional(),
+  Image: z.lazy(() => ImageUncheckedCreateNestedManyWithoutPollInputSchema).optional()
+}).strict();
+
+export const PollCreateOrConnectWithoutOriginalPollInputSchema: z.ZodType<Prisma.PollCreateOrConnectWithoutOriginalPollInput> = z.object({
+  where: z.lazy(() => PollWhereUniqueInputSchema),
+  create: z.union([ z.lazy(() => PollCreateWithoutOriginalPollInputSchema),z.lazy(() => PollUncheckedCreateWithoutOriginalPollInputSchema) ]),
+}).strict();
+
+export const PollCreateManyOriginalPollInputEnvelopeSchema: z.ZodType<Prisma.PollCreateManyOriginalPollInputEnvelope> = z.object({
+  data: z.union([ z.lazy(() => PollCreateManyOriginalPollInputSchema),z.lazy(() => PollCreateManyOriginalPollInputSchema).array() ]),
+  skipDuplicates: z.boolean().optional()
+}).strict();
+
+export const CategoryCreateWithoutPollsInputSchema: z.ZodType<Prisma.CategoryCreateWithoutPollsInput> = z.object({
+  id: z.string().uuid().optional(),
+  name: z.string(),
+  slug: z.string(),
+  baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
+  originalCategory: z.lazy(() => CategoryCreateNestedOneWithoutTranslationsInputSchema).optional(),
+  translations: z.lazy(() => CategoryCreateNestedManyWithoutOriginalCategoryInputSchema).optional(),
+  Image: z.lazy(() => ImageCreateNestedManyWithoutCategoryInputSchema).optional(),
+  Blog: z.lazy(() => BlogCreateNestedManyWithoutCategoryInputSchema).optional()
+}).strict();
+
+export const CategoryUncheckedCreateWithoutPollsInputSchema: z.ZodType<Prisma.CategoryUncheckedCreateWithoutPollsInput> = z.object({
+  id: z.string().uuid().optional(),
+  name: z.string(),
+  slug: z.string(),
+  baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
+  originalCategoryId: z.string().optional().nullable(),
+  translations: z.lazy(() => CategoryUncheckedCreateNestedManyWithoutOriginalCategoryInputSchema).optional(),
+  Image: z.lazy(() => ImageUncheckedCreateNestedManyWithoutCategoryInputSchema).optional(),
+  Blog: z.lazy(() => BlogUncheckedCreateNestedManyWithoutCategoryInputSchema).optional()
+}).strict();
+
+export const CategoryCreateOrConnectWithoutPollsInputSchema: z.ZodType<Prisma.CategoryCreateOrConnectWithoutPollsInput> = z.object({
+  where: z.lazy(() => CategoryWhereUniqueInputSchema),
+  create: z.union([ z.lazy(() => CategoryCreateWithoutPollsInputSchema),z.lazy(() => CategoryUncheckedCreateWithoutPollsInputSchema) ]),
+}).strict();
+
+export const PollOptionCreateWithoutPollInputSchema: z.ZodType<Prisma.PollOptionCreateWithoutPollInput> = z.object({
+  id: z.string().uuid().optional(),
+  text: z.string(),
+  baseLanguage: z.string().optional(),
+  votes: z.lazy(() => VoteCreateNestedManyWithoutPollOptionInputSchema).optional()
+}).strict();
+
+export const PollOptionUncheckedCreateWithoutPollInputSchema: z.ZodType<Prisma.PollOptionUncheckedCreateWithoutPollInput> = z.object({
+  id: z.string().uuid().optional(),
+  text: z.string(),
+  baseLanguage: z.string().optional(),
+  votes: z.lazy(() => VoteUncheckedCreateNestedManyWithoutPollOptionInputSchema).optional()
+}).strict();
+
+export const PollOptionCreateOrConnectWithoutPollInputSchema: z.ZodType<Prisma.PollOptionCreateOrConnectWithoutPollInput> = z.object({
+  where: z.lazy(() => PollOptionWhereUniqueInputSchema),
+  create: z.union([ z.lazy(() => PollOptionCreateWithoutPollInputSchema),z.lazy(() => PollOptionUncheckedCreateWithoutPollInputSchema) ]),
+}).strict();
+
+export const PollOptionCreateManyPollInputEnvelopeSchema: z.ZodType<Prisma.PollOptionCreateManyPollInputEnvelope> = z.object({
+  data: z.union([ z.lazy(() => PollOptionCreateManyPollInputSchema),z.lazy(() => PollOptionCreateManyPollInputSchema).array() ]),
+  skipDuplicates: z.boolean().optional()
+}).strict();
+
+export const VoteCreateWithoutPollInputSchema: z.ZodType<Prisma.VoteCreateWithoutPollInput> = z.object({
+  id: z.string().uuid().optional(),
+  hashedIp: z.string(),
+  anonymousId: z.string().optional().nullable(),
+  createdAt: z.coerce.date().optional(),
+  pollOption: z.lazy(() => PollOptionCreateNestedOneWithoutVotesInputSchema),
+  user: z.lazy(() => UserCreateNestedOneWithoutVotesInputSchema).optional()
+}).strict();
+
+export const VoteUncheckedCreateWithoutPollInputSchema: z.ZodType<Prisma.VoteUncheckedCreateWithoutPollInput> = z.object({
+  id: z.string().uuid().optional(),
+  hashedIp: z.string(),
+  anonymousId: z.string().optional().nullable(),
+  createdAt: z.coerce.date().optional(),
+  pollOptionId: z.string(),
+  userId: z.string().optional().nullable()
+}).strict();
+
+export const VoteCreateOrConnectWithoutPollInputSchema: z.ZodType<Prisma.VoteCreateOrConnectWithoutPollInput> = z.object({
+  where: z.lazy(() => VoteWhereUniqueInputSchema),
+  create: z.union([ z.lazy(() => VoteCreateWithoutPollInputSchema),z.lazy(() => VoteUncheckedCreateWithoutPollInputSchema) ]),
+}).strict();
+
+export const VoteCreateManyPollInputEnvelopeSchema: z.ZodType<Prisma.VoteCreateManyPollInputEnvelope> = z.object({
+  data: z.union([ z.lazy(() => VoteCreateManyPollInputSchema),z.lazy(() => VoteCreateManyPollInputSchema).array() ]),
+  skipDuplicates: z.boolean().optional()
+}).strict();
+
+export const NewsItemCreateWithoutPollInputSchema: z.ZodType<Prisma.NewsItemCreateWithoutPollInput> = z.object({
+  id: z.string().cuid().optional(),
+  title: z.string(),
+  content: z.string(),
+  baseLanguage: z.string().optional(),
+  createdAt: z.coerce.date().optional(),
+  pollId: z.string().optional().nullable(),
+  blogId: z.string().optional().nullable(),
+  blog: z.lazy(() => BlogCreateNestedOneWithoutNewsItemInputSchema).optional(),
+  Image: z.lazy(() => ImageCreateNestedManyWithoutNewsItemInputSchema).optional()
+}).strict();
+
+export const NewsItemUncheckedCreateWithoutPollInputSchema: z.ZodType<Prisma.NewsItemUncheckedCreateWithoutPollInput> = z.object({
+  id: z.string().cuid().optional(),
+  title: z.string(),
+  content: z.string(),
+  baseLanguage: z.string().optional(),
+  createdAt: z.coerce.date().optional(),
+  pollId: z.string().optional().nullable(),
+  blogId: z.string().optional().nullable(),
+  blog: z.lazy(() => BlogUncheckedCreateNestedOneWithoutNewsItemInputSchema).optional(),
+  Image: z.lazy(() => ImageUncheckedCreateNestedManyWithoutNewsItemInputSchema).optional()
+}).strict();
+
+export const NewsItemCreateOrConnectWithoutPollInputSchema: z.ZodType<Prisma.NewsItemCreateOrConnectWithoutPollInput> = z.object({
+  where: z.lazy(() => NewsItemWhereUniqueInputSchema),
+  create: z.union([ z.lazy(() => NewsItemCreateWithoutPollInputSchema),z.lazy(() => NewsItemUncheckedCreateWithoutPollInputSchema) ]),
+}).strict();
+
+export const ImageCreateWithoutPollInputSchema: z.ZodType<Prisma.ImageCreateWithoutPollInput> = z.object({
+  id: z.string().cuid().optional(),
+  url: z.string(),
+  alt: z.string().optional().nullable(),
+  width: z.number().int().optional().nullable(),
+  height: z.number().int().optional().nullable(),
+  format: z.string().optional().nullable(),
+  publicId: z.string(),
+  folder: z.string().optional().nullable(),
+  size: z.number().int().optional().nullable(),
+  createdAt: z.coerce.date().optional(),
+  updatedAt: z.coerce.date().optional(),
+  user: z.lazy(() => UserCreateNestedOneWithoutImageInputSchema).optional(),
+  category: z.lazy(() => CategoryCreateNestedOneWithoutImageInputSchema).optional(),
+  newsItem: z.lazy(() => NewsItemCreateNestedOneWithoutImageInputSchema).optional(),
+  blogImagenSeo: z.lazy(() => BlogCreateNestedManyWithoutImagenSeoInputSchema).optional(),
+  blogImagenCard: z.lazy(() => BlogCreateNestedManyWithoutImagenCardInputSchema).optional(),
+  authorProfileImage: z.lazy(() => AuthorCreateNestedOneWithoutProfileImageInputSchema).optional(),
+  Blog: z.lazy(() => BlogCreateNestedOneWithoutImageInputSchema).optional()
+}).strict();
+
+export const ImageUncheckedCreateWithoutPollInputSchema: z.ZodType<Prisma.ImageUncheckedCreateWithoutPollInput> = z.object({
+  id: z.string().cuid().optional(),
+  url: z.string(),
+  alt: z.string().optional().nullable(),
+  width: z.number().int().optional().nullable(),
+  height: z.number().int().optional().nullable(),
+  format: z.string().optional().nullable(),
+  publicId: z.string(),
+  folder: z.string().optional().nullable(),
+  size: z.number().int().optional().nullable(),
+  createdAt: z.coerce.date().optional(),
+  updatedAt: z.coerce.date().optional(),
+  userId: z.string().optional().nullable(),
+  categoryId: z.string().optional().nullable(),
+  newsItemId: z.string().optional().nullable(),
+  blogId: z.string().optional().nullable(),
+  blogImagenSeo: z.lazy(() => BlogUncheckedCreateNestedManyWithoutImagenSeoInputSchema).optional(),
+  blogImagenCard: z.lazy(() => BlogUncheckedCreateNestedManyWithoutImagenCardInputSchema).optional(),
+  authorProfileImage: z.lazy(() => AuthorUncheckedCreateNestedOneWithoutProfileImageInputSchema).optional()
+}).strict();
+
+export const ImageCreateOrConnectWithoutPollInputSchema: z.ZodType<Prisma.ImageCreateOrConnectWithoutPollInput> = z.object({
+  where: z.lazy(() => ImageWhereUniqueInputSchema),
+  create: z.union([ z.lazy(() => ImageCreateWithoutPollInputSchema),z.lazy(() => ImageUncheckedCreateWithoutPollInputSchema) ]),
+}).strict();
+
+export const ImageCreateManyPollInputEnvelopeSchema: z.ZodType<Prisma.ImageCreateManyPollInputEnvelope> = z.object({
+  data: z.union([ z.lazy(() => ImageCreateManyPollInputSchema),z.lazy(() => ImageCreateManyPollInputSchema).array() ]),
+  skipDuplicates: z.boolean().optional()
+}).strict();
+
+export const PollUpsertWithoutTranslationsInputSchema: z.ZodType<Prisma.PollUpsertWithoutTranslationsInput> = z.object({
+  update: z.union([ z.lazy(() => PollUpdateWithoutTranslationsInputSchema),z.lazy(() => PollUncheckedUpdateWithoutTranslationsInputSchema) ]),
+  create: z.union([ z.lazy(() => PollCreateWithoutTranslationsInputSchema),z.lazy(() => PollUncheckedCreateWithoutTranslationsInputSchema) ]),
+  where: z.lazy(() => PollWhereInputSchema).optional()
+}).strict();
+
+export const PollUpdateToOneWithWhereWithoutTranslationsInputSchema: z.ZodType<Prisma.PollUpdateToOneWithWhereWithoutTranslationsInput> = z.object({
+  where: z.lazy(() => PollWhereInputSchema).optional(),
+  data: z.union([ z.lazy(() => PollUpdateWithoutTranslationsInputSchema),z.lazy(() => PollUncheckedUpdateWithoutTranslationsInputSchema) ]),
+}).strict();
+
+export const PollUpdateWithoutTranslationsInputSchema: z.ZodType<Prisma.PollUpdateWithoutTranslationsInput> = z.object({
+  id: z.union([ z.string().uuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  question: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  description: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  startDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  endDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  Archived: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  isPublic: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  ArchivedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  Deleted: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  DeletedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  originalPoll: z.lazy(() => PollUpdateOneWithoutTranslationsNestedInputSchema).optional(),
+  category: z.lazy(() => CategoryUpdateOneRequiredWithoutPollsNestedInputSchema).optional(),
+  options: z.lazy(() => PollOptionUpdateManyWithoutPollNestedInputSchema).optional(),
+  Vote: z.lazy(() => VoteUpdateManyWithoutPollNestedInputSchema).optional(),
+  newsItem: z.lazy(() => NewsItemUpdateOneWithoutPollNestedInputSchema).optional(),
+  Image: z.lazy(() => ImageUpdateManyWithoutPollNestedInputSchema).optional()
+}).strict();
+
+export const PollUncheckedUpdateWithoutTranslationsInputSchema: z.ZodType<Prisma.PollUncheckedUpdateWithoutTranslationsInput> = z.object({
+  id: z.union([ z.string().uuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  question: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  description: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  originalPollId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  startDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  endDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  Archived: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  isPublic: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  ArchivedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  Deleted: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  DeletedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  categoryId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  newsItemId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  options: z.lazy(() => PollOptionUncheckedUpdateManyWithoutPollNestedInputSchema).optional(),
+  Vote: z.lazy(() => VoteUncheckedUpdateManyWithoutPollNestedInputSchema).optional(),
+  Image: z.lazy(() => ImageUncheckedUpdateManyWithoutPollNestedInputSchema).optional()
+}).strict();
+
+export const PollUpsertWithWhereUniqueWithoutOriginalPollInputSchema: z.ZodType<Prisma.PollUpsertWithWhereUniqueWithoutOriginalPollInput> = z.object({
+  where: z.lazy(() => PollWhereUniqueInputSchema),
+  update: z.union([ z.lazy(() => PollUpdateWithoutOriginalPollInputSchema),z.lazy(() => PollUncheckedUpdateWithoutOriginalPollInputSchema) ]),
+  create: z.union([ z.lazy(() => PollCreateWithoutOriginalPollInputSchema),z.lazy(() => PollUncheckedCreateWithoutOriginalPollInputSchema) ]),
+}).strict();
+
+export const PollUpdateWithWhereUniqueWithoutOriginalPollInputSchema: z.ZodType<Prisma.PollUpdateWithWhereUniqueWithoutOriginalPollInput> = z.object({
+  where: z.lazy(() => PollWhereUniqueInputSchema),
+  data: z.union([ z.lazy(() => PollUpdateWithoutOriginalPollInputSchema),z.lazy(() => PollUncheckedUpdateWithoutOriginalPollInputSchema) ]),
+}).strict();
+
+export const PollUpdateManyWithWhereWithoutOriginalPollInputSchema: z.ZodType<Prisma.PollUpdateManyWithWhereWithoutOriginalPollInput> = z.object({
+  where: z.lazy(() => PollScalarWhereInputSchema),
+  data: z.union([ z.lazy(() => PollUpdateManyMutationInputSchema),z.lazy(() => PollUncheckedUpdateManyWithoutOriginalPollInputSchema) ]),
+}).strict();
+
+export const CategoryUpsertWithoutPollsInputSchema: z.ZodType<Prisma.CategoryUpsertWithoutPollsInput> = z.object({
+  update: z.union([ z.lazy(() => CategoryUpdateWithoutPollsInputSchema),z.lazy(() => CategoryUncheckedUpdateWithoutPollsInputSchema) ]),
+  create: z.union([ z.lazy(() => CategoryCreateWithoutPollsInputSchema),z.lazy(() => CategoryUncheckedCreateWithoutPollsInputSchema) ]),
+  where: z.lazy(() => CategoryWhereInputSchema).optional()
+}).strict();
+
+export const CategoryUpdateToOneWithWhereWithoutPollsInputSchema: z.ZodType<Prisma.CategoryUpdateToOneWithWhereWithoutPollsInput> = z.object({
+  where: z.lazy(() => CategoryWhereInputSchema).optional(),
+  data: z.union([ z.lazy(() => CategoryUpdateWithoutPollsInputSchema),z.lazy(() => CategoryUncheckedUpdateWithoutPollsInputSchema) ]),
+}).strict();
+
+export const CategoryUpdateWithoutPollsInputSchema: z.ZodType<Prisma.CategoryUpdateWithoutPollsInput> = z.object({
+  id: z.union([ z.string().uuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  name: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  originalCategory: z.lazy(() => CategoryUpdateOneWithoutTranslationsNestedInputSchema).optional(),
+  translations: z.lazy(() => CategoryUpdateManyWithoutOriginalCategoryNestedInputSchema).optional(),
+  Image: z.lazy(() => ImageUpdateManyWithoutCategoryNestedInputSchema).optional(),
+  Blog: z.lazy(() => BlogUpdateManyWithoutCategoryNestedInputSchema).optional()
+}).strict();
+
+export const CategoryUncheckedUpdateWithoutPollsInputSchema: z.ZodType<Prisma.CategoryUncheckedUpdateWithoutPollsInput> = z.object({
+  id: z.union([ z.string().uuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  name: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  originalCategoryId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  translations: z.lazy(() => CategoryUncheckedUpdateManyWithoutOriginalCategoryNestedInputSchema).optional(),
+  Image: z.lazy(() => ImageUncheckedUpdateManyWithoutCategoryNestedInputSchema).optional(),
+  Blog: z.lazy(() => BlogUncheckedUpdateManyWithoutCategoryNestedInputSchema).optional()
+}).strict();
+
+export const PollOptionUpsertWithWhereUniqueWithoutPollInputSchema: z.ZodType<Prisma.PollOptionUpsertWithWhereUniqueWithoutPollInput> = z.object({
+  where: z.lazy(() => PollOptionWhereUniqueInputSchema),
+  update: z.union([ z.lazy(() => PollOptionUpdateWithoutPollInputSchema),z.lazy(() => PollOptionUncheckedUpdateWithoutPollInputSchema) ]),
+  create: z.union([ z.lazy(() => PollOptionCreateWithoutPollInputSchema),z.lazy(() => PollOptionUncheckedCreateWithoutPollInputSchema) ]),
+}).strict();
+
+export const PollOptionUpdateWithWhereUniqueWithoutPollInputSchema: z.ZodType<Prisma.PollOptionUpdateWithWhereUniqueWithoutPollInput> = z.object({
+  where: z.lazy(() => PollOptionWhereUniqueInputSchema),
+  data: z.union([ z.lazy(() => PollOptionUpdateWithoutPollInputSchema),z.lazy(() => PollOptionUncheckedUpdateWithoutPollInputSchema) ]),
+}).strict();
+
+export const PollOptionUpdateManyWithWhereWithoutPollInputSchema: z.ZodType<Prisma.PollOptionUpdateManyWithWhereWithoutPollInput> = z.object({
+  where: z.lazy(() => PollOptionScalarWhereInputSchema),
+  data: z.union([ z.lazy(() => PollOptionUpdateManyMutationInputSchema),z.lazy(() => PollOptionUncheckedUpdateManyWithoutPollInputSchema) ]),
+}).strict();
+
+export const PollOptionScalarWhereInputSchema: z.ZodType<Prisma.PollOptionScalarWhereInput> = z.object({
+  AND: z.union([ z.lazy(() => PollOptionScalarWhereInputSchema),z.lazy(() => PollOptionScalarWhereInputSchema).array() ]).optional(),
+  OR: z.lazy(() => PollOptionScalarWhereInputSchema).array().optional(),
+  NOT: z.union([ z.lazy(() => PollOptionScalarWhereInputSchema),z.lazy(() => PollOptionScalarWhereInputSchema).array() ]).optional(),
+  id: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  text: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  baseLanguage: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  pollId: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+}).strict();
+
+export const VoteUpsertWithWhereUniqueWithoutPollInputSchema: z.ZodType<Prisma.VoteUpsertWithWhereUniqueWithoutPollInput> = z.object({
+  where: z.lazy(() => VoteWhereUniqueInputSchema),
+  update: z.union([ z.lazy(() => VoteUpdateWithoutPollInputSchema),z.lazy(() => VoteUncheckedUpdateWithoutPollInputSchema) ]),
+  create: z.union([ z.lazy(() => VoteCreateWithoutPollInputSchema),z.lazy(() => VoteUncheckedCreateWithoutPollInputSchema) ]),
+}).strict();
+
+export const VoteUpdateWithWhereUniqueWithoutPollInputSchema: z.ZodType<Prisma.VoteUpdateWithWhereUniqueWithoutPollInput> = z.object({
+  where: z.lazy(() => VoteWhereUniqueInputSchema),
+  data: z.union([ z.lazy(() => VoteUpdateWithoutPollInputSchema),z.lazy(() => VoteUncheckedUpdateWithoutPollInputSchema) ]),
+}).strict();
+
+export const VoteUpdateManyWithWhereWithoutPollInputSchema: z.ZodType<Prisma.VoteUpdateManyWithWhereWithoutPollInput> = z.object({
+  where: z.lazy(() => VoteScalarWhereInputSchema),
+  data: z.union([ z.lazy(() => VoteUpdateManyMutationInputSchema),z.lazy(() => VoteUncheckedUpdateManyWithoutPollInputSchema) ]),
+}).strict();
+
+export const VoteScalarWhereInputSchema: z.ZodType<Prisma.VoteScalarWhereInput> = z.object({
+  AND: z.union([ z.lazy(() => VoteScalarWhereInputSchema),z.lazy(() => VoteScalarWhereInputSchema).array() ]).optional(),
+  OR: z.lazy(() => VoteScalarWhereInputSchema).array().optional(),
+  NOT: z.union([ z.lazy(() => VoteScalarWhereInputSchema),z.lazy(() => VoteScalarWhereInputSchema).array() ]).optional(),
+  id: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  hashedIp: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  anonymousId: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
+  createdAt: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
+  pollId: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  pollOptionId: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  userId: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
+}).strict();
+
+export const NewsItemUpsertWithoutPollInputSchema: z.ZodType<Prisma.NewsItemUpsertWithoutPollInput> = z.object({
+  update: z.union([ z.lazy(() => NewsItemUpdateWithoutPollInputSchema),z.lazy(() => NewsItemUncheckedUpdateWithoutPollInputSchema) ]),
+  create: z.union([ z.lazy(() => NewsItemCreateWithoutPollInputSchema),z.lazy(() => NewsItemUncheckedCreateWithoutPollInputSchema) ]),
+  where: z.lazy(() => NewsItemWhereInputSchema).optional()
+}).strict();
+
+export const NewsItemUpdateToOneWithWhereWithoutPollInputSchema: z.ZodType<Prisma.NewsItemUpdateToOneWithWhereWithoutPollInput> = z.object({
+  where: z.lazy(() => NewsItemWhereInputSchema).optional(),
+  data: z.union([ z.lazy(() => NewsItemUpdateWithoutPollInputSchema),z.lazy(() => NewsItemUncheckedUpdateWithoutPollInputSchema) ]),
+}).strict();
+
+export const NewsItemUpdateWithoutPollInputSchema: z.ZodType<Prisma.NewsItemUpdateWithoutPollInput> = z.object({
+  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  title: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  content: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  pollId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  blogId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  blog: z.lazy(() => BlogUpdateOneWithoutNewsItemNestedInputSchema).optional(),
+  Image: z.lazy(() => ImageUpdateManyWithoutNewsItemNestedInputSchema).optional()
+}).strict();
+
+export const NewsItemUncheckedUpdateWithoutPollInputSchema: z.ZodType<Prisma.NewsItemUncheckedUpdateWithoutPollInput> = z.object({
+  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  title: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  content: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  pollId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  blogId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  blog: z.lazy(() => BlogUncheckedUpdateOneWithoutNewsItemNestedInputSchema).optional(),
+  Image: z.lazy(() => ImageUncheckedUpdateManyWithoutNewsItemNestedInputSchema).optional()
+}).strict();
+
+export const ImageUpsertWithWhereUniqueWithoutPollInputSchema: z.ZodType<Prisma.ImageUpsertWithWhereUniqueWithoutPollInput> = z.object({
+  where: z.lazy(() => ImageWhereUniqueInputSchema),
+  update: z.union([ z.lazy(() => ImageUpdateWithoutPollInputSchema),z.lazy(() => ImageUncheckedUpdateWithoutPollInputSchema) ]),
+  create: z.union([ z.lazy(() => ImageCreateWithoutPollInputSchema),z.lazy(() => ImageUncheckedCreateWithoutPollInputSchema) ]),
+}).strict();
+
+export const ImageUpdateWithWhereUniqueWithoutPollInputSchema: z.ZodType<Prisma.ImageUpdateWithWhereUniqueWithoutPollInput> = z.object({
+  where: z.lazy(() => ImageWhereUniqueInputSchema),
+  data: z.union([ z.lazy(() => ImageUpdateWithoutPollInputSchema),z.lazy(() => ImageUncheckedUpdateWithoutPollInputSchema) ]),
+}).strict();
+
+export const ImageUpdateManyWithWhereWithoutPollInputSchema: z.ZodType<Prisma.ImageUpdateManyWithWhereWithoutPollInput> = z.object({
+  where: z.lazy(() => ImageScalarWhereInputSchema),
+  data: z.union([ z.lazy(() => ImageUpdateManyMutationInputSchema),z.lazy(() => ImageUncheckedUpdateManyWithoutPollInputSchema) ]),
 }).strict();
 
 export const AccountCreateWithoutUserInputSchema: z.ZodType<Prisma.AccountCreateWithoutUserInput> = z.object({
@@ -8392,19 +10654,6 @@ export const VoteUpdateManyWithWhereWithoutUserInputSchema: z.ZodType<Prisma.Vot
   data: z.union([ z.lazy(() => VoteUpdateManyMutationInputSchema),z.lazy(() => VoteUncheckedUpdateManyWithoutUserInputSchema) ]),
 }).strict();
 
-export const VoteScalarWhereInputSchema: z.ZodType<Prisma.VoteScalarWhereInput> = z.object({
-  AND: z.union([ z.lazy(() => VoteScalarWhereInputSchema),z.lazy(() => VoteScalarWhereInputSchema).array() ]).optional(),
-  OR: z.lazy(() => VoteScalarWhereInputSchema).array().optional(),
-  NOT: z.union([ z.lazy(() => VoteScalarWhereInputSchema),z.lazy(() => VoteScalarWhereInputSchema).array() ]).optional(),
-  id: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  hashedIp: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  anonymousId: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
-  createdAt: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
-  pollId: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  pollOptionId: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  userId: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
-}).strict();
-
 export const InfoUpsertWithoutUserInputSchema: z.ZodType<Prisma.InfoUpsertWithoutUserInput> = z.object({
   update: z.union([ z.lazy(() => InfoUpdateWithoutUserInputSchema),z.lazy(() => InfoUncheckedUpdateWithoutUserInputSchema) ]),
   create: z.union([ z.lazy(() => InfoCreateWithoutUserInputSchema),z.lazy(() => InfoUncheckedCreateWithoutUserInputSchema) ]),
@@ -8460,16 +10709,6 @@ export const BlogLikeUpdateManyWithWhereWithoutUserInputSchema: z.ZodType<Prisma
   data: z.union([ z.lazy(() => BlogLikeUpdateManyMutationInputSchema),z.lazy(() => BlogLikeUncheckedUpdateManyWithoutUserInputSchema) ]),
 }).strict();
 
-export const BlogLikeScalarWhereInputSchema: z.ZodType<Prisma.BlogLikeScalarWhereInput> = z.object({
-  AND: z.union([ z.lazy(() => BlogLikeScalarWhereInputSchema),z.lazy(() => BlogLikeScalarWhereInputSchema).array() ]).optional(),
-  OR: z.lazy(() => BlogLikeScalarWhereInputSchema).array().optional(),
-  NOT: z.union([ z.lazy(() => BlogLikeScalarWhereInputSchema),z.lazy(() => BlogLikeScalarWhereInputSchema).array() ]).optional(),
-  id: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  userId: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  blogId: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  createdAt: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
-}).strict();
-
 export const AuthorUpsertWithWhereUniqueWithoutUserInputSchema: z.ZodType<Prisma.AuthorUpsertWithWhereUniqueWithoutUserInput> = z.object({
   where: z.lazy(() => AuthorWhereUniqueInputSchema),
   update: z.union([ z.lazy(() => AuthorUpdateWithoutUserInputSchema),z.lazy(() => AuthorUncheckedUpdateWithoutUserInputSchema) ]),
@@ -8517,28 +10756,6 @@ export const ImageUpdateWithWhereUniqueWithoutUserInputSchema: z.ZodType<Prisma.
 export const ImageUpdateManyWithWhereWithoutUserInputSchema: z.ZodType<Prisma.ImageUpdateManyWithWhereWithoutUserInput> = z.object({
   where: z.lazy(() => ImageScalarWhereInputSchema),
   data: z.union([ z.lazy(() => ImageUpdateManyMutationInputSchema),z.lazy(() => ImageUncheckedUpdateManyWithoutUserInputSchema) ]),
-}).strict();
-
-export const ImageScalarWhereInputSchema: z.ZodType<Prisma.ImageScalarWhereInput> = z.object({
-  AND: z.union([ z.lazy(() => ImageScalarWhereInputSchema),z.lazy(() => ImageScalarWhereInputSchema).array() ]).optional(),
-  OR: z.lazy(() => ImageScalarWhereInputSchema).array().optional(),
-  NOT: z.union([ z.lazy(() => ImageScalarWhereInputSchema),z.lazy(() => ImageScalarWhereInputSchema).array() ]).optional(),
-  id: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  url: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  alt: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
-  width: z.union([ z.lazy(() => IntNullableFilterSchema),z.number() ]).optional().nullable(),
-  height: z.union([ z.lazy(() => IntNullableFilterSchema),z.number() ]).optional().nullable(),
-  format: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
-  publicId: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  folder: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
-  size: z.union([ z.lazy(() => IntNullableFilterSchema),z.number() ]).optional().nullable(),
-  createdAt: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
-  updatedAt: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
-  userId: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
-  categoryId: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
-  newsItemId: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
-  pollId: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
-  blogId: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
 }).strict();
 
 export const SocialMediaUpsertWithWhereUniqueWithoutUserInputSchema: z.ZodType<Prisma.SocialMediaUpsertWithWhereUniqueWithoutUserInput> = z.object({
@@ -9069,6 +11286,7 @@ export const PollCreateWithoutVoteInputSchema: z.ZodType<Prisma.PollCreateWithou
   slug: z.string(),
   description: z.string().optional().nullable(),
   baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
   startDate: z.coerce.date(),
   endDate: z.coerce.date(),
   createdAt: z.coerce.date().optional(),
@@ -9077,6 +11295,8 @@ export const PollCreateWithoutVoteInputSchema: z.ZodType<Prisma.PollCreateWithou
   ArchivedAt: z.coerce.date().optional().nullable(),
   Deleted: z.boolean().optional(),
   DeletedAt: z.coerce.date().optional().nullable(),
+  originalPoll: z.lazy(() => PollCreateNestedOneWithoutTranslationsInputSchema).optional(),
+  translations: z.lazy(() => PollCreateNestedManyWithoutOriginalPollInputSchema).optional(),
   category: z.lazy(() => CategoryCreateNestedOneWithoutPollsInputSchema),
   options: z.lazy(() => PollOptionCreateNestedManyWithoutPollInputSchema).optional(),
   newsItem: z.lazy(() => NewsItemCreateNestedOneWithoutPollInputSchema).optional(),
@@ -9089,6 +11309,8 @@ export const PollUncheckedCreateWithoutVoteInputSchema: z.ZodType<Prisma.PollUnc
   slug: z.string(),
   description: z.string().optional().nullable(),
   baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
+  originalPollId: z.string().optional().nullable(),
   startDate: z.coerce.date(),
   endDate: z.coerce.date(),
   createdAt: z.coerce.date().optional(),
@@ -9099,6 +11321,7 @@ export const PollUncheckedCreateWithoutVoteInputSchema: z.ZodType<Prisma.PollUnc
   DeletedAt: z.coerce.date().optional().nullable(),
   categoryId: z.string(),
   newsItemId: z.string().optional().nullable(),
+  translations: z.lazy(() => PollUncheckedCreateNestedManyWithoutOriginalPollInputSchema).optional(),
   options: z.lazy(() => PollOptionUncheckedCreateNestedManyWithoutPollInputSchema).optional(),
   Image: z.lazy(() => ImageUncheckedCreateNestedManyWithoutPollInputSchema).optional()
 }).strict();
@@ -9199,6 +11422,7 @@ export const PollUpdateWithoutVoteInputSchema: z.ZodType<Prisma.PollUpdateWithou
   slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   description: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
   startDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   endDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
@@ -9207,6 +11431,8 @@ export const PollUpdateWithoutVoteInputSchema: z.ZodType<Prisma.PollUpdateWithou
   ArchivedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   Deleted: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
   DeletedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  originalPoll: z.lazy(() => PollUpdateOneWithoutTranslationsNestedInputSchema).optional(),
+  translations: z.lazy(() => PollUpdateManyWithoutOriginalPollNestedInputSchema).optional(),
   category: z.lazy(() => CategoryUpdateOneRequiredWithoutPollsNestedInputSchema).optional(),
   options: z.lazy(() => PollOptionUpdateManyWithoutPollNestedInputSchema).optional(),
   newsItem: z.lazy(() => NewsItemUpdateOneWithoutPollNestedInputSchema).optional(),
@@ -9219,6 +11445,8 @@ export const PollUncheckedUpdateWithoutVoteInputSchema: z.ZodType<Prisma.PollUnc
   slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   description: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  originalPollId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   startDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   endDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
@@ -9229,6 +11457,7 @@ export const PollUncheckedUpdateWithoutVoteInputSchema: z.ZodType<Prisma.PollUnc
   DeletedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   categoryId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   newsItemId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  translations: z.lazy(() => PollUncheckedUpdateManyWithoutOriginalPollNestedInputSchema).optional(),
   options: z.lazy(() => PollOptionUncheckedUpdateManyWithoutPollNestedInputSchema).optional(),
   Image: z.lazy(() => ImageUncheckedUpdateManyWithoutPollNestedInputSchema).optional()
 }).strict();
@@ -9319,258 +11548,13 @@ export const UserUncheckedUpdateWithoutVotesInputSchema: z.ZodType<Prisma.UserUn
   readingHistory: z.lazy(() => ReadingHistoryUncheckedUpdateManyWithoutUserNestedInputSchema).optional()
 }).strict();
 
-export const PollCreateWithoutCategoryInputSchema: z.ZodType<Prisma.PollCreateWithoutCategoryInput> = z.object({
-  id: z.string().uuid().optional(),
-  question: z.string(),
-  slug: z.string(),
-  description: z.string().optional().nullable(),
-  baseLanguage: z.string().optional(),
-  startDate: z.coerce.date(),
-  endDate: z.coerce.date(),
-  createdAt: z.coerce.date().optional(),
-  Archived: z.boolean().optional(),
-  isPublic: z.boolean().optional(),
-  ArchivedAt: z.coerce.date().optional().nullable(),
-  Deleted: z.boolean().optional(),
-  DeletedAt: z.coerce.date().optional().nullable(),
-  options: z.lazy(() => PollOptionCreateNestedManyWithoutPollInputSchema).optional(),
-  Vote: z.lazy(() => VoteCreateNestedManyWithoutPollInputSchema).optional(),
-  newsItem: z.lazy(() => NewsItemCreateNestedOneWithoutPollInputSchema).optional(),
-  Image: z.lazy(() => ImageCreateNestedManyWithoutPollInputSchema).optional()
-}).strict();
-
-export const PollUncheckedCreateWithoutCategoryInputSchema: z.ZodType<Prisma.PollUncheckedCreateWithoutCategoryInput> = z.object({
-  id: z.string().uuid().optional(),
-  question: z.string(),
-  slug: z.string(),
-  description: z.string().optional().nullable(),
-  baseLanguage: z.string().optional(),
-  startDate: z.coerce.date(),
-  endDate: z.coerce.date(),
-  createdAt: z.coerce.date().optional(),
-  Archived: z.boolean().optional(),
-  isPublic: z.boolean().optional(),
-  ArchivedAt: z.coerce.date().optional().nullable(),
-  Deleted: z.boolean().optional(),
-  DeletedAt: z.coerce.date().optional().nullable(),
-  newsItemId: z.string().optional().nullable(),
-  options: z.lazy(() => PollOptionUncheckedCreateNestedManyWithoutPollInputSchema).optional(),
-  Vote: z.lazy(() => VoteUncheckedCreateNestedManyWithoutPollInputSchema).optional(),
-  Image: z.lazy(() => ImageUncheckedCreateNestedManyWithoutPollInputSchema).optional()
-}).strict();
-
-export const PollCreateOrConnectWithoutCategoryInputSchema: z.ZodType<Prisma.PollCreateOrConnectWithoutCategoryInput> = z.object({
-  where: z.lazy(() => PollWhereUniqueInputSchema),
-  create: z.union([ z.lazy(() => PollCreateWithoutCategoryInputSchema),z.lazy(() => PollUncheckedCreateWithoutCategoryInputSchema) ]),
-}).strict();
-
-export const PollCreateManyCategoryInputEnvelopeSchema: z.ZodType<Prisma.PollCreateManyCategoryInputEnvelope> = z.object({
-  data: z.union([ z.lazy(() => PollCreateManyCategoryInputSchema),z.lazy(() => PollCreateManyCategoryInputSchema).array() ]),
-  skipDuplicates: z.boolean().optional()
-}).strict();
-
-export const ImageCreateWithoutCategoryInputSchema: z.ZodType<Prisma.ImageCreateWithoutCategoryInput> = z.object({
-  id: z.string().cuid().optional(),
-  url: z.string(),
-  alt: z.string().optional().nullable(),
-  width: z.number().int().optional().nullable(),
-  height: z.number().int().optional().nullable(),
-  format: z.string().optional().nullable(),
-  publicId: z.string(),
-  folder: z.string().optional().nullable(),
-  size: z.number().int().optional().nullable(),
-  createdAt: z.coerce.date().optional(),
-  updatedAt: z.coerce.date().optional(),
-  user: z.lazy(() => UserCreateNestedOneWithoutImageInputSchema).optional(),
-  newsItem: z.lazy(() => NewsItemCreateNestedOneWithoutImageInputSchema).optional(),
-  poll: z.lazy(() => PollCreateNestedOneWithoutImageInputSchema).optional(),
-  blogImagenSeo: z.lazy(() => BlogCreateNestedManyWithoutImagenSeoInputSchema).optional(),
-  blogImagenCard: z.lazy(() => BlogCreateNestedManyWithoutImagenCardInputSchema).optional(),
-  authorProfileImage: z.lazy(() => AuthorCreateNestedOneWithoutProfileImageInputSchema).optional(),
-  Blog: z.lazy(() => BlogCreateNestedOneWithoutImageInputSchema).optional()
-}).strict();
-
-export const ImageUncheckedCreateWithoutCategoryInputSchema: z.ZodType<Prisma.ImageUncheckedCreateWithoutCategoryInput> = z.object({
-  id: z.string().cuid().optional(),
-  url: z.string(),
-  alt: z.string().optional().nullable(),
-  width: z.number().int().optional().nullable(),
-  height: z.number().int().optional().nullable(),
-  format: z.string().optional().nullable(),
-  publicId: z.string(),
-  folder: z.string().optional().nullable(),
-  size: z.number().int().optional().nullable(),
-  createdAt: z.coerce.date().optional(),
-  updatedAt: z.coerce.date().optional(),
-  userId: z.string().optional().nullable(),
-  newsItemId: z.string().optional().nullable(),
-  pollId: z.string().optional().nullable(),
-  blogId: z.string().optional().nullable(),
-  blogImagenSeo: z.lazy(() => BlogUncheckedCreateNestedManyWithoutImagenSeoInputSchema).optional(),
-  blogImagenCard: z.lazy(() => BlogUncheckedCreateNestedManyWithoutImagenCardInputSchema).optional(),
-  authorProfileImage: z.lazy(() => AuthorUncheckedCreateNestedOneWithoutProfileImageInputSchema).optional()
-}).strict();
-
-export const ImageCreateOrConnectWithoutCategoryInputSchema: z.ZodType<Prisma.ImageCreateOrConnectWithoutCategoryInput> = z.object({
-  where: z.lazy(() => ImageWhereUniqueInputSchema),
-  create: z.union([ z.lazy(() => ImageCreateWithoutCategoryInputSchema),z.lazy(() => ImageUncheckedCreateWithoutCategoryInputSchema) ]),
-}).strict();
-
-export const ImageCreateManyCategoryInputEnvelopeSchema: z.ZodType<Prisma.ImageCreateManyCategoryInputEnvelope> = z.object({
-  data: z.union([ z.lazy(() => ImageCreateManyCategoryInputSchema),z.lazy(() => ImageCreateManyCategoryInputSchema).array() ]),
-  skipDuplicates: z.boolean().optional()
-}).strict();
-
-export const BlogCreateWithoutCategoryInputSchema: z.ZodType<Prisma.BlogCreateWithoutCategoryInput> = z.object({
-  id: z.string().cuid().optional(),
-  title: z.string(),
-  content: z.string(),
-  titlePunch: z.string().optional().nullable(),
-  slug: z.string(),
-  seoDescription: z.string().optional().nullable(),
-  baseLanguage: z.string().optional(),
-  dateNews: z.coerce.date(),
-  readTime: z.number().int().optional().nullable(),
-  views: z.number().int().optional(),
-  dateCreated: z.coerce.date().optional(),
-  imagenSeo: z.lazy(() => ImageCreateNestedOneWithoutBlogImagenSeoInputSchema).optional(),
-  imagenCard: z.lazy(() => ImageCreateNestedOneWithoutBlogImagenCardInputSchema).optional(),
-  newsItem: z.lazy(() => NewsItemCreateNestedOneWithoutBlogInputSchema).optional(),
-  Image: z.lazy(() => ImageCreateNestedManyWithoutBlogInputSchema).optional(),
-  blogAuthors: z.lazy(() => BlogAuthorCreateNestedManyWithoutBlogInputSchema).optional(),
-  likes: z.lazy(() => BlogLikeCreateNestedManyWithoutBlogInputSchema).optional(),
-  tags: z.lazy(() => BlogTagCreateNestedManyWithoutBlogInputSchema).optional(),
-  TranslationQueue: z.lazy(() => TranslationQueueCreateNestedManyWithoutBlogInputSchema).optional()
-}).strict();
-
-export const BlogUncheckedCreateWithoutCategoryInputSchema: z.ZodType<Prisma.BlogUncheckedCreateWithoutCategoryInput> = z.object({
-  id: z.string().cuid().optional(),
-  title: z.string(),
-  content: z.string(),
-  titlePunch: z.string().optional().nullable(),
-  slug: z.string(),
-  seoDescription: z.string().optional().nullable(),
-  baseLanguage: z.string().optional(),
-  imagenSeoId: z.string().optional().nullable(),
-  dateNews: z.coerce.date(),
-  imagenCardId: z.string().optional().nullable(),
-  newsItemId: z.string().optional().nullable(),
-  readTime: z.number().int().optional().nullable(),
-  views: z.number().int().optional(),
-  dateCreated: z.coerce.date().optional(),
-  Image: z.lazy(() => ImageUncheckedCreateNestedManyWithoutBlogInputSchema).optional(),
-  blogAuthors: z.lazy(() => BlogAuthorUncheckedCreateNestedManyWithoutBlogInputSchema).optional(),
-  likes: z.lazy(() => BlogLikeUncheckedCreateNestedManyWithoutBlogInputSchema).optional(),
-  tags: z.lazy(() => BlogTagUncheckedCreateNestedManyWithoutBlogInputSchema).optional(),
-  TranslationQueue: z.lazy(() => TranslationQueueUncheckedCreateNestedManyWithoutBlogInputSchema).optional()
-}).strict();
-
-export const BlogCreateOrConnectWithoutCategoryInputSchema: z.ZodType<Prisma.BlogCreateOrConnectWithoutCategoryInput> = z.object({
-  where: z.lazy(() => BlogWhereUniqueInputSchema),
-  create: z.union([ z.lazy(() => BlogCreateWithoutCategoryInputSchema),z.lazy(() => BlogUncheckedCreateWithoutCategoryInputSchema) ]),
-}).strict();
-
-export const BlogCreateManyCategoryInputEnvelopeSchema: z.ZodType<Prisma.BlogCreateManyCategoryInputEnvelope> = z.object({
-  data: z.union([ z.lazy(() => BlogCreateManyCategoryInputSchema),z.lazy(() => BlogCreateManyCategoryInputSchema).array() ]),
-  skipDuplicates: z.boolean().optional()
-}).strict();
-
-export const PollUpsertWithWhereUniqueWithoutCategoryInputSchema: z.ZodType<Prisma.PollUpsertWithWhereUniqueWithoutCategoryInput> = z.object({
-  where: z.lazy(() => PollWhereUniqueInputSchema),
-  update: z.union([ z.lazy(() => PollUpdateWithoutCategoryInputSchema),z.lazy(() => PollUncheckedUpdateWithoutCategoryInputSchema) ]),
-  create: z.union([ z.lazy(() => PollCreateWithoutCategoryInputSchema),z.lazy(() => PollUncheckedCreateWithoutCategoryInputSchema) ]),
-}).strict();
-
-export const PollUpdateWithWhereUniqueWithoutCategoryInputSchema: z.ZodType<Prisma.PollUpdateWithWhereUniqueWithoutCategoryInput> = z.object({
-  where: z.lazy(() => PollWhereUniqueInputSchema),
-  data: z.union([ z.lazy(() => PollUpdateWithoutCategoryInputSchema),z.lazy(() => PollUncheckedUpdateWithoutCategoryInputSchema) ]),
-}).strict();
-
-export const PollUpdateManyWithWhereWithoutCategoryInputSchema: z.ZodType<Prisma.PollUpdateManyWithWhereWithoutCategoryInput> = z.object({
-  where: z.lazy(() => PollScalarWhereInputSchema),
-  data: z.union([ z.lazy(() => PollUpdateManyMutationInputSchema),z.lazy(() => PollUncheckedUpdateManyWithoutCategoryInputSchema) ]),
-}).strict();
-
-export const PollScalarWhereInputSchema: z.ZodType<Prisma.PollScalarWhereInput> = z.object({
-  AND: z.union([ z.lazy(() => PollScalarWhereInputSchema),z.lazy(() => PollScalarWhereInputSchema).array() ]).optional(),
-  OR: z.lazy(() => PollScalarWhereInputSchema).array().optional(),
-  NOT: z.union([ z.lazy(() => PollScalarWhereInputSchema),z.lazy(() => PollScalarWhereInputSchema).array() ]).optional(),
-  id: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  question: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  slug: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  description: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
-  baseLanguage: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  startDate: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
-  endDate: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
-  createdAt: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
-  Archived: z.union([ z.lazy(() => BoolFilterSchema),z.boolean() ]).optional(),
-  isPublic: z.union([ z.lazy(() => BoolFilterSchema),z.boolean() ]).optional(),
-  ArchivedAt: z.union([ z.lazy(() => DateTimeNullableFilterSchema),z.coerce.date() ]).optional().nullable(),
-  Deleted: z.union([ z.lazy(() => BoolFilterSchema),z.boolean() ]).optional(),
-  DeletedAt: z.union([ z.lazy(() => DateTimeNullableFilterSchema),z.coerce.date() ]).optional().nullable(),
-  categoryId: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  newsItemId: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
-}).strict();
-
-export const ImageUpsertWithWhereUniqueWithoutCategoryInputSchema: z.ZodType<Prisma.ImageUpsertWithWhereUniqueWithoutCategoryInput> = z.object({
-  where: z.lazy(() => ImageWhereUniqueInputSchema),
-  update: z.union([ z.lazy(() => ImageUpdateWithoutCategoryInputSchema),z.lazy(() => ImageUncheckedUpdateWithoutCategoryInputSchema) ]),
-  create: z.union([ z.lazy(() => ImageCreateWithoutCategoryInputSchema),z.lazy(() => ImageUncheckedCreateWithoutCategoryInputSchema) ]),
-}).strict();
-
-export const ImageUpdateWithWhereUniqueWithoutCategoryInputSchema: z.ZodType<Prisma.ImageUpdateWithWhereUniqueWithoutCategoryInput> = z.object({
-  where: z.lazy(() => ImageWhereUniqueInputSchema),
-  data: z.union([ z.lazy(() => ImageUpdateWithoutCategoryInputSchema),z.lazy(() => ImageUncheckedUpdateWithoutCategoryInputSchema) ]),
-}).strict();
-
-export const ImageUpdateManyWithWhereWithoutCategoryInputSchema: z.ZodType<Prisma.ImageUpdateManyWithWhereWithoutCategoryInput> = z.object({
-  where: z.lazy(() => ImageScalarWhereInputSchema),
-  data: z.union([ z.lazy(() => ImageUpdateManyMutationInputSchema),z.lazy(() => ImageUncheckedUpdateManyWithoutCategoryInputSchema) ]),
-}).strict();
-
-export const BlogUpsertWithWhereUniqueWithoutCategoryInputSchema: z.ZodType<Prisma.BlogUpsertWithWhereUniqueWithoutCategoryInput> = z.object({
-  where: z.lazy(() => BlogWhereUniqueInputSchema),
-  update: z.union([ z.lazy(() => BlogUpdateWithoutCategoryInputSchema),z.lazy(() => BlogUncheckedUpdateWithoutCategoryInputSchema) ]),
-  create: z.union([ z.lazy(() => BlogCreateWithoutCategoryInputSchema),z.lazy(() => BlogUncheckedCreateWithoutCategoryInputSchema) ]),
-}).strict();
-
-export const BlogUpdateWithWhereUniqueWithoutCategoryInputSchema: z.ZodType<Prisma.BlogUpdateWithWhereUniqueWithoutCategoryInput> = z.object({
-  where: z.lazy(() => BlogWhereUniqueInputSchema),
-  data: z.union([ z.lazy(() => BlogUpdateWithoutCategoryInputSchema),z.lazy(() => BlogUncheckedUpdateWithoutCategoryInputSchema) ]),
-}).strict();
-
-export const BlogUpdateManyWithWhereWithoutCategoryInputSchema: z.ZodType<Prisma.BlogUpdateManyWithWhereWithoutCategoryInput> = z.object({
-  where: z.lazy(() => BlogScalarWhereInputSchema),
-  data: z.union([ z.lazy(() => BlogUpdateManyMutationInputSchema),z.lazy(() => BlogUncheckedUpdateManyWithoutCategoryInputSchema) ]),
-}).strict();
-
-export const BlogScalarWhereInputSchema: z.ZodType<Prisma.BlogScalarWhereInput> = z.object({
-  AND: z.union([ z.lazy(() => BlogScalarWhereInputSchema),z.lazy(() => BlogScalarWhereInputSchema).array() ]).optional(),
-  OR: z.lazy(() => BlogScalarWhereInputSchema).array().optional(),
-  NOT: z.union([ z.lazy(() => BlogScalarWhereInputSchema),z.lazy(() => BlogScalarWhereInputSchema).array() ]).optional(),
-  id: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  title: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  content: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  titlePunch: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
-  slug: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  seoDescription: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
-  baseLanguage: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  imagenSeoId: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
-  dateNews: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
-  imagenCardId: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
-  newsItemId: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
-  readTime: z.union([ z.lazy(() => IntNullableFilterSchema),z.number() ]).optional().nullable(),
-  views: z.union([ z.lazy(() => IntFilterSchema),z.number() ]).optional(),
-  dateCreated: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
-  categoryId: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
-}).strict();
-
 export const PollCreateWithoutNewsItemInputSchema: z.ZodType<Prisma.PollCreateWithoutNewsItemInput> = z.object({
   id: z.string().uuid().optional(),
   question: z.string(),
   slug: z.string(),
   description: z.string().optional().nullable(),
   baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
   startDate: z.coerce.date(),
   endDate: z.coerce.date(),
   createdAt: z.coerce.date().optional(),
@@ -9579,6 +11563,8 @@ export const PollCreateWithoutNewsItemInputSchema: z.ZodType<Prisma.PollCreateWi
   ArchivedAt: z.coerce.date().optional().nullable(),
   Deleted: z.boolean().optional(),
   DeletedAt: z.coerce.date().optional().nullable(),
+  originalPoll: z.lazy(() => PollCreateNestedOneWithoutTranslationsInputSchema).optional(),
+  translations: z.lazy(() => PollCreateNestedManyWithoutOriginalPollInputSchema).optional(),
   category: z.lazy(() => CategoryCreateNestedOneWithoutPollsInputSchema),
   options: z.lazy(() => PollOptionCreateNestedManyWithoutPollInputSchema).optional(),
   Vote: z.lazy(() => VoteCreateNestedManyWithoutPollInputSchema).optional(),
@@ -9591,6 +11577,8 @@ export const PollUncheckedCreateWithoutNewsItemInputSchema: z.ZodType<Prisma.Pol
   slug: z.string(),
   description: z.string().optional().nullable(),
   baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
+  originalPollId: z.string().optional().nullable(),
   startDate: z.coerce.date(),
   endDate: z.coerce.date(),
   createdAt: z.coerce.date().optional(),
@@ -9600,6 +11588,7 @@ export const PollUncheckedCreateWithoutNewsItemInputSchema: z.ZodType<Prisma.Pol
   Deleted: z.boolean().optional(),
   DeletedAt: z.coerce.date().optional().nullable(),
   categoryId: z.string(),
+  translations: z.lazy(() => PollUncheckedCreateNestedManyWithoutOriginalPollInputSchema).optional(),
   options: z.lazy(() => PollOptionUncheckedCreateNestedManyWithoutPollInputSchema).optional(),
   Vote: z.lazy(() => VoteUncheckedCreateNestedManyWithoutPollInputSchema).optional(),
   Image: z.lazy(() => ImageUncheckedCreateNestedManyWithoutPollInputSchema).optional()
@@ -9618,10 +11607,13 @@ export const BlogCreateWithoutNewsItemInputSchema: z.ZodType<Prisma.BlogCreateWi
   slug: z.string(),
   seoDescription: z.string().optional().nullable(),
   baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
   dateNews: z.coerce.date(),
   readTime: z.number().int().optional().nullable(),
   views: z.number().int().optional(),
   dateCreated: z.coerce.date().optional(),
+  originalBlog: z.lazy(() => BlogCreateNestedOneWithoutTranslationsInputSchema).optional(),
+  translations: z.lazy(() => BlogCreateNestedManyWithoutOriginalBlogInputSchema).optional(),
   imagenSeo: z.lazy(() => ImageCreateNestedOneWithoutBlogImagenSeoInputSchema).optional(),
   imagenCard: z.lazy(() => ImageCreateNestedOneWithoutBlogImagenCardInputSchema).optional(),
   Image: z.lazy(() => ImageCreateNestedManyWithoutBlogInputSchema).optional(),
@@ -9640,6 +11632,8 @@ export const BlogUncheckedCreateWithoutNewsItemInputSchema: z.ZodType<Prisma.Blo
   slug: z.string(),
   seoDescription: z.string().optional().nullable(),
   baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
+  originalBlogId: z.string().optional().nullable(),
   imagenSeoId: z.string().optional().nullable(),
   dateNews: z.coerce.date(),
   imagenCardId: z.string().optional().nullable(),
@@ -9647,6 +11641,7 @@ export const BlogUncheckedCreateWithoutNewsItemInputSchema: z.ZodType<Prisma.Blo
   views: z.number().int().optional(),
   dateCreated: z.coerce.date().optional(),
   categoryId: z.string().optional().nullable(),
+  translations: z.lazy(() => BlogUncheckedCreateNestedManyWithoutOriginalBlogInputSchema).optional(),
   Image: z.lazy(() => ImageUncheckedCreateNestedManyWithoutBlogInputSchema).optional(),
   blogAuthors: z.lazy(() => BlogAuthorUncheckedCreateNestedManyWithoutBlogInputSchema).optional(),
   likes: z.lazy(() => BlogLikeUncheckedCreateNestedManyWithoutBlogInputSchema).optional(),
@@ -9728,6 +11723,7 @@ export const PollUpdateWithoutNewsItemInputSchema: z.ZodType<Prisma.PollUpdateWi
   slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   description: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
   startDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   endDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
@@ -9736,6 +11732,8 @@ export const PollUpdateWithoutNewsItemInputSchema: z.ZodType<Prisma.PollUpdateWi
   ArchivedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   Deleted: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
   DeletedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  originalPoll: z.lazy(() => PollUpdateOneWithoutTranslationsNestedInputSchema).optional(),
+  translations: z.lazy(() => PollUpdateManyWithoutOriginalPollNestedInputSchema).optional(),
   category: z.lazy(() => CategoryUpdateOneRequiredWithoutPollsNestedInputSchema).optional(),
   options: z.lazy(() => PollOptionUpdateManyWithoutPollNestedInputSchema).optional(),
   Vote: z.lazy(() => VoteUpdateManyWithoutPollNestedInputSchema).optional(),
@@ -9748,6 +11746,8 @@ export const PollUncheckedUpdateWithoutNewsItemInputSchema: z.ZodType<Prisma.Pol
   slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   description: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  originalPollId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   startDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   endDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
@@ -9757,6 +11757,7 @@ export const PollUncheckedUpdateWithoutNewsItemInputSchema: z.ZodType<Prisma.Pol
   Deleted: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
   DeletedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   categoryId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  translations: z.lazy(() => PollUncheckedUpdateManyWithoutOriginalPollNestedInputSchema).optional(),
   options: z.lazy(() => PollOptionUncheckedUpdateManyWithoutPollNestedInputSchema).optional(),
   Vote: z.lazy(() => VoteUncheckedUpdateManyWithoutPollNestedInputSchema).optional(),
   Image: z.lazy(() => ImageUncheckedUpdateManyWithoutPollNestedInputSchema).optional()
@@ -9781,10 +11782,13 @@ export const BlogUpdateWithoutNewsItemInputSchema: z.ZodType<Prisma.BlogUpdateWi
   slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   seoDescription: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
   dateNews: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   readTime: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   views: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
   dateCreated: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  originalBlog: z.lazy(() => BlogUpdateOneWithoutTranslationsNestedInputSchema).optional(),
+  translations: z.lazy(() => BlogUpdateManyWithoutOriginalBlogNestedInputSchema).optional(),
   imagenSeo: z.lazy(() => ImageUpdateOneWithoutBlogImagenSeoNestedInputSchema).optional(),
   imagenCard: z.lazy(() => ImageUpdateOneWithoutBlogImagenCardNestedInputSchema).optional(),
   Image: z.lazy(() => ImageUpdateManyWithoutBlogNestedInputSchema).optional(),
@@ -9803,6 +11807,8 @@ export const BlogUncheckedUpdateWithoutNewsItemInputSchema: z.ZodType<Prisma.Blo
   slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   seoDescription: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  originalBlogId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   imagenSeoId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   dateNews: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   imagenCardId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
@@ -9810,6 +11816,7 @@ export const BlogUncheckedUpdateWithoutNewsItemInputSchema: z.ZodType<Prisma.Blo
   views: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
   dateCreated: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   categoryId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  translations: z.lazy(() => BlogUncheckedUpdateManyWithoutOriginalBlogNestedInputSchema).optional(),
   Image: z.lazy(() => ImageUncheckedUpdateManyWithoutBlogNestedInputSchema).optional(),
   blogAuthors: z.lazy(() => BlogAuthorUncheckedUpdateManyWithoutBlogNestedInputSchema).optional(),
   likes: z.lazy(() => BlogLikeUncheckedUpdateManyWithoutBlogNestedInputSchema).optional(),
@@ -9833,898 +11840,6 @@ export const ImageUpdateManyWithWhereWithoutNewsItemInputSchema: z.ZodType<Prism
   data: z.union([ z.lazy(() => ImageUpdateManyMutationInputSchema),z.lazy(() => ImageUncheckedUpdateManyWithoutNewsItemInputSchema) ]),
 }).strict();
 
-export const CategoryCreateWithoutPollsInputSchema: z.ZodType<Prisma.CategoryCreateWithoutPollsInput> = z.object({
-  id: z.string().uuid().optional(),
-  name: z.string(),
-  slug: z.string(),
-  baseLanguage: z.string().optional(),
-  Image: z.lazy(() => ImageCreateNestedManyWithoutCategoryInputSchema).optional(),
-  Blog: z.lazy(() => BlogCreateNestedManyWithoutCategoryInputSchema).optional()
-}).strict();
-
-export const CategoryUncheckedCreateWithoutPollsInputSchema: z.ZodType<Prisma.CategoryUncheckedCreateWithoutPollsInput> = z.object({
-  id: z.string().uuid().optional(),
-  name: z.string(),
-  slug: z.string(),
-  baseLanguage: z.string().optional(),
-  Image: z.lazy(() => ImageUncheckedCreateNestedManyWithoutCategoryInputSchema).optional(),
-  Blog: z.lazy(() => BlogUncheckedCreateNestedManyWithoutCategoryInputSchema).optional()
-}).strict();
-
-export const CategoryCreateOrConnectWithoutPollsInputSchema: z.ZodType<Prisma.CategoryCreateOrConnectWithoutPollsInput> = z.object({
-  where: z.lazy(() => CategoryWhereUniqueInputSchema),
-  create: z.union([ z.lazy(() => CategoryCreateWithoutPollsInputSchema),z.lazy(() => CategoryUncheckedCreateWithoutPollsInputSchema) ]),
-}).strict();
-
-export const PollOptionCreateWithoutPollInputSchema: z.ZodType<Prisma.PollOptionCreateWithoutPollInput> = z.object({
-  id: z.string().uuid().optional(),
-  text: z.string(),
-  baseLanguage: z.string().optional(),
-  votes: z.lazy(() => VoteCreateNestedManyWithoutPollOptionInputSchema).optional()
-}).strict();
-
-export const PollOptionUncheckedCreateWithoutPollInputSchema: z.ZodType<Prisma.PollOptionUncheckedCreateWithoutPollInput> = z.object({
-  id: z.string().uuid().optional(),
-  text: z.string(),
-  baseLanguage: z.string().optional(),
-  votes: z.lazy(() => VoteUncheckedCreateNestedManyWithoutPollOptionInputSchema).optional()
-}).strict();
-
-export const PollOptionCreateOrConnectWithoutPollInputSchema: z.ZodType<Prisma.PollOptionCreateOrConnectWithoutPollInput> = z.object({
-  where: z.lazy(() => PollOptionWhereUniqueInputSchema),
-  create: z.union([ z.lazy(() => PollOptionCreateWithoutPollInputSchema),z.lazy(() => PollOptionUncheckedCreateWithoutPollInputSchema) ]),
-}).strict();
-
-export const PollOptionCreateManyPollInputEnvelopeSchema: z.ZodType<Prisma.PollOptionCreateManyPollInputEnvelope> = z.object({
-  data: z.union([ z.lazy(() => PollOptionCreateManyPollInputSchema),z.lazy(() => PollOptionCreateManyPollInputSchema).array() ]),
-  skipDuplicates: z.boolean().optional()
-}).strict();
-
-export const VoteCreateWithoutPollInputSchema: z.ZodType<Prisma.VoteCreateWithoutPollInput> = z.object({
-  id: z.string().uuid().optional(),
-  hashedIp: z.string(),
-  anonymousId: z.string().optional().nullable(),
-  createdAt: z.coerce.date().optional(),
-  pollOption: z.lazy(() => PollOptionCreateNestedOneWithoutVotesInputSchema),
-  user: z.lazy(() => UserCreateNestedOneWithoutVotesInputSchema).optional()
-}).strict();
-
-export const VoteUncheckedCreateWithoutPollInputSchema: z.ZodType<Prisma.VoteUncheckedCreateWithoutPollInput> = z.object({
-  id: z.string().uuid().optional(),
-  hashedIp: z.string(),
-  anonymousId: z.string().optional().nullable(),
-  createdAt: z.coerce.date().optional(),
-  pollOptionId: z.string(),
-  userId: z.string().optional().nullable()
-}).strict();
-
-export const VoteCreateOrConnectWithoutPollInputSchema: z.ZodType<Prisma.VoteCreateOrConnectWithoutPollInput> = z.object({
-  where: z.lazy(() => VoteWhereUniqueInputSchema),
-  create: z.union([ z.lazy(() => VoteCreateWithoutPollInputSchema),z.lazy(() => VoteUncheckedCreateWithoutPollInputSchema) ]),
-}).strict();
-
-export const VoteCreateManyPollInputEnvelopeSchema: z.ZodType<Prisma.VoteCreateManyPollInputEnvelope> = z.object({
-  data: z.union([ z.lazy(() => VoteCreateManyPollInputSchema),z.lazy(() => VoteCreateManyPollInputSchema).array() ]),
-  skipDuplicates: z.boolean().optional()
-}).strict();
-
-export const NewsItemCreateWithoutPollInputSchema: z.ZodType<Prisma.NewsItemCreateWithoutPollInput> = z.object({
-  id: z.string().cuid().optional(),
-  title: z.string(),
-  content: z.string(),
-  baseLanguage: z.string().optional(),
-  createdAt: z.coerce.date().optional(),
-  pollId: z.string().optional().nullable(),
-  blogId: z.string().optional().nullable(),
-  blog: z.lazy(() => BlogCreateNestedOneWithoutNewsItemInputSchema).optional(),
-  Image: z.lazy(() => ImageCreateNestedManyWithoutNewsItemInputSchema).optional()
-}).strict();
-
-export const NewsItemUncheckedCreateWithoutPollInputSchema: z.ZodType<Prisma.NewsItemUncheckedCreateWithoutPollInput> = z.object({
-  id: z.string().cuid().optional(),
-  title: z.string(),
-  content: z.string(),
-  baseLanguage: z.string().optional(),
-  createdAt: z.coerce.date().optional(),
-  pollId: z.string().optional().nullable(),
-  blogId: z.string().optional().nullable(),
-  blog: z.lazy(() => BlogUncheckedCreateNestedOneWithoutNewsItemInputSchema).optional(),
-  Image: z.lazy(() => ImageUncheckedCreateNestedManyWithoutNewsItemInputSchema).optional()
-}).strict();
-
-export const NewsItemCreateOrConnectWithoutPollInputSchema: z.ZodType<Prisma.NewsItemCreateOrConnectWithoutPollInput> = z.object({
-  where: z.lazy(() => NewsItemWhereUniqueInputSchema),
-  create: z.union([ z.lazy(() => NewsItemCreateWithoutPollInputSchema),z.lazy(() => NewsItemUncheckedCreateWithoutPollInputSchema) ]),
-}).strict();
-
-export const ImageCreateWithoutPollInputSchema: z.ZodType<Prisma.ImageCreateWithoutPollInput> = z.object({
-  id: z.string().cuid().optional(),
-  url: z.string(),
-  alt: z.string().optional().nullable(),
-  width: z.number().int().optional().nullable(),
-  height: z.number().int().optional().nullable(),
-  format: z.string().optional().nullable(),
-  publicId: z.string(),
-  folder: z.string().optional().nullable(),
-  size: z.number().int().optional().nullable(),
-  createdAt: z.coerce.date().optional(),
-  updatedAt: z.coerce.date().optional(),
-  user: z.lazy(() => UserCreateNestedOneWithoutImageInputSchema).optional(),
-  category: z.lazy(() => CategoryCreateNestedOneWithoutImageInputSchema).optional(),
-  newsItem: z.lazy(() => NewsItemCreateNestedOneWithoutImageInputSchema).optional(),
-  blogImagenSeo: z.lazy(() => BlogCreateNestedManyWithoutImagenSeoInputSchema).optional(),
-  blogImagenCard: z.lazy(() => BlogCreateNestedManyWithoutImagenCardInputSchema).optional(),
-  authorProfileImage: z.lazy(() => AuthorCreateNestedOneWithoutProfileImageInputSchema).optional(),
-  Blog: z.lazy(() => BlogCreateNestedOneWithoutImageInputSchema).optional()
-}).strict();
-
-export const ImageUncheckedCreateWithoutPollInputSchema: z.ZodType<Prisma.ImageUncheckedCreateWithoutPollInput> = z.object({
-  id: z.string().cuid().optional(),
-  url: z.string(),
-  alt: z.string().optional().nullable(),
-  width: z.number().int().optional().nullable(),
-  height: z.number().int().optional().nullable(),
-  format: z.string().optional().nullable(),
-  publicId: z.string(),
-  folder: z.string().optional().nullable(),
-  size: z.number().int().optional().nullable(),
-  createdAt: z.coerce.date().optional(),
-  updatedAt: z.coerce.date().optional(),
-  userId: z.string().optional().nullable(),
-  categoryId: z.string().optional().nullable(),
-  newsItemId: z.string().optional().nullable(),
-  blogId: z.string().optional().nullable(),
-  blogImagenSeo: z.lazy(() => BlogUncheckedCreateNestedManyWithoutImagenSeoInputSchema).optional(),
-  blogImagenCard: z.lazy(() => BlogUncheckedCreateNestedManyWithoutImagenCardInputSchema).optional(),
-  authorProfileImage: z.lazy(() => AuthorUncheckedCreateNestedOneWithoutProfileImageInputSchema).optional()
-}).strict();
-
-export const ImageCreateOrConnectWithoutPollInputSchema: z.ZodType<Prisma.ImageCreateOrConnectWithoutPollInput> = z.object({
-  where: z.lazy(() => ImageWhereUniqueInputSchema),
-  create: z.union([ z.lazy(() => ImageCreateWithoutPollInputSchema),z.lazy(() => ImageUncheckedCreateWithoutPollInputSchema) ]),
-}).strict();
-
-export const ImageCreateManyPollInputEnvelopeSchema: z.ZodType<Prisma.ImageCreateManyPollInputEnvelope> = z.object({
-  data: z.union([ z.lazy(() => ImageCreateManyPollInputSchema),z.lazy(() => ImageCreateManyPollInputSchema).array() ]),
-  skipDuplicates: z.boolean().optional()
-}).strict();
-
-export const CategoryUpsertWithoutPollsInputSchema: z.ZodType<Prisma.CategoryUpsertWithoutPollsInput> = z.object({
-  update: z.union([ z.lazy(() => CategoryUpdateWithoutPollsInputSchema),z.lazy(() => CategoryUncheckedUpdateWithoutPollsInputSchema) ]),
-  create: z.union([ z.lazy(() => CategoryCreateWithoutPollsInputSchema),z.lazy(() => CategoryUncheckedCreateWithoutPollsInputSchema) ]),
-  where: z.lazy(() => CategoryWhereInputSchema).optional()
-}).strict();
-
-export const CategoryUpdateToOneWithWhereWithoutPollsInputSchema: z.ZodType<Prisma.CategoryUpdateToOneWithWhereWithoutPollsInput> = z.object({
-  where: z.lazy(() => CategoryWhereInputSchema).optional(),
-  data: z.union([ z.lazy(() => CategoryUpdateWithoutPollsInputSchema),z.lazy(() => CategoryUncheckedUpdateWithoutPollsInputSchema) ]),
-}).strict();
-
-export const CategoryUpdateWithoutPollsInputSchema: z.ZodType<Prisma.CategoryUpdateWithoutPollsInput> = z.object({
-  id: z.union([ z.string().uuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  name: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  Image: z.lazy(() => ImageUpdateManyWithoutCategoryNestedInputSchema).optional(),
-  Blog: z.lazy(() => BlogUpdateManyWithoutCategoryNestedInputSchema).optional()
-}).strict();
-
-export const CategoryUncheckedUpdateWithoutPollsInputSchema: z.ZodType<Prisma.CategoryUncheckedUpdateWithoutPollsInput> = z.object({
-  id: z.union([ z.string().uuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  name: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  Image: z.lazy(() => ImageUncheckedUpdateManyWithoutCategoryNestedInputSchema).optional(),
-  Blog: z.lazy(() => BlogUncheckedUpdateManyWithoutCategoryNestedInputSchema).optional()
-}).strict();
-
-export const PollOptionUpsertWithWhereUniqueWithoutPollInputSchema: z.ZodType<Prisma.PollOptionUpsertWithWhereUniqueWithoutPollInput> = z.object({
-  where: z.lazy(() => PollOptionWhereUniqueInputSchema),
-  update: z.union([ z.lazy(() => PollOptionUpdateWithoutPollInputSchema),z.lazy(() => PollOptionUncheckedUpdateWithoutPollInputSchema) ]),
-  create: z.union([ z.lazy(() => PollOptionCreateWithoutPollInputSchema),z.lazy(() => PollOptionUncheckedCreateWithoutPollInputSchema) ]),
-}).strict();
-
-export const PollOptionUpdateWithWhereUniqueWithoutPollInputSchema: z.ZodType<Prisma.PollOptionUpdateWithWhereUniqueWithoutPollInput> = z.object({
-  where: z.lazy(() => PollOptionWhereUniqueInputSchema),
-  data: z.union([ z.lazy(() => PollOptionUpdateWithoutPollInputSchema),z.lazy(() => PollOptionUncheckedUpdateWithoutPollInputSchema) ]),
-}).strict();
-
-export const PollOptionUpdateManyWithWhereWithoutPollInputSchema: z.ZodType<Prisma.PollOptionUpdateManyWithWhereWithoutPollInput> = z.object({
-  where: z.lazy(() => PollOptionScalarWhereInputSchema),
-  data: z.union([ z.lazy(() => PollOptionUpdateManyMutationInputSchema),z.lazy(() => PollOptionUncheckedUpdateManyWithoutPollInputSchema) ]),
-}).strict();
-
-export const PollOptionScalarWhereInputSchema: z.ZodType<Prisma.PollOptionScalarWhereInput> = z.object({
-  AND: z.union([ z.lazy(() => PollOptionScalarWhereInputSchema),z.lazy(() => PollOptionScalarWhereInputSchema).array() ]).optional(),
-  OR: z.lazy(() => PollOptionScalarWhereInputSchema).array().optional(),
-  NOT: z.union([ z.lazy(() => PollOptionScalarWhereInputSchema),z.lazy(() => PollOptionScalarWhereInputSchema).array() ]).optional(),
-  id: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  text: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  baseLanguage: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  pollId: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-}).strict();
-
-export const VoteUpsertWithWhereUniqueWithoutPollInputSchema: z.ZodType<Prisma.VoteUpsertWithWhereUniqueWithoutPollInput> = z.object({
-  where: z.lazy(() => VoteWhereUniqueInputSchema),
-  update: z.union([ z.lazy(() => VoteUpdateWithoutPollInputSchema),z.lazy(() => VoteUncheckedUpdateWithoutPollInputSchema) ]),
-  create: z.union([ z.lazy(() => VoteCreateWithoutPollInputSchema),z.lazy(() => VoteUncheckedCreateWithoutPollInputSchema) ]),
-}).strict();
-
-export const VoteUpdateWithWhereUniqueWithoutPollInputSchema: z.ZodType<Prisma.VoteUpdateWithWhereUniqueWithoutPollInput> = z.object({
-  where: z.lazy(() => VoteWhereUniqueInputSchema),
-  data: z.union([ z.lazy(() => VoteUpdateWithoutPollInputSchema),z.lazy(() => VoteUncheckedUpdateWithoutPollInputSchema) ]),
-}).strict();
-
-export const VoteUpdateManyWithWhereWithoutPollInputSchema: z.ZodType<Prisma.VoteUpdateManyWithWhereWithoutPollInput> = z.object({
-  where: z.lazy(() => VoteScalarWhereInputSchema),
-  data: z.union([ z.lazy(() => VoteUpdateManyMutationInputSchema),z.lazy(() => VoteUncheckedUpdateManyWithoutPollInputSchema) ]),
-}).strict();
-
-export const NewsItemUpsertWithoutPollInputSchema: z.ZodType<Prisma.NewsItemUpsertWithoutPollInput> = z.object({
-  update: z.union([ z.lazy(() => NewsItemUpdateWithoutPollInputSchema),z.lazy(() => NewsItemUncheckedUpdateWithoutPollInputSchema) ]),
-  create: z.union([ z.lazy(() => NewsItemCreateWithoutPollInputSchema),z.lazy(() => NewsItemUncheckedCreateWithoutPollInputSchema) ]),
-  where: z.lazy(() => NewsItemWhereInputSchema).optional()
-}).strict();
-
-export const NewsItemUpdateToOneWithWhereWithoutPollInputSchema: z.ZodType<Prisma.NewsItemUpdateToOneWithWhereWithoutPollInput> = z.object({
-  where: z.lazy(() => NewsItemWhereInputSchema).optional(),
-  data: z.union([ z.lazy(() => NewsItemUpdateWithoutPollInputSchema),z.lazy(() => NewsItemUncheckedUpdateWithoutPollInputSchema) ]),
-}).strict();
-
-export const NewsItemUpdateWithoutPollInputSchema: z.ZodType<Prisma.NewsItemUpdateWithoutPollInput> = z.object({
-  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  title: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  content: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  pollId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  blogId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  blog: z.lazy(() => BlogUpdateOneWithoutNewsItemNestedInputSchema).optional(),
-  Image: z.lazy(() => ImageUpdateManyWithoutNewsItemNestedInputSchema).optional()
-}).strict();
-
-export const NewsItemUncheckedUpdateWithoutPollInputSchema: z.ZodType<Prisma.NewsItemUncheckedUpdateWithoutPollInput> = z.object({
-  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  title: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  content: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  pollId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  blogId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  blog: z.lazy(() => BlogUncheckedUpdateOneWithoutNewsItemNestedInputSchema).optional(),
-  Image: z.lazy(() => ImageUncheckedUpdateManyWithoutNewsItemNestedInputSchema).optional()
-}).strict();
-
-export const ImageUpsertWithWhereUniqueWithoutPollInputSchema: z.ZodType<Prisma.ImageUpsertWithWhereUniqueWithoutPollInput> = z.object({
-  where: z.lazy(() => ImageWhereUniqueInputSchema),
-  update: z.union([ z.lazy(() => ImageUpdateWithoutPollInputSchema),z.lazy(() => ImageUncheckedUpdateWithoutPollInputSchema) ]),
-  create: z.union([ z.lazy(() => ImageCreateWithoutPollInputSchema),z.lazy(() => ImageUncheckedCreateWithoutPollInputSchema) ]),
-}).strict();
-
-export const ImageUpdateWithWhereUniqueWithoutPollInputSchema: z.ZodType<Prisma.ImageUpdateWithWhereUniqueWithoutPollInput> = z.object({
-  where: z.lazy(() => ImageWhereUniqueInputSchema),
-  data: z.union([ z.lazy(() => ImageUpdateWithoutPollInputSchema),z.lazy(() => ImageUncheckedUpdateWithoutPollInputSchema) ]),
-}).strict();
-
-export const ImageUpdateManyWithWhereWithoutPollInputSchema: z.ZodType<Prisma.ImageUpdateManyWithWhereWithoutPollInput> = z.object({
-  where: z.lazy(() => ImageScalarWhereInputSchema),
-  data: z.union([ z.lazy(() => ImageUpdateManyMutationInputSchema),z.lazy(() => ImageUncheckedUpdateManyWithoutPollInputSchema) ]),
-}).strict();
-
-export const ImageCreateWithoutBlogImagenSeoInputSchema: z.ZodType<Prisma.ImageCreateWithoutBlogImagenSeoInput> = z.object({
-  id: z.string().cuid().optional(),
-  url: z.string(),
-  alt: z.string().optional().nullable(),
-  width: z.number().int().optional().nullable(),
-  height: z.number().int().optional().nullable(),
-  format: z.string().optional().nullable(),
-  publicId: z.string(),
-  folder: z.string().optional().nullable(),
-  size: z.number().int().optional().nullable(),
-  createdAt: z.coerce.date().optional(),
-  updatedAt: z.coerce.date().optional(),
-  user: z.lazy(() => UserCreateNestedOneWithoutImageInputSchema).optional(),
-  category: z.lazy(() => CategoryCreateNestedOneWithoutImageInputSchema).optional(),
-  newsItem: z.lazy(() => NewsItemCreateNestedOneWithoutImageInputSchema).optional(),
-  poll: z.lazy(() => PollCreateNestedOneWithoutImageInputSchema).optional(),
-  blogImagenCard: z.lazy(() => BlogCreateNestedManyWithoutImagenCardInputSchema).optional(),
-  authorProfileImage: z.lazy(() => AuthorCreateNestedOneWithoutProfileImageInputSchema).optional(),
-  Blog: z.lazy(() => BlogCreateNestedOneWithoutImageInputSchema).optional()
-}).strict();
-
-export const ImageUncheckedCreateWithoutBlogImagenSeoInputSchema: z.ZodType<Prisma.ImageUncheckedCreateWithoutBlogImagenSeoInput> = z.object({
-  id: z.string().cuid().optional(),
-  url: z.string(),
-  alt: z.string().optional().nullable(),
-  width: z.number().int().optional().nullable(),
-  height: z.number().int().optional().nullable(),
-  format: z.string().optional().nullable(),
-  publicId: z.string(),
-  folder: z.string().optional().nullable(),
-  size: z.number().int().optional().nullable(),
-  createdAt: z.coerce.date().optional(),
-  updatedAt: z.coerce.date().optional(),
-  userId: z.string().optional().nullable(),
-  categoryId: z.string().optional().nullable(),
-  newsItemId: z.string().optional().nullable(),
-  pollId: z.string().optional().nullable(),
-  blogId: z.string().optional().nullable(),
-  blogImagenCard: z.lazy(() => BlogUncheckedCreateNestedManyWithoutImagenCardInputSchema).optional(),
-  authorProfileImage: z.lazy(() => AuthorUncheckedCreateNestedOneWithoutProfileImageInputSchema).optional()
-}).strict();
-
-export const ImageCreateOrConnectWithoutBlogImagenSeoInputSchema: z.ZodType<Prisma.ImageCreateOrConnectWithoutBlogImagenSeoInput> = z.object({
-  where: z.lazy(() => ImageWhereUniqueInputSchema),
-  create: z.union([ z.lazy(() => ImageCreateWithoutBlogImagenSeoInputSchema),z.lazy(() => ImageUncheckedCreateWithoutBlogImagenSeoInputSchema) ]),
-}).strict();
-
-export const ImageCreateWithoutBlogImagenCardInputSchema: z.ZodType<Prisma.ImageCreateWithoutBlogImagenCardInput> = z.object({
-  id: z.string().cuid().optional(),
-  url: z.string(),
-  alt: z.string().optional().nullable(),
-  width: z.number().int().optional().nullable(),
-  height: z.number().int().optional().nullable(),
-  format: z.string().optional().nullable(),
-  publicId: z.string(),
-  folder: z.string().optional().nullable(),
-  size: z.number().int().optional().nullable(),
-  createdAt: z.coerce.date().optional(),
-  updatedAt: z.coerce.date().optional(),
-  user: z.lazy(() => UserCreateNestedOneWithoutImageInputSchema).optional(),
-  category: z.lazy(() => CategoryCreateNestedOneWithoutImageInputSchema).optional(),
-  newsItem: z.lazy(() => NewsItemCreateNestedOneWithoutImageInputSchema).optional(),
-  poll: z.lazy(() => PollCreateNestedOneWithoutImageInputSchema).optional(),
-  blogImagenSeo: z.lazy(() => BlogCreateNestedManyWithoutImagenSeoInputSchema).optional(),
-  authorProfileImage: z.lazy(() => AuthorCreateNestedOneWithoutProfileImageInputSchema).optional(),
-  Blog: z.lazy(() => BlogCreateNestedOneWithoutImageInputSchema).optional()
-}).strict();
-
-export const ImageUncheckedCreateWithoutBlogImagenCardInputSchema: z.ZodType<Prisma.ImageUncheckedCreateWithoutBlogImagenCardInput> = z.object({
-  id: z.string().cuid().optional(),
-  url: z.string(),
-  alt: z.string().optional().nullable(),
-  width: z.number().int().optional().nullable(),
-  height: z.number().int().optional().nullable(),
-  format: z.string().optional().nullable(),
-  publicId: z.string(),
-  folder: z.string().optional().nullable(),
-  size: z.number().int().optional().nullable(),
-  createdAt: z.coerce.date().optional(),
-  updatedAt: z.coerce.date().optional(),
-  userId: z.string().optional().nullable(),
-  categoryId: z.string().optional().nullable(),
-  newsItemId: z.string().optional().nullable(),
-  pollId: z.string().optional().nullable(),
-  blogId: z.string().optional().nullable(),
-  blogImagenSeo: z.lazy(() => BlogUncheckedCreateNestedManyWithoutImagenSeoInputSchema).optional(),
-  authorProfileImage: z.lazy(() => AuthorUncheckedCreateNestedOneWithoutProfileImageInputSchema).optional()
-}).strict();
-
-export const ImageCreateOrConnectWithoutBlogImagenCardInputSchema: z.ZodType<Prisma.ImageCreateOrConnectWithoutBlogImagenCardInput> = z.object({
-  where: z.lazy(() => ImageWhereUniqueInputSchema),
-  create: z.union([ z.lazy(() => ImageCreateWithoutBlogImagenCardInputSchema),z.lazy(() => ImageUncheckedCreateWithoutBlogImagenCardInputSchema) ]),
-}).strict();
-
-export const NewsItemCreateWithoutBlogInputSchema: z.ZodType<Prisma.NewsItemCreateWithoutBlogInput> = z.object({
-  id: z.string().cuid().optional(),
-  title: z.string(),
-  content: z.string(),
-  baseLanguage: z.string().optional(),
-  createdAt: z.coerce.date().optional(),
-  pollId: z.string().optional().nullable(),
-  blogId: z.string().optional().nullable(),
-  poll: z.lazy(() => PollCreateNestedOneWithoutNewsItemInputSchema).optional(),
-  Image: z.lazy(() => ImageCreateNestedManyWithoutNewsItemInputSchema).optional()
-}).strict();
-
-export const NewsItemUncheckedCreateWithoutBlogInputSchema: z.ZodType<Prisma.NewsItemUncheckedCreateWithoutBlogInput> = z.object({
-  id: z.string().cuid().optional(),
-  title: z.string(),
-  content: z.string(),
-  baseLanguage: z.string().optional(),
-  createdAt: z.coerce.date().optional(),
-  pollId: z.string().optional().nullable(),
-  blogId: z.string().optional().nullable(),
-  poll: z.lazy(() => PollUncheckedCreateNestedOneWithoutNewsItemInputSchema).optional(),
-  Image: z.lazy(() => ImageUncheckedCreateNestedManyWithoutNewsItemInputSchema).optional()
-}).strict();
-
-export const NewsItemCreateOrConnectWithoutBlogInputSchema: z.ZodType<Prisma.NewsItemCreateOrConnectWithoutBlogInput> = z.object({
-  where: z.lazy(() => NewsItemWhereUniqueInputSchema),
-  create: z.union([ z.lazy(() => NewsItemCreateWithoutBlogInputSchema),z.lazy(() => NewsItemUncheckedCreateWithoutBlogInputSchema) ]),
-}).strict();
-
-export const ImageCreateWithoutBlogInputSchema: z.ZodType<Prisma.ImageCreateWithoutBlogInput> = z.object({
-  id: z.string().cuid().optional(),
-  url: z.string(),
-  alt: z.string().optional().nullable(),
-  width: z.number().int().optional().nullable(),
-  height: z.number().int().optional().nullable(),
-  format: z.string().optional().nullable(),
-  publicId: z.string(),
-  folder: z.string().optional().nullable(),
-  size: z.number().int().optional().nullable(),
-  createdAt: z.coerce.date().optional(),
-  updatedAt: z.coerce.date().optional(),
-  user: z.lazy(() => UserCreateNestedOneWithoutImageInputSchema).optional(),
-  category: z.lazy(() => CategoryCreateNestedOneWithoutImageInputSchema).optional(),
-  newsItem: z.lazy(() => NewsItemCreateNestedOneWithoutImageInputSchema).optional(),
-  poll: z.lazy(() => PollCreateNestedOneWithoutImageInputSchema).optional(),
-  blogImagenSeo: z.lazy(() => BlogCreateNestedManyWithoutImagenSeoInputSchema).optional(),
-  blogImagenCard: z.lazy(() => BlogCreateNestedManyWithoutImagenCardInputSchema).optional(),
-  authorProfileImage: z.lazy(() => AuthorCreateNestedOneWithoutProfileImageInputSchema).optional()
-}).strict();
-
-export const ImageUncheckedCreateWithoutBlogInputSchema: z.ZodType<Prisma.ImageUncheckedCreateWithoutBlogInput> = z.object({
-  id: z.string().cuid().optional(),
-  url: z.string(),
-  alt: z.string().optional().nullable(),
-  width: z.number().int().optional().nullable(),
-  height: z.number().int().optional().nullable(),
-  format: z.string().optional().nullable(),
-  publicId: z.string(),
-  folder: z.string().optional().nullable(),
-  size: z.number().int().optional().nullable(),
-  createdAt: z.coerce.date().optional(),
-  updatedAt: z.coerce.date().optional(),
-  userId: z.string().optional().nullable(),
-  categoryId: z.string().optional().nullable(),
-  newsItemId: z.string().optional().nullable(),
-  pollId: z.string().optional().nullable(),
-  blogImagenSeo: z.lazy(() => BlogUncheckedCreateNestedManyWithoutImagenSeoInputSchema).optional(),
-  blogImagenCard: z.lazy(() => BlogUncheckedCreateNestedManyWithoutImagenCardInputSchema).optional(),
-  authorProfileImage: z.lazy(() => AuthorUncheckedCreateNestedOneWithoutProfileImageInputSchema).optional()
-}).strict();
-
-export const ImageCreateOrConnectWithoutBlogInputSchema: z.ZodType<Prisma.ImageCreateOrConnectWithoutBlogInput> = z.object({
-  where: z.lazy(() => ImageWhereUniqueInputSchema),
-  create: z.union([ z.lazy(() => ImageCreateWithoutBlogInputSchema),z.lazy(() => ImageUncheckedCreateWithoutBlogInputSchema) ]),
-}).strict();
-
-export const ImageCreateManyBlogInputEnvelopeSchema: z.ZodType<Prisma.ImageCreateManyBlogInputEnvelope> = z.object({
-  data: z.union([ z.lazy(() => ImageCreateManyBlogInputSchema),z.lazy(() => ImageCreateManyBlogInputSchema).array() ]),
-  skipDuplicates: z.boolean().optional()
-}).strict();
-
-export const BlogAuthorCreateWithoutBlogInputSchema: z.ZodType<Prisma.BlogAuthorCreateWithoutBlogInput> = z.object({
-  id: z.string().cuid().optional(),
-  author: z.lazy(() => AuthorCreateNestedOneWithoutBlogAuthorsInputSchema)
-}).strict();
-
-export const BlogAuthorUncheckedCreateWithoutBlogInputSchema: z.ZodType<Prisma.BlogAuthorUncheckedCreateWithoutBlogInput> = z.object({
-  id: z.string().cuid().optional(),
-  authorId: z.string()
-}).strict();
-
-export const BlogAuthorCreateOrConnectWithoutBlogInputSchema: z.ZodType<Prisma.BlogAuthorCreateOrConnectWithoutBlogInput> = z.object({
-  where: z.lazy(() => BlogAuthorWhereUniqueInputSchema),
-  create: z.union([ z.lazy(() => BlogAuthorCreateWithoutBlogInputSchema),z.lazy(() => BlogAuthorUncheckedCreateWithoutBlogInputSchema) ]),
-}).strict();
-
-export const BlogAuthorCreateManyBlogInputEnvelopeSchema: z.ZodType<Prisma.BlogAuthorCreateManyBlogInputEnvelope> = z.object({
-  data: z.union([ z.lazy(() => BlogAuthorCreateManyBlogInputSchema),z.lazy(() => BlogAuthorCreateManyBlogInputSchema).array() ]),
-  skipDuplicates: z.boolean().optional()
-}).strict();
-
-export const BlogLikeCreateWithoutBlogInputSchema: z.ZodType<Prisma.BlogLikeCreateWithoutBlogInput> = z.object({
-  id: z.string().cuid().optional(),
-  createdAt: z.coerce.date().optional(),
-  user: z.lazy(() => UserCreateNestedOneWithoutBlogLikesInputSchema)
-}).strict();
-
-export const BlogLikeUncheckedCreateWithoutBlogInputSchema: z.ZodType<Prisma.BlogLikeUncheckedCreateWithoutBlogInput> = z.object({
-  id: z.string().cuid().optional(),
-  userId: z.string(),
-  createdAt: z.coerce.date().optional()
-}).strict();
-
-export const BlogLikeCreateOrConnectWithoutBlogInputSchema: z.ZodType<Prisma.BlogLikeCreateOrConnectWithoutBlogInput> = z.object({
-  where: z.lazy(() => BlogLikeWhereUniqueInputSchema),
-  create: z.union([ z.lazy(() => BlogLikeCreateWithoutBlogInputSchema),z.lazy(() => BlogLikeUncheckedCreateWithoutBlogInputSchema) ]),
-}).strict();
-
-export const BlogLikeCreateManyBlogInputEnvelopeSchema: z.ZodType<Prisma.BlogLikeCreateManyBlogInputEnvelope> = z.object({
-  data: z.union([ z.lazy(() => BlogLikeCreateManyBlogInputSchema),z.lazy(() => BlogLikeCreateManyBlogInputSchema).array() ]),
-  skipDuplicates: z.boolean().optional()
-}).strict();
-
-export const BlogTagCreateWithoutBlogInputSchema: z.ZodType<Prisma.BlogTagCreateWithoutBlogInput> = z.object({
-  id: z.string().cuid().optional(),
-  tag: z.lazy(() => TagCreateNestedOneWithoutBlogsInputSchema)
-}).strict();
-
-export const BlogTagUncheckedCreateWithoutBlogInputSchema: z.ZodType<Prisma.BlogTagUncheckedCreateWithoutBlogInput> = z.object({
-  id: z.string().cuid().optional(),
-  tagId: z.string()
-}).strict();
-
-export const BlogTagCreateOrConnectWithoutBlogInputSchema: z.ZodType<Prisma.BlogTagCreateOrConnectWithoutBlogInput> = z.object({
-  where: z.lazy(() => BlogTagWhereUniqueInputSchema),
-  create: z.union([ z.lazy(() => BlogTagCreateWithoutBlogInputSchema),z.lazy(() => BlogTagUncheckedCreateWithoutBlogInputSchema) ]),
-}).strict();
-
-export const BlogTagCreateManyBlogInputEnvelopeSchema: z.ZodType<Prisma.BlogTagCreateManyBlogInputEnvelope> = z.object({
-  data: z.union([ z.lazy(() => BlogTagCreateManyBlogInputSchema),z.lazy(() => BlogTagCreateManyBlogInputSchema).array() ]),
-  skipDuplicates: z.boolean().optional()
-}).strict();
-
-export const CategoryCreateWithoutBlogInputSchema: z.ZodType<Prisma.CategoryCreateWithoutBlogInput> = z.object({
-  id: z.string().uuid().optional(),
-  name: z.string(),
-  slug: z.string(),
-  baseLanguage: z.string().optional(),
-  polls: z.lazy(() => PollCreateNestedManyWithoutCategoryInputSchema).optional(),
-  Image: z.lazy(() => ImageCreateNestedManyWithoutCategoryInputSchema).optional()
-}).strict();
-
-export const CategoryUncheckedCreateWithoutBlogInputSchema: z.ZodType<Prisma.CategoryUncheckedCreateWithoutBlogInput> = z.object({
-  id: z.string().uuid().optional(),
-  name: z.string(),
-  slug: z.string(),
-  baseLanguage: z.string().optional(),
-  polls: z.lazy(() => PollUncheckedCreateNestedManyWithoutCategoryInputSchema).optional(),
-  Image: z.lazy(() => ImageUncheckedCreateNestedManyWithoutCategoryInputSchema).optional()
-}).strict();
-
-export const CategoryCreateOrConnectWithoutBlogInputSchema: z.ZodType<Prisma.CategoryCreateOrConnectWithoutBlogInput> = z.object({
-  where: z.lazy(() => CategoryWhereUniqueInputSchema),
-  create: z.union([ z.lazy(() => CategoryCreateWithoutBlogInputSchema),z.lazy(() => CategoryUncheckedCreateWithoutBlogInputSchema) ]),
-}).strict();
-
-export const TranslationQueueCreateWithoutBlogInputSchema: z.ZodType<Prisma.TranslationQueueCreateWithoutBlogInput> = z.object({
-  id: z.string().cuid().optional(),
-  targetLanguage: z.string(),
-  status: z.string().optional(),
-  retryCount: z.number().int().optional(),
-  errorMessage: z.string().optional().nullable(),
-  priority: z.number().int().optional(),
-  createdAt: z.coerce.date().optional(),
-  processedAt: z.coerce.date().optional().nullable(),
-  completedAt: z.coerce.date().optional().nullable()
-}).strict();
-
-export const TranslationQueueUncheckedCreateWithoutBlogInputSchema: z.ZodType<Prisma.TranslationQueueUncheckedCreateWithoutBlogInput> = z.object({
-  id: z.string().cuid().optional(),
-  targetLanguage: z.string(),
-  status: z.string().optional(),
-  retryCount: z.number().int().optional(),
-  errorMessage: z.string().optional().nullable(),
-  priority: z.number().int().optional(),
-  createdAt: z.coerce.date().optional(),
-  processedAt: z.coerce.date().optional().nullable(),
-  completedAt: z.coerce.date().optional().nullable()
-}).strict();
-
-export const TranslationQueueCreateOrConnectWithoutBlogInputSchema: z.ZodType<Prisma.TranslationQueueCreateOrConnectWithoutBlogInput> = z.object({
-  where: z.lazy(() => TranslationQueueWhereUniqueInputSchema),
-  create: z.union([ z.lazy(() => TranslationQueueCreateWithoutBlogInputSchema),z.lazy(() => TranslationQueueUncheckedCreateWithoutBlogInputSchema) ]),
-}).strict();
-
-export const TranslationQueueCreateManyBlogInputEnvelopeSchema: z.ZodType<Prisma.TranslationQueueCreateManyBlogInputEnvelope> = z.object({
-  data: z.union([ z.lazy(() => TranslationQueueCreateManyBlogInputSchema),z.lazy(() => TranslationQueueCreateManyBlogInputSchema).array() ]),
-  skipDuplicates: z.boolean().optional()
-}).strict();
-
-export const ImageUpsertWithoutBlogImagenSeoInputSchema: z.ZodType<Prisma.ImageUpsertWithoutBlogImagenSeoInput> = z.object({
-  update: z.union([ z.lazy(() => ImageUpdateWithoutBlogImagenSeoInputSchema),z.lazy(() => ImageUncheckedUpdateWithoutBlogImagenSeoInputSchema) ]),
-  create: z.union([ z.lazy(() => ImageCreateWithoutBlogImagenSeoInputSchema),z.lazy(() => ImageUncheckedCreateWithoutBlogImagenSeoInputSchema) ]),
-  where: z.lazy(() => ImageWhereInputSchema).optional()
-}).strict();
-
-export const ImageUpdateToOneWithWhereWithoutBlogImagenSeoInputSchema: z.ZodType<Prisma.ImageUpdateToOneWithWhereWithoutBlogImagenSeoInput> = z.object({
-  where: z.lazy(() => ImageWhereInputSchema).optional(),
-  data: z.union([ z.lazy(() => ImageUpdateWithoutBlogImagenSeoInputSchema),z.lazy(() => ImageUncheckedUpdateWithoutBlogImagenSeoInputSchema) ]),
-}).strict();
-
-export const ImageUpdateWithoutBlogImagenSeoInputSchema: z.ZodType<Prisma.ImageUpdateWithoutBlogImagenSeoInput> = z.object({
-  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  url: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  alt: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  width: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  height: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  format: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  publicId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  folder: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  size: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  user: z.lazy(() => UserUpdateOneWithoutImageNestedInputSchema).optional(),
-  category: z.lazy(() => CategoryUpdateOneWithoutImageNestedInputSchema).optional(),
-  newsItem: z.lazy(() => NewsItemUpdateOneWithoutImageNestedInputSchema).optional(),
-  poll: z.lazy(() => PollUpdateOneWithoutImageNestedInputSchema).optional(),
-  blogImagenCard: z.lazy(() => BlogUpdateManyWithoutImagenCardNestedInputSchema).optional(),
-  authorProfileImage: z.lazy(() => AuthorUpdateOneWithoutProfileImageNestedInputSchema).optional(),
-  Blog: z.lazy(() => BlogUpdateOneWithoutImageNestedInputSchema).optional()
-}).strict();
-
-export const ImageUncheckedUpdateWithoutBlogImagenSeoInputSchema: z.ZodType<Prisma.ImageUncheckedUpdateWithoutBlogImagenSeoInput> = z.object({
-  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  url: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  alt: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  width: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  height: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  format: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  publicId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  folder: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  size: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  userId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  categoryId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  newsItemId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  pollId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  blogId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  blogImagenCard: z.lazy(() => BlogUncheckedUpdateManyWithoutImagenCardNestedInputSchema).optional(),
-  authorProfileImage: z.lazy(() => AuthorUncheckedUpdateOneWithoutProfileImageNestedInputSchema).optional()
-}).strict();
-
-export const ImageUpsertWithoutBlogImagenCardInputSchema: z.ZodType<Prisma.ImageUpsertWithoutBlogImagenCardInput> = z.object({
-  update: z.union([ z.lazy(() => ImageUpdateWithoutBlogImagenCardInputSchema),z.lazy(() => ImageUncheckedUpdateWithoutBlogImagenCardInputSchema) ]),
-  create: z.union([ z.lazy(() => ImageCreateWithoutBlogImagenCardInputSchema),z.lazy(() => ImageUncheckedCreateWithoutBlogImagenCardInputSchema) ]),
-  where: z.lazy(() => ImageWhereInputSchema).optional()
-}).strict();
-
-export const ImageUpdateToOneWithWhereWithoutBlogImagenCardInputSchema: z.ZodType<Prisma.ImageUpdateToOneWithWhereWithoutBlogImagenCardInput> = z.object({
-  where: z.lazy(() => ImageWhereInputSchema).optional(),
-  data: z.union([ z.lazy(() => ImageUpdateWithoutBlogImagenCardInputSchema),z.lazy(() => ImageUncheckedUpdateWithoutBlogImagenCardInputSchema) ]),
-}).strict();
-
-export const ImageUpdateWithoutBlogImagenCardInputSchema: z.ZodType<Prisma.ImageUpdateWithoutBlogImagenCardInput> = z.object({
-  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  url: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  alt: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  width: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  height: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  format: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  publicId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  folder: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  size: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  user: z.lazy(() => UserUpdateOneWithoutImageNestedInputSchema).optional(),
-  category: z.lazy(() => CategoryUpdateOneWithoutImageNestedInputSchema).optional(),
-  newsItem: z.lazy(() => NewsItemUpdateOneWithoutImageNestedInputSchema).optional(),
-  poll: z.lazy(() => PollUpdateOneWithoutImageNestedInputSchema).optional(),
-  blogImagenSeo: z.lazy(() => BlogUpdateManyWithoutImagenSeoNestedInputSchema).optional(),
-  authorProfileImage: z.lazy(() => AuthorUpdateOneWithoutProfileImageNestedInputSchema).optional(),
-  Blog: z.lazy(() => BlogUpdateOneWithoutImageNestedInputSchema).optional()
-}).strict();
-
-export const ImageUncheckedUpdateWithoutBlogImagenCardInputSchema: z.ZodType<Prisma.ImageUncheckedUpdateWithoutBlogImagenCardInput> = z.object({
-  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  url: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  alt: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  width: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  height: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  format: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  publicId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  folder: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  size: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  userId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  categoryId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  newsItemId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  pollId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  blogId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  blogImagenSeo: z.lazy(() => BlogUncheckedUpdateManyWithoutImagenSeoNestedInputSchema).optional(),
-  authorProfileImage: z.lazy(() => AuthorUncheckedUpdateOneWithoutProfileImageNestedInputSchema).optional()
-}).strict();
-
-export const NewsItemUpsertWithoutBlogInputSchema: z.ZodType<Prisma.NewsItemUpsertWithoutBlogInput> = z.object({
-  update: z.union([ z.lazy(() => NewsItemUpdateWithoutBlogInputSchema),z.lazy(() => NewsItemUncheckedUpdateWithoutBlogInputSchema) ]),
-  create: z.union([ z.lazy(() => NewsItemCreateWithoutBlogInputSchema),z.lazy(() => NewsItemUncheckedCreateWithoutBlogInputSchema) ]),
-  where: z.lazy(() => NewsItemWhereInputSchema).optional()
-}).strict();
-
-export const NewsItemUpdateToOneWithWhereWithoutBlogInputSchema: z.ZodType<Prisma.NewsItemUpdateToOneWithWhereWithoutBlogInput> = z.object({
-  where: z.lazy(() => NewsItemWhereInputSchema).optional(),
-  data: z.union([ z.lazy(() => NewsItemUpdateWithoutBlogInputSchema),z.lazy(() => NewsItemUncheckedUpdateWithoutBlogInputSchema) ]),
-}).strict();
-
-export const NewsItemUpdateWithoutBlogInputSchema: z.ZodType<Prisma.NewsItemUpdateWithoutBlogInput> = z.object({
-  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  title: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  content: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  pollId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  blogId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  poll: z.lazy(() => PollUpdateOneWithoutNewsItemNestedInputSchema).optional(),
-  Image: z.lazy(() => ImageUpdateManyWithoutNewsItemNestedInputSchema).optional()
-}).strict();
-
-export const NewsItemUncheckedUpdateWithoutBlogInputSchema: z.ZodType<Prisma.NewsItemUncheckedUpdateWithoutBlogInput> = z.object({
-  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  title: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  content: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  pollId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  blogId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  poll: z.lazy(() => PollUncheckedUpdateOneWithoutNewsItemNestedInputSchema).optional(),
-  Image: z.lazy(() => ImageUncheckedUpdateManyWithoutNewsItemNestedInputSchema).optional()
-}).strict();
-
-export const ImageUpsertWithWhereUniqueWithoutBlogInputSchema: z.ZodType<Prisma.ImageUpsertWithWhereUniqueWithoutBlogInput> = z.object({
-  where: z.lazy(() => ImageWhereUniqueInputSchema),
-  update: z.union([ z.lazy(() => ImageUpdateWithoutBlogInputSchema),z.lazy(() => ImageUncheckedUpdateWithoutBlogInputSchema) ]),
-  create: z.union([ z.lazy(() => ImageCreateWithoutBlogInputSchema),z.lazy(() => ImageUncheckedCreateWithoutBlogInputSchema) ]),
-}).strict();
-
-export const ImageUpdateWithWhereUniqueWithoutBlogInputSchema: z.ZodType<Prisma.ImageUpdateWithWhereUniqueWithoutBlogInput> = z.object({
-  where: z.lazy(() => ImageWhereUniqueInputSchema),
-  data: z.union([ z.lazy(() => ImageUpdateWithoutBlogInputSchema),z.lazy(() => ImageUncheckedUpdateWithoutBlogInputSchema) ]),
-}).strict();
-
-export const ImageUpdateManyWithWhereWithoutBlogInputSchema: z.ZodType<Prisma.ImageUpdateManyWithWhereWithoutBlogInput> = z.object({
-  where: z.lazy(() => ImageScalarWhereInputSchema),
-  data: z.union([ z.lazy(() => ImageUpdateManyMutationInputSchema),z.lazy(() => ImageUncheckedUpdateManyWithoutBlogInputSchema) ]),
-}).strict();
-
-export const BlogAuthorUpsertWithWhereUniqueWithoutBlogInputSchema: z.ZodType<Prisma.BlogAuthorUpsertWithWhereUniqueWithoutBlogInput> = z.object({
-  where: z.lazy(() => BlogAuthorWhereUniqueInputSchema),
-  update: z.union([ z.lazy(() => BlogAuthorUpdateWithoutBlogInputSchema),z.lazy(() => BlogAuthorUncheckedUpdateWithoutBlogInputSchema) ]),
-  create: z.union([ z.lazy(() => BlogAuthorCreateWithoutBlogInputSchema),z.lazy(() => BlogAuthorUncheckedCreateWithoutBlogInputSchema) ]),
-}).strict();
-
-export const BlogAuthorUpdateWithWhereUniqueWithoutBlogInputSchema: z.ZodType<Prisma.BlogAuthorUpdateWithWhereUniqueWithoutBlogInput> = z.object({
-  where: z.lazy(() => BlogAuthorWhereUniqueInputSchema),
-  data: z.union([ z.lazy(() => BlogAuthorUpdateWithoutBlogInputSchema),z.lazy(() => BlogAuthorUncheckedUpdateWithoutBlogInputSchema) ]),
-}).strict();
-
-export const BlogAuthorUpdateManyWithWhereWithoutBlogInputSchema: z.ZodType<Prisma.BlogAuthorUpdateManyWithWhereWithoutBlogInput> = z.object({
-  where: z.lazy(() => BlogAuthorScalarWhereInputSchema),
-  data: z.union([ z.lazy(() => BlogAuthorUpdateManyMutationInputSchema),z.lazy(() => BlogAuthorUncheckedUpdateManyWithoutBlogInputSchema) ]),
-}).strict();
-
-export const BlogAuthorScalarWhereInputSchema: z.ZodType<Prisma.BlogAuthorScalarWhereInput> = z.object({
-  AND: z.union([ z.lazy(() => BlogAuthorScalarWhereInputSchema),z.lazy(() => BlogAuthorScalarWhereInputSchema).array() ]).optional(),
-  OR: z.lazy(() => BlogAuthorScalarWhereInputSchema).array().optional(),
-  NOT: z.union([ z.lazy(() => BlogAuthorScalarWhereInputSchema),z.lazy(() => BlogAuthorScalarWhereInputSchema).array() ]).optional(),
-  id: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  blogId: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  authorId: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-}).strict();
-
-export const BlogLikeUpsertWithWhereUniqueWithoutBlogInputSchema: z.ZodType<Prisma.BlogLikeUpsertWithWhereUniqueWithoutBlogInput> = z.object({
-  where: z.lazy(() => BlogLikeWhereUniqueInputSchema),
-  update: z.union([ z.lazy(() => BlogLikeUpdateWithoutBlogInputSchema),z.lazy(() => BlogLikeUncheckedUpdateWithoutBlogInputSchema) ]),
-  create: z.union([ z.lazy(() => BlogLikeCreateWithoutBlogInputSchema),z.lazy(() => BlogLikeUncheckedCreateWithoutBlogInputSchema) ]),
-}).strict();
-
-export const BlogLikeUpdateWithWhereUniqueWithoutBlogInputSchema: z.ZodType<Prisma.BlogLikeUpdateWithWhereUniqueWithoutBlogInput> = z.object({
-  where: z.lazy(() => BlogLikeWhereUniqueInputSchema),
-  data: z.union([ z.lazy(() => BlogLikeUpdateWithoutBlogInputSchema),z.lazy(() => BlogLikeUncheckedUpdateWithoutBlogInputSchema) ]),
-}).strict();
-
-export const BlogLikeUpdateManyWithWhereWithoutBlogInputSchema: z.ZodType<Prisma.BlogLikeUpdateManyWithWhereWithoutBlogInput> = z.object({
-  where: z.lazy(() => BlogLikeScalarWhereInputSchema),
-  data: z.union([ z.lazy(() => BlogLikeUpdateManyMutationInputSchema),z.lazy(() => BlogLikeUncheckedUpdateManyWithoutBlogInputSchema) ]),
-}).strict();
-
-export const BlogTagUpsertWithWhereUniqueWithoutBlogInputSchema: z.ZodType<Prisma.BlogTagUpsertWithWhereUniqueWithoutBlogInput> = z.object({
-  where: z.lazy(() => BlogTagWhereUniqueInputSchema),
-  update: z.union([ z.lazy(() => BlogTagUpdateWithoutBlogInputSchema),z.lazy(() => BlogTagUncheckedUpdateWithoutBlogInputSchema) ]),
-  create: z.union([ z.lazy(() => BlogTagCreateWithoutBlogInputSchema),z.lazy(() => BlogTagUncheckedCreateWithoutBlogInputSchema) ]),
-}).strict();
-
-export const BlogTagUpdateWithWhereUniqueWithoutBlogInputSchema: z.ZodType<Prisma.BlogTagUpdateWithWhereUniqueWithoutBlogInput> = z.object({
-  where: z.lazy(() => BlogTagWhereUniqueInputSchema),
-  data: z.union([ z.lazy(() => BlogTagUpdateWithoutBlogInputSchema),z.lazy(() => BlogTagUncheckedUpdateWithoutBlogInputSchema) ]),
-}).strict();
-
-export const BlogTagUpdateManyWithWhereWithoutBlogInputSchema: z.ZodType<Prisma.BlogTagUpdateManyWithWhereWithoutBlogInput> = z.object({
-  where: z.lazy(() => BlogTagScalarWhereInputSchema),
-  data: z.union([ z.lazy(() => BlogTagUpdateManyMutationInputSchema),z.lazy(() => BlogTagUncheckedUpdateManyWithoutBlogInputSchema) ]),
-}).strict();
-
-export const BlogTagScalarWhereInputSchema: z.ZodType<Prisma.BlogTagScalarWhereInput> = z.object({
-  AND: z.union([ z.lazy(() => BlogTagScalarWhereInputSchema),z.lazy(() => BlogTagScalarWhereInputSchema).array() ]).optional(),
-  OR: z.lazy(() => BlogTagScalarWhereInputSchema).array().optional(),
-  NOT: z.union([ z.lazy(() => BlogTagScalarWhereInputSchema),z.lazy(() => BlogTagScalarWhereInputSchema).array() ]).optional(),
-  id: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  blogId: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  tagId: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-}).strict();
-
-export const CategoryUpsertWithoutBlogInputSchema: z.ZodType<Prisma.CategoryUpsertWithoutBlogInput> = z.object({
-  update: z.union([ z.lazy(() => CategoryUpdateWithoutBlogInputSchema),z.lazy(() => CategoryUncheckedUpdateWithoutBlogInputSchema) ]),
-  create: z.union([ z.lazy(() => CategoryCreateWithoutBlogInputSchema),z.lazy(() => CategoryUncheckedCreateWithoutBlogInputSchema) ]),
-  where: z.lazy(() => CategoryWhereInputSchema).optional()
-}).strict();
-
-export const CategoryUpdateToOneWithWhereWithoutBlogInputSchema: z.ZodType<Prisma.CategoryUpdateToOneWithWhereWithoutBlogInput> = z.object({
-  where: z.lazy(() => CategoryWhereInputSchema).optional(),
-  data: z.union([ z.lazy(() => CategoryUpdateWithoutBlogInputSchema),z.lazy(() => CategoryUncheckedUpdateWithoutBlogInputSchema) ]),
-}).strict();
-
-export const CategoryUpdateWithoutBlogInputSchema: z.ZodType<Prisma.CategoryUpdateWithoutBlogInput> = z.object({
-  id: z.union([ z.string().uuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  name: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  polls: z.lazy(() => PollUpdateManyWithoutCategoryNestedInputSchema).optional(),
-  Image: z.lazy(() => ImageUpdateManyWithoutCategoryNestedInputSchema).optional()
-}).strict();
-
-export const CategoryUncheckedUpdateWithoutBlogInputSchema: z.ZodType<Prisma.CategoryUncheckedUpdateWithoutBlogInput> = z.object({
-  id: z.union([ z.string().uuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  name: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  polls: z.lazy(() => PollUncheckedUpdateManyWithoutCategoryNestedInputSchema).optional(),
-  Image: z.lazy(() => ImageUncheckedUpdateManyWithoutCategoryNestedInputSchema).optional()
-}).strict();
-
-export const TranslationQueueUpsertWithWhereUniqueWithoutBlogInputSchema: z.ZodType<Prisma.TranslationQueueUpsertWithWhereUniqueWithoutBlogInput> = z.object({
-  where: z.lazy(() => TranslationQueueWhereUniqueInputSchema),
-  update: z.union([ z.lazy(() => TranslationQueueUpdateWithoutBlogInputSchema),z.lazy(() => TranslationQueueUncheckedUpdateWithoutBlogInputSchema) ]),
-  create: z.union([ z.lazy(() => TranslationQueueCreateWithoutBlogInputSchema),z.lazy(() => TranslationQueueUncheckedCreateWithoutBlogInputSchema) ]),
-}).strict();
-
-export const TranslationQueueUpdateWithWhereUniqueWithoutBlogInputSchema: z.ZodType<Prisma.TranslationQueueUpdateWithWhereUniqueWithoutBlogInput> = z.object({
-  where: z.lazy(() => TranslationQueueWhereUniqueInputSchema),
-  data: z.union([ z.lazy(() => TranslationQueueUpdateWithoutBlogInputSchema),z.lazy(() => TranslationQueueUncheckedUpdateWithoutBlogInputSchema) ]),
-}).strict();
-
-export const TranslationQueueUpdateManyWithWhereWithoutBlogInputSchema: z.ZodType<Prisma.TranslationQueueUpdateManyWithWhereWithoutBlogInput> = z.object({
-  where: z.lazy(() => TranslationQueueScalarWhereInputSchema),
-  data: z.union([ z.lazy(() => TranslationQueueUpdateManyMutationInputSchema),z.lazy(() => TranslationQueueUncheckedUpdateManyWithoutBlogInputSchema) ]),
-}).strict();
-
-export const TranslationQueueScalarWhereInputSchema: z.ZodType<Prisma.TranslationQueueScalarWhereInput> = z.object({
-  AND: z.union([ z.lazy(() => TranslationQueueScalarWhereInputSchema),z.lazy(() => TranslationQueueScalarWhereInputSchema).array() ]).optional(),
-  OR: z.lazy(() => TranslationQueueScalarWhereInputSchema).array().optional(),
-  NOT: z.union([ z.lazy(() => TranslationQueueScalarWhereInputSchema),z.lazy(() => TranslationQueueScalarWhereInputSchema).array() ]).optional(),
-  id: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  blogId: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  targetLanguage: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  status: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  retryCount: z.union([ z.lazy(() => IntFilterSchema),z.number() ]).optional(),
-  errorMessage: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
-  priority: z.union([ z.lazy(() => IntFilterSchema),z.number() ]).optional(),
-  createdAt: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
-  processedAt: z.union([ z.lazy(() => DateTimeNullableFilterSchema),z.coerce.date() ]).optional().nullable(),
-  completedAt: z.union([ z.lazy(() => DateTimeNullableFilterSchema),z.coerce.date() ]).optional().nullable(),
-}).strict();
-
-export const BlogTagCreateWithoutTagInputSchema: z.ZodType<Prisma.BlogTagCreateWithoutTagInput> = z.object({
-  id: z.string().cuid().optional(),
-  blog: z.lazy(() => BlogCreateNestedOneWithoutTagsInputSchema)
-}).strict();
-
-export const BlogTagUncheckedCreateWithoutTagInputSchema: z.ZodType<Prisma.BlogTagUncheckedCreateWithoutTagInput> = z.object({
-  id: z.string().cuid().optional(),
-  blogId: z.string()
-}).strict();
-
-export const BlogTagCreateOrConnectWithoutTagInputSchema: z.ZodType<Prisma.BlogTagCreateOrConnectWithoutTagInput> = z.object({
-  where: z.lazy(() => BlogTagWhereUniqueInputSchema),
-  create: z.union([ z.lazy(() => BlogTagCreateWithoutTagInputSchema),z.lazy(() => BlogTagUncheckedCreateWithoutTagInputSchema) ]),
-}).strict();
-
-export const BlogTagCreateManyTagInputEnvelopeSchema: z.ZodType<Prisma.BlogTagCreateManyTagInputEnvelope> = z.object({
-  data: z.union([ z.lazy(() => BlogTagCreateManyTagInputSchema),z.lazy(() => BlogTagCreateManyTagInputSchema).array() ]),
-  skipDuplicates: z.boolean().optional()
-}).strict();
-
-export const BlogTagUpsertWithWhereUniqueWithoutTagInputSchema: z.ZodType<Prisma.BlogTagUpsertWithWhereUniqueWithoutTagInput> = z.object({
-  where: z.lazy(() => BlogTagWhereUniqueInputSchema),
-  update: z.union([ z.lazy(() => BlogTagUpdateWithoutTagInputSchema),z.lazy(() => BlogTagUncheckedUpdateWithoutTagInputSchema) ]),
-  create: z.union([ z.lazy(() => BlogTagCreateWithoutTagInputSchema),z.lazy(() => BlogTagUncheckedCreateWithoutTagInputSchema) ]),
-}).strict();
-
-export const BlogTagUpdateWithWhereUniqueWithoutTagInputSchema: z.ZodType<Prisma.BlogTagUpdateWithWhereUniqueWithoutTagInput> = z.object({
-  where: z.lazy(() => BlogTagWhereUniqueInputSchema),
-  data: z.union([ z.lazy(() => BlogTagUpdateWithoutTagInputSchema),z.lazy(() => BlogTagUncheckedUpdateWithoutTagInputSchema) ]),
-}).strict();
-
-export const BlogTagUpdateManyWithWhereWithoutTagInputSchema: z.ZodType<Prisma.BlogTagUpdateManyWithWhereWithoutTagInput> = z.object({
-  where: z.lazy(() => BlogTagScalarWhereInputSchema),
-  data: z.union([ z.lazy(() => BlogTagUpdateManyMutationInputSchema),z.lazy(() => BlogTagUncheckedUpdateManyWithoutTagInputSchema) ]),
-}).strict();
-
 export const BlogCreateWithoutTagsInputSchema: z.ZodType<Prisma.BlogCreateWithoutTagsInput> = z.object({
   id: z.string().cuid().optional(),
   title: z.string(),
@@ -10733,10 +11848,13 @@ export const BlogCreateWithoutTagsInputSchema: z.ZodType<Prisma.BlogCreateWithou
   slug: z.string(),
   seoDescription: z.string().optional().nullable(),
   baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
   dateNews: z.coerce.date(),
   readTime: z.number().int().optional().nullable(),
   views: z.number().int().optional(),
   dateCreated: z.coerce.date().optional(),
+  originalBlog: z.lazy(() => BlogCreateNestedOneWithoutTranslationsInputSchema).optional(),
+  translations: z.lazy(() => BlogCreateNestedManyWithoutOriginalBlogInputSchema).optional(),
   imagenSeo: z.lazy(() => ImageCreateNestedOneWithoutBlogImagenSeoInputSchema).optional(),
   imagenCard: z.lazy(() => ImageCreateNestedOneWithoutBlogImagenCardInputSchema).optional(),
   newsItem: z.lazy(() => NewsItemCreateNestedOneWithoutBlogInputSchema).optional(),
@@ -10755,6 +11873,8 @@ export const BlogUncheckedCreateWithoutTagsInputSchema: z.ZodType<Prisma.BlogUnc
   slug: z.string(),
   seoDescription: z.string().optional().nullable(),
   baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
+  originalBlogId: z.string().optional().nullable(),
   imagenSeoId: z.string().optional().nullable(),
   dateNews: z.coerce.date(),
   imagenCardId: z.string().optional().nullable(),
@@ -10763,6 +11883,7 @@ export const BlogUncheckedCreateWithoutTagsInputSchema: z.ZodType<Prisma.BlogUnc
   views: z.number().int().optional(),
   dateCreated: z.coerce.date().optional(),
   categoryId: z.string().optional().nullable(),
+  translations: z.lazy(() => BlogUncheckedCreateNestedManyWithoutOriginalBlogInputSchema).optional(),
   Image: z.lazy(() => ImageUncheckedCreateNestedManyWithoutBlogInputSchema).optional(),
   blogAuthors: z.lazy(() => BlogAuthorUncheckedCreateNestedManyWithoutBlogInputSchema).optional(),
   likes: z.lazy(() => BlogLikeUncheckedCreateNestedManyWithoutBlogInputSchema).optional(),
@@ -10779,7 +11900,10 @@ export const TagCreateWithoutBlogsInputSchema: z.ZodType<Prisma.TagCreateWithout
   name: z.string(),
   slug: z.string(),
   description: z.string().optional().nullable(),
-  baseLanguage: z.string().optional()
+  baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
+  originalTag: z.lazy(() => TagCreateNestedOneWithoutTranslationsInputSchema).optional(),
+  translations: z.lazy(() => TagCreateNestedManyWithoutOriginalTagInputSchema).optional()
 }).strict();
 
 export const TagUncheckedCreateWithoutBlogsInputSchema: z.ZodType<Prisma.TagUncheckedCreateWithoutBlogsInput> = z.object({
@@ -10787,7 +11911,10 @@ export const TagUncheckedCreateWithoutBlogsInputSchema: z.ZodType<Prisma.TagUnch
   name: z.string(),
   slug: z.string(),
   description: z.string().optional().nullable(),
-  baseLanguage: z.string().optional()
+  baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
+  originalTagId: z.string().optional().nullable(),
+  translations: z.lazy(() => TagUncheckedCreateNestedManyWithoutOriginalTagInputSchema).optional()
 }).strict();
 
 export const TagCreateOrConnectWithoutBlogsInputSchema: z.ZodType<Prisma.TagCreateOrConnectWithoutBlogsInput> = z.object({
@@ -10814,10 +11941,13 @@ export const BlogUpdateWithoutTagsInputSchema: z.ZodType<Prisma.BlogUpdateWithou
   slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   seoDescription: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
   dateNews: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   readTime: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   views: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
   dateCreated: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  originalBlog: z.lazy(() => BlogUpdateOneWithoutTranslationsNestedInputSchema).optional(),
+  translations: z.lazy(() => BlogUpdateManyWithoutOriginalBlogNestedInputSchema).optional(),
   imagenSeo: z.lazy(() => ImageUpdateOneWithoutBlogImagenSeoNestedInputSchema).optional(),
   imagenCard: z.lazy(() => ImageUpdateOneWithoutBlogImagenCardNestedInputSchema).optional(),
   newsItem: z.lazy(() => NewsItemUpdateOneWithoutBlogNestedInputSchema).optional(),
@@ -10836,6 +11966,8 @@ export const BlogUncheckedUpdateWithoutTagsInputSchema: z.ZodType<Prisma.BlogUnc
   slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   seoDescription: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  originalBlogId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   imagenSeoId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   dateNews: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   imagenCardId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
@@ -10844,6 +11976,7 @@ export const BlogUncheckedUpdateWithoutTagsInputSchema: z.ZodType<Prisma.BlogUnc
   views: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
   dateCreated: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   categoryId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  translations: z.lazy(() => BlogUncheckedUpdateManyWithoutOriginalBlogNestedInputSchema).optional(),
   Image: z.lazy(() => ImageUncheckedUpdateManyWithoutBlogNestedInputSchema).optional(),
   blogAuthors: z.lazy(() => BlogAuthorUncheckedUpdateManyWithoutBlogNestedInputSchema).optional(),
   likes: z.lazy(() => BlogLikeUncheckedUpdateManyWithoutBlogNestedInputSchema).optional(),
@@ -10867,6 +12000,9 @@ export const TagUpdateWithoutBlogsInputSchema: z.ZodType<Prisma.TagUpdateWithout
   slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   description: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  originalTag: z.lazy(() => TagUpdateOneWithoutTranslationsNestedInputSchema).optional(),
+  translations: z.lazy(() => TagUpdateManyWithoutOriginalTagNestedInputSchema).optional()
 }).strict();
 
 export const TagUncheckedUpdateWithoutBlogsInputSchema: z.ZodType<Prisma.TagUncheckedUpdateWithoutBlogsInput> = z.object({
@@ -10875,6 +12011,9 @@ export const TagUncheckedUpdateWithoutBlogsInputSchema: z.ZodType<Prisma.TagUnch
   slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   description: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  originalTagId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  translations: z.lazy(() => TagUncheckedUpdateManyWithoutOriginalTagNestedInputSchema).optional()
 }).strict();
 
 export const UserCreateWithoutBlogLikesInputSchema: z.ZodType<Prisma.UserCreateWithoutBlogLikesInput> = z.object({
@@ -10940,10 +12079,13 @@ export const BlogCreateWithoutLikesInputSchema: z.ZodType<Prisma.BlogCreateWitho
   slug: z.string(),
   seoDescription: z.string().optional().nullable(),
   baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
   dateNews: z.coerce.date(),
   readTime: z.number().int().optional().nullable(),
   views: z.number().int().optional(),
   dateCreated: z.coerce.date().optional(),
+  originalBlog: z.lazy(() => BlogCreateNestedOneWithoutTranslationsInputSchema).optional(),
+  translations: z.lazy(() => BlogCreateNestedManyWithoutOriginalBlogInputSchema).optional(),
   imagenSeo: z.lazy(() => ImageCreateNestedOneWithoutBlogImagenSeoInputSchema).optional(),
   imagenCard: z.lazy(() => ImageCreateNestedOneWithoutBlogImagenCardInputSchema).optional(),
   newsItem: z.lazy(() => NewsItemCreateNestedOneWithoutBlogInputSchema).optional(),
@@ -10962,6 +12104,8 @@ export const BlogUncheckedCreateWithoutLikesInputSchema: z.ZodType<Prisma.BlogUn
   slug: z.string(),
   seoDescription: z.string().optional().nullable(),
   baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
+  originalBlogId: z.string().optional().nullable(),
   imagenSeoId: z.string().optional().nullable(),
   dateNews: z.coerce.date(),
   imagenCardId: z.string().optional().nullable(),
@@ -10970,6 +12114,7 @@ export const BlogUncheckedCreateWithoutLikesInputSchema: z.ZodType<Prisma.BlogUn
   views: z.number().int().optional(),
   dateCreated: z.coerce.date().optional(),
   categoryId: z.string().optional().nullable(),
+  translations: z.lazy(() => BlogUncheckedCreateNestedManyWithoutOriginalBlogInputSchema).optional(),
   Image: z.lazy(() => ImageUncheckedCreateNestedManyWithoutBlogInputSchema).optional(),
   blogAuthors: z.lazy(() => BlogAuthorUncheckedCreateNestedManyWithoutBlogInputSchema).optional(),
   tags: z.lazy(() => BlogTagUncheckedCreateNestedManyWithoutBlogInputSchema).optional(),
@@ -11061,10 +12206,13 @@ export const BlogUpdateWithoutLikesInputSchema: z.ZodType<Prisma.BlogUpdateWitho
   slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   seoDescription: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
   dateNews: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   readTime: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   views: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
   dateCreated: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  originalBlog: z.lazy(() => BlogUpdateOneWithoutTranslationsNestedInputSchema).optional(),
+  translations: z.lazy(() => BlogUpdateManyWithoutOriginalBlogNestedInputSchema).optional(),
   imagenSeo: z.lazy(() => ImageUpdateOneWithoutBlogImagenSeoNestedInputSchema).optional(),
   imagenCard: z.lazy(() => ImageUpdateOneWithoutBlogImagenCardNestedInputSchema).optional(),
   newsItem: z.lazy(() => NewsItemUpdateOneWithoutBlogNestedInputSchema).optional(),
@@ -11083,6 +12231,8 @@ export const BlogUncheckedUpdateWithoutLikesInputSchema: z.ZodType<Prisma.BlogUn
   slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   seoDescription: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  originalBlogId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   imagenSeoId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   dateNews: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   imagenCardId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
@@ -11091,6 +12241,7 @@ export const BlogUncheckedUpdateWithoutLikesInputSchema: z.ZodType<Prisma.BlogUn
   views: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
   dateCreated: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   categoryId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  translations: z.lazy(() => BlogUncheckedUpdateManyWithoutOriginalBlogNestedInputSchema).optional(),
   Image: z.lazy(() => ImageUncheckedUpdateManyWithoutBlogNestedInputSchema).optional(),
   blogAuthors: z.lazy(() => BlogAuthorUncheckedUpdateManyWithoutBlogNestedInputSchema).optional(),
   tags: z.lazy(() => BlogTagUncheckedUpdateManyWithoutBlogNestedInputSchema).optional(),
@@ -11105,10 +12256,13 @@ export const BlogCreateWithoutBlogAuthorsInputSchema: z.ZodType<Prisma.BlogCreat
   slug: z.string(),
   seoDescription: z.string().optional().nullable(),
   baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
   dateNews: z.coerce.date(),
   readTime: z.number().int().optional().nullable(),
   views: z.number().int().optional(),
   dateCreated: z.coerce.date().optional(),
+  originalBlog: z.lazy(() => BlogCreateNestedOneWithoutTranslationsInputSchema).optional(),
+  translations: z.lazy(() => BlogCreateNestedManyWithoutOriginalBlogInputSchema).optional(),
   imagenSeo: z.lazy(() => ImageCreateNestedOneWithoutBlogImagenSeoInputSchema).optional(),
   imagenCard: z.lazy(() => ImageCreateNestedOneWithoutBlogImagenCardInputSchema).optional(),
   newsItem: z.lazy(() => NewsItemCreateNestedOneWithoutBlogInputSchema).optional(),
@@ -11127,6 +12281,8 @@ export const BlogUncheckedCreateWithoutBlogAuthorsInputSchema: z.ZodType<Prisma.
   slug: z.string(),
   seoDescription: z.string().optional().nullable(),
   baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
+  originalBlogId: z.string().optional().nullable(),
   imagenSeoId: z.string().optional().nullable(),
   dateNews: z.coerce.date(),
   imagenCardId: z.string().optional().nullable(),
@@ -11135,6 +12291,7 @@ export const BlogUncheckedCreateWithoutBlogAuthorsInputSchema: z.ZodType<Prisma.
   views: z.number().int().optional(),
   dateCreated: z.coerce.date().optional(),
   categoryId: z.string().optional().nullable(),
+  translations: z.lazy(() => BlogUncheckedCreateNestedManyWithoutOriginalBlogInputSchema).optional(),
   Image: z.lazy(() => ImageUncheckedCreateNestedManyWithoutBlogInputSchema).optional(),
   likes: z.lazy(() => BlogLikeUncheckedCreateNestedManyWithoutBlogInputSchema).optional(),
   tags: z.lazy(() => BlogTagUncheckedCreateNestedManyWithoutBlogInputSchema).optional(),
@@ -11200,10 +12357,13 @@ export const BlogUpdateWithoutBlogAuthorsInputSchema: z.ZodType<Prisma.BlogUpdat
   slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   seoDescription: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
   dateNews: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   readTime: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   views: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
   dateCreated: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  originalBlog: z.lazy(() => BlogUpdateOneWithoutTranslationsNestedInputSchema).optional(),
+  translations: z.lazy(() => BlogUpdateManyWithoutOriginalBlogNestedInputSchema).optional(),
   imagenSeo: z.lazy(() => ImageUpdateOneWithoutBlogImagenSeoNestedInputSchema).optional(),
   imagenCard: z.lazy(() => ImageUpdateOneWithoutBlogImagenCardNestedInputSchema).optional(),
   newsItem: z.lazy(() => NewsItemUpdateOneWithoutBlogNestedInputSchema).optional(),
@@ -11222,6 +12382,8 @@ export const BlogUncheckedUpdateWithoutBlogAuthorsInputSchema: z.ZodType<Prisma.
   slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   seoDescription: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  originalBlogId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   imagenSeoId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   dateNews: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   imagenCardId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
@@ -11230,6 +12392,7 @@ export const BlogUncheckedUpdateWithoutBlogAuthorsInputSchema: z.ZodType<Prisma.
   views: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
   dateCreated: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   categoryId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  translations: z.lazy(() => BlogUncheckedUpdateManyWithoutOriginalBlogNestedInputSchema).optional(),
   Image: z.lazy(() => ImageUncheckedUpdateManyWithoutBlogNestedInputSchema).optional(),
   likes: z.lazy(() => BlogLikeUncheckedUpdateManyWithoutBlogNestedInputSchema).optional(),
   tags: z.lazy(() => BlogTagUncheckedUpdateManyWithoutBlogNestedInputSchema).optional(),
@@ -11285,10 +12448,13 @@ export const BlogCreateWithoutTranslationQueueInputSchema: z.ZodType<Prisma.Blog
   slug: z.string(),
   seoDescription: z.string().optional().nullable(),
   baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
   dateNews: z.coerce.date(),
   readTime: z.number().int().optional().nullable(),
   views: z.number().int().optional(),
   dateCreated: z.coerce.date().optional(),
+  originalBlog: z.lazy(() => BlogCreateNestedOneWithoutTranslationsInputSchema).optional(),
+  translations: z.lazy(() => BlogCreateNestedManyWithoutOriginalBlogInputSchema).optional(),
   imagenSeo: z.lazy(() => ImageCreateNestedOneWithoutBlogImagenSeoInputSchema).optional(),
   imagenCard: z.lazy(() => ImageCreateNestedOneWithoutBlogImagenCardInputSchema).optional(),
   newsItem: z.lazy(() => NewsItemCreateNestedOneWithoutBlogInputSchema).optional(),
@@ -11307,6 +12473,8 @@ export const BlogUncheckedCreateWithoutTranslationQueueInputSchema: z.ZodType<Pr
   slug: z.string(),
   seoDescription: z.string().optional().nullable(),
   baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
+  originalBlogId: z.string().optional().nullable(),
   imagenSeoId: z.string().optional().nullable(),
   dateNews: z.coerce.date(),
   imagenCardId: z.string().optional().nullable(),
@@ -11315,6 +12483,7 @@ export const BlogUncheckedCreateWithoutTranslationQueueInputSchema: z.ZodType<Pr
   views: z.number().int().optional(),
   dateCreated: z.coerce.date().optional(),
   categoryId: z.string().optional().nullable(),
+  translations: z.lazy(() => BlogUncheckedCreateNestedManyWithoutOriginalBlogInputSchema).optional(),
   Image: z.lazy(() => ImageUncheckedCreateNestedManyWithoutBlogInputSchema).optional(),
   blogAuthors: z.lazy(() => BlogAuthorUncheckedCreateNestedManyWithoutBlogInputSchema).optional(),
   likes: z.lazy(() => BlogLikeUncheckedCreateNestedManyWithoutBlogInputSchema).optional(),
@@ -11345,10 +12514,13 @@ export const BlogUpdateWithoutTranslationQueueInputSchema: z.ZodType<Prisma.Blog
   slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   seoDescription: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
   dateNews: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   readTime: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   views: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
   dateCreated: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  originalBlog: z.lazy(() => BlogUpdateOneWithoutTranslationsNestedInputSchema).optional(),
+  translations: z.lazy(() => BlogUpdateManyWithoutOriginalBlogNestedInputSchema).optional(),
   imagenSeo: z.lazy(() => ImageUpdateOneWithoutBlogImagenSeoNestedInputSchema).optional(),
   imagenCard: z.lazy(() => ImageUpdateOneWithoutBlogImagenCardNestedInputSchema).optional(),
   newsItem: z.lazy(() => NewsItemUpdateOneWithoutBlogNestedInputSchema).optional(),
@@ -11367,6 +12539,8 @@ export const BlogUncheckedUpdateWithoutTranslationQueueInputSchema: z.ZodType<Pr
   slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   seoDescription: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  originalBlogId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   imagenSeoId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   dateNews: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   imagenCardId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
@@ -11375,6 +12549,7 @@ export const BlogUncheckedUpdateWithoutTranslationQueueInputSchema: z.ZodType<Pr
   views: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
   dateCreated: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   categoryId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  translations: z.lazy(() => BlogUncheckedUpdateManyWithoutOriginalBlogNestedInputSchema).optional(),
   Image: z.lazy(() => ImageUncheckedUpdateManyWithoutBlogNestedInputSchema).optional(),
   blogAuthors: z.lazy(() => BlogAuthorUncheckedUpdateManyWithoutBlogNestedInputSchema).optional(),
   likes: z.lazy(() => BlogLikeUncheckedUpdateManyWithoutBlogNestedInputSchema).optional(),
@@ -11387,6 +12562,7 @@ export const PollCreateWithoutOptionsInputSchema: z.ZodType<Prisma.PollCreateWit
   slug: z.string(),
   description: z.string().optional().nullable(),
   baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
   startDate: z.coerce.date(),
   endDate: z.coerce.date(),
   createdAt: z.coerce.date().optional(),
@@ -11395,6 +12571,8 @@ export const PollCreateWithoutOptionsInputSchema: z.ZodType<Prisma.PollCreateWit
   ArchivedAt: z.coerce.date().optional().nullable(),
   Deleted: z.boolean().optional(),
   DeletedAt: z.coerce.date().optional().nullable(),
+  originalPoll: z.lazy(() => PollCreateNestedOneWithoutTranslationsInputSchema).optional(),
+  translations: z.lazy(() => PollCreateNestedManyWithoutOriginalPollInputSchema).optional(),
   category: z.lazy(() => CategoryCreateNestedOneWithoutPollsInputSchema),
   Vote: z.lazy(() => VoteCreateNestedManyWithoutPollInputSchema).optional(),
   newsItem: z.lazy(() => NewsItemCreateNestedOneWithoutPollInputSchema).optional(),
@@ -11407,6 +12585,8 @@ export const PollUncheckedCreateWithoutOptionsInputSchema: z.ZodType<Prisma.Poll
   slug: z.string(),
   description: z.string().optional().nullable(),
   baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
+  originalPollId: z.string().optional().nullable(),
   startDate: z.coerce.date(),
   endDate: z.coerce.date(),
   createdAt: z.coerce.date().optional(),
@@ -11417,6 +12597,7 @@ export const PollUncheckedCreateWithoutOptionsInputSchema: z.ZodType<Prisma.Poll
   DeletedAt: z.coerce.date().optional().nullable(),
   categoryId: z.string(),
   newsItemId: z.string().optional().nullable(),
+  translations: z.lazy(() => PollUncheckedCreateNestedManyWithoutOriginalPollInputSchema).optional(),
   Vote: z.lazy(() => VoteUncheckedCreateNestedManyWithoutPollInputSchema).optional(),
   Image: z.lazy(() => ImageUncheckedCreateNestedManyWithoutPollInputSchema).optional()
 }).strict();
@@ -11471,6 +12652,7 @@ export const PollUpdateWithoutOptionsInputSchema: z.ZodType<Prisma.PollUpdateWit
   slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   description: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
   startDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   endDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
@@ -11479,6 +12661,8 @@ export const PollUpdateWithoutOptionsInputSchema: z.ZodType<Prisma.PollUpdateWit
   ArchivedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   Deleted: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
   DeletedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  originalPoll: z.lazy(() => PollUpdateOneWithoutTranslationsNestedInputSchema).optional(),
+  translations: z.lazy(() => PollUpdateManyWithoutOriginalPollNestedInputSchema).optional(),
   category: z.lazy(() => CategoryUpdateOneRequiredWithoutPollsNestedInputSchema).optional(),
   Vote: z.lazy(() => VoteUpdateManyWithoutPollNestedInputSchema).optional(),
   newsItem: z.lazy(() => NewsItemUpdateOneWithoutPollNestedInputSchema).optional(),
@@ -11491,6 +12675,8 @@ export const PollUncheckedUpdateWithoutOptionsInputSchema: z.ZodType<Prisma.Poll
   slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   description: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  originalPollId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   startDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   endDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
@@ -11501,6 +12687,7 @@ export const PollUncheckedUpdateWithoutOptionsInputSchema: z.ZodType<Prisma.Poll
   DeletedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   categoryId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   newsItemId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  translations: z.lazy(() => PollUncheckedUpdateManyWithoutOriginalPollNestedInputSchema).optional(),
   Vote: z.lazy(() => VoteUncheckedUpdateManyWithoutPollNestedInputSchema).optional(),
   Image: z.lazy(() => ImageUncheckedUpdateManyWithoutPollNestedInputSchema).optional()
 }).strict();
@@ -12073,6 +13260,9 @@ export const CategoryCreateWithoutImageInputSchema: z.ZodType<Prisma.CategoryCre
   name: z.string(),
   slug: z.string(),
   baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
+  originalCategory: z.lazy(() => CategoryCreateNestedOneWithoutTranslationsInputSchema).optional(),
+  translations: z.lazy(() => CategoryCreateNestedManyWithoutOriginalCategoryInputSchema).optional(),
   polls: z.lazy(() => PollCreateNestedManyWithoutCategoryInputSchema).optional(),
   Blog: z.lazy(() => BlogCreateNestedManyWithoutCategoryInputSchema).optional()
 }).strict();
@@ -12082,6 +13272,9 @@ export const CategoryUncheckedCreateWithoutImageInputSchema: z.ZodType<Prisma.Ca
   name: z.string(),
   slug: z.string(),
   baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
+  originalCategoryId: z.string().optional().nullable(),
+  translations: z.lazy(() => CategoryUncheckedCreateNestedManyWithoutOriginalCategoryInputSchema).optional(),
   polls: z.lazy(() => PollUncheckedCreateNestedManyWithoutCategoryInputSchema).optional(),
   Blog: z.lazy(() => BlogUncheckedCreateNestedManyWithoutCategoryInputSchema).optional()
 }).strict();
@@ -12126,6 +13319,7 @@ export const PollCreateWithoutImageInputSchema: z.ZodType<Prisma.PollCreateWitho
   slug: z.string(),
   description: z.string().optional().nullable(),
   baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
   startDate: z.coerce.date(),
   endDate: z.coerce.date(),
   createdAt: z.coerce.date().optional(),
@@ -12134,6 +13328,8 @@ export const PollCreateWithoutImageInputSchema: z.ZodType<Prisma.PollCreateWitho
   ArchivedAt: z.coerce.date().optional().nullable(),
   Deleted: z.boolean().optional(),
   DeletedAt: z.coerce.date().optional().nullable(),
+  originalPoll: z.lazy(() => PollCreateNestedOneWithoutTranslationsInputSchema).optional(),
+  translations: z.lazy(() => PollCreateNestedManyWithoutOriginalPollInputSchema).optional(),
   category: z.lazy(() => CategoryCreateNestedOneWithoutPollsInputSchema),
   options: z.lazy(() => PollOptionCreateNestedManyWithoutPollInputSchema).optional(),
   Vote: z.lazy(() => VoteCreateNestedManyWithoutPollInputSchema).optional(),
@@ -12146,6 +13342,8 @@ export const PollUncheckedCreateWithoutImageInputSchema: z.ZodType<Prisma.PollUn
   slug: z.string(),
   description: z.string().optional().nullable(),
   baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
+  originalPollId: z.string().optional().nullable(),
   startDate: z.coerce.date(),
   endDate: z.coerce.date(),
   createdAt: z.coerce.date().optional(),
@@ -12156,6 +13354,7 @@ export const PollUncheckedCreateWithoutImageInputSchema: z.ZodType<Prisma.PollUn
   DeletedAt: z.coerce.date().optional().nullable(),
   categoryId: z.string(),
   newsItemId: z.string().optional().nullable(),
+  translations: z.lazy(() => PollUncheckedCreateNestedManyWithoutOriginalPollInputSchema).optional(),
   options: z.lazy(() => PollOptionUncheckedCreateNestedManyWithoutPollInputSchema).optional(),
   Vote: z.lazy(() => VoteUncheckedCreateNestedManyWithoutPollInputSchema).optional()
 }).strict();
@@ -12173,10 +13372,13 @@ export const BlogCreateWithoutImagenSeoInputSchema: z.ZodType<Prisma.BlogCreateW
   slug: z.string(),
   seoDescription: z.string().optional().nullable(),
   baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
   dateNews: z.coerce.date(),
   readTime: z.number().int().optional().nullable(),
   views: z.number().int().optional(),
   dateCreated: z.coerce.date().optional(),
+  originalBlog: z.lazy(() => BlogCreateNestedOneWithoutTranslationsInputSchema).optional(),
+  translations: z.lazy(() => BlogCreateNestedManyWithoutOriginalBlogInputSchema).optional(),
   imagenCard: z.lazy(() => ImageCreateNestedOneWithoutBlogImagenCardInputSchema).optional(),
   newsItem: z.lazy(() => NewsItemCreateNestedOneWithoutBlogInputSchema).optional(),
   Image: z.lazy(() => ImageCreateNestedManyWithoutBlogInputSchema).optional(),
@@ -12195,6 +13397,8 @@ export const BlogUncheckedCreateWithoutImagenSeoInputSchema: z.ZodType<Prisma.Bl
   slug: z.string(),
   seoDescription: z.string().optional().nullable(),
   baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
+  originalBlogId: z.string().optional().nullable(),
   dateNews: z.coerce.date(),
   imagenCardId: z.string().optional().nullable(),
   newsItemId: z.string().optional().nullable(),
@@ -12202,6 +13406,7 @@ export const BlogUncheckedCreateWithoutImagenSeoInputSchema: z.ZodType<Prisma.Bl
   views: z.number().int().optional(),
   dateCreated: z.coerce.date().optional(),
   categoryId: z.string().optional().nullable(),
+  translations: z.lazy(() => BlogUncheckedCreateNestedManyWithoutOriginalBlogInputSchema).optional(),
   Image: z.lazy(() => ImageUncheckedCreateNestedManyWithoutBlogInputSchema).optional(),
   blogAuthors: z.lazy(() => BlogAuthorUncheckedCreateNestedManyWithoutBlogInputSchema).optional(),
   likes: z.lazy(() => BlogLikeUncheckedCreateNestedManyWithoutBlogInputSchema).optional(),
@@ -12227,10 +13432,13 @@ export const BlogCreateWithoutImagenCardInputSchema: z.ZodType<Prisma.BlogCreate
   slug: z.string(),
   seoDescription: z.string().optional().nullable(),
   baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
   dateNews: z.coerce.date(),
   readTime: z.number().int().optional().nullable(),
   views: z.number().int().optional(),
   dateCreated: z.coerce.date().optional(),
+  originalBlog: z.lazy(() => BlogCreateNestedOneWithoutTranslationsInputSchema).optional(),
+  translations: z.lazy(() => BlogCreateNestedManyWithoutOriginalBlogInputSchema).optional(),
   imagenSeo: z.lazy(() => ImageCreateNestedOneWithoutBlogImagenSeoInputSchema).optional(),
   newsItem: z.lazy(() => NewsItemCreateNestedOneWithoutBlogInputSchema).optional(),
   Image: z.lazy(() => ImageCreateNestedManyWithoutBlogInputSchema).optional(),
@@ -12249,6 +13457,8 @@ export const BlogUncheckedCreateWithoutImagenCardInputSchema: z.ZodType<Prisma.B
   slug: z.string(),
   seoDescription: z.string().optional().nullable(),
   baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
+  originalBlogId: z.string().optional().nullable(),
   imagenSeoId: z.string().optional().nullable(),
   dateNews: z.coerce.date(),
   newsItemId: z.string().optional().nullable(),
@@ -12256,6 +13466,7 @@ export const BlogUncheckedCreateWithoutImagenCardInputSchema: z.ZodType<Prisma.B
   views: z.number().int().optional(),
   dateCreated: z.coerce.date().optional(),
   categoryId: z.string().optional().nullable(),
+  translations: z.lazy(() => BlogUncheckedCreateNestedManyWithoutOriginalBlogInputSchema).optional(),
   Image: z.lazy(() => ImageUncheckedCreateNestedManyWithoutBlogInputSchema).optional(),
   blogAuthors: z.lazy(() => BlogAuthorUncheckedCreateNestedManyWithoutBlogInputSchema).optional(),
   likes: z.lazy(() => BlogLikeUncheckedCreateNestedManyWithoutBlogInputSchema).optional(),
@@ -12316,10 +13527,13 @@ export const BlogCreateWithoutImageInputSchema: z.ZodType<Prisma.BlogCreateWitho
   slug: z.string(),
   seoDescription: z.string().optional().nullable(),
   baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
   dateNews: z.coerce.date(),
   readTime: z.number().int().optional().nullable(),
   views: z.number().int().optional(),
   dateCreated: z.coerce.date().optional(),
+  originalBlog: z.lazy(() => BlogCreateNestedOneWithoutTranslationsInputSchema).optional(),
+  translations: z.lazy(() => BlogCreateNestedManyWithoutOriginalBlogInputSchema).optional(),
   imagenSeo: z.lazy(() => ImageCreateNestedOneWithoutBlogImagenSeoInputSchema).optional(),
   imagenCard: z.lazy(() => ImageCreateNestedOneWithoutBlogImagenCardInputSchema).optional(),
   newsItem: z.lazy(() => NewsItemCreateNestedOneWithoutBlogInputSchema).optional(),
@@ -12338,6 +13552,8 @@ export const BlogUncheckedCreateWithoutImageInputSchema: z.ZodType<Prisma.BlogUn
   slug: z.string(),
   seoDescription: z.string().optional().nullable(),
   baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
+  originalBlogId: z.string().optional().nullable(),
   imagenSeoId: z.string().optional().nullable(),
   dateNews: z.coerce.date(),
   imagenCardId: z.string().optional().nullable(),
@@ -12346,6 +13562,7 @@ export const BlogUncheckedCreateWithoutImageInputSchema: z.ZodType<Prisma.BlogUn
   views: z.number().int().optional(),
   dateCreated: z.coerce.date().optional(),
   categoryId: z.string().optional().nullable(),
+  translations: z.lazy(() => BlogUncheckedCreateNestedManyWithoutOriginalBlogInputSchema).optional(),
   blogAuthors: z.lazy(() => BlogAuthorUncheckedCreateNestedManyWithoutBlogInputSchema).optional(),
   likes: z.lazy(() => BlogLikeUncheckedCreateNestedManyWithoutBlogInputSchema).optional(),
   tags: z.lazy(() => BlogTagUncheckedCreateNestedManyWithoutBlogInputSchema).optional(),
@@ -12434,6 +13651,9 @@ export const CategoryUpdateWithoutImageInputSchema: z.ZodType<Prisma.CategoryUpd
   name: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  originalCategory: z.lazy(() => CategoryUpdateOneWithoutTranslationsNestedInputSchema).optional(),
+  translations: z.lazy(() => CategoryUpdateManyWithoutOriginalCategoryNestedInputSchema).optional(),
   polls: z.lazy(() => PollUpdateManyWithoutCategoryNestedInputSchema).optional(),
   Blog: z.lazy(() => BlogUpdateManyWithoutCategoryNestedInputSchema).optional()
 }).strict();
@@ -12443,6 +13663,9 @@ export const CategoryUncheckedUpdateWithoutImageInputSchema: z.ZodType<Prisma.Ca
   name: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  originalCategoryId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  translations: z.lazy(() => CategoryUncheckedUpdateManyWithoutOriginalCategoryNestedInputSchema).optional(),
   polls: z.lazy(() => PollUncheckedUpdateManyWithoutCategoryNestedInputSchema).optional(),
   Blog: z.lazy(() => BlogUncheckedUpdateManyWithoutCategoryNestedInputSchema).optional()
 }).strict();
@@ -12499,6 +13722,7 @@ export const PollUpdateWithoutImageInputSchema: z.ZodType<Prisma.PollUpdateWitho
   slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   description: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
   startDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   endDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
@@ -12507,6 +13731,8 @@ export const PollUpdateWithoutImageInputSchema: z.ZodType<Prisma.PollUpdateWitho
   ArchivedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   Deleted: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
   DeletedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  originalPoll: z.lazy(() => PollUpdateOneWithoutTranslationsNestedInputSchema).optional(),
+  translations: z.lazy(() => PollUpdateManyWithoutOriginalPollNestedInputSchema).optional(),
   category: z.lazy(() => CategoryUpdateOneRequiredWithoutPollsNestedInputSchema).optional(),
   options: z.lazy(() => PollOptionUpdateManyWithoutPollNestedInputSchema).optional(),
   Vote: z.lazy(() => VoteUpdateManyWithoutPollNestedInputSchema).optional(),
@@ -12519,6 +13745,8 @@ export const PollUncheckedUpdateWithoutImageInputSchema: z.ZodType<Prisma.PollUn
   slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   description: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  originalPollId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   startDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   endDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
@@ -12529,6 +13757,7 @@ export const PollUncheckedUpdateWithoutImageInputSchema: z.ZodType<Prisma.PollUn
   DeletedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   categoryId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   newsItemId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  translations: z.lazy(() => PollUncheckedUpdateManyWithoutOriginalPollNestedInputSchema).optional(),
   options: z.lazy(() => PollOptionUncheckedUpdateManyWithoutPollNestedInputSchema).optional(),
   Vote: z.lazy(() => VoteUncheckedUpdateManyWithoutPollNestedInputSchema).optional()
 }).strict();
@@ -12625,10 +13854,13 @@ export const BlogUpdateWithoutImageInputSchema: z.ZodType<Prisma.BlogUpdateWitho
   slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   seoDescription: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
   dateNews: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   readTime: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   views: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
   dateCreated: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  originalBlog: z.lazy(() => BlogUpdateOneWithoutTranslationsNestedInputSchema).optional(),
+  translations: z.lazy(() => BlogUpdateManyWithoutOriginalBlogNestedInputSchema).optional(),
   imagenSeo: z.lazy(() => ImageUpdateOneWithoutBlogImagenSeoNestedInputSchema).optional(),
   imagenCard: z.lazy(() => ImageUpdateOneWithoutBlogImagenCardNestedInputSchema).optional(),
   newsItem: z.lazy(() => NewsItemUpdateOneWithoutBlogNestedInputSchema).optional(),
@@ -12647,6 +13879,8 @@ export const BlogUncheckedUpdateWithoutImageInputSchema: z.ZodType<Prisma.BlogUn
   slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   seoDescription: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  originalBlogId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   imagenSeoId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   dateNews: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   imagenCardId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
@@ -12655,10 +13889,863 @@ export const BlogUncheckedUpdateWithoutImageInputSchema: z.ZodType<Prisma.BlogUn
   views: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
   dateCreated: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   categoryId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  translations: z.lazy(() => BlogUncheckedUpdateManyWithoutOriginalBlogNestedInputSchema).optional(),
   blogAuthors: z.lazy(() => BlogAuthorUncheckedUpdateManyWithoutBlogNestedInputSchema).optional(),
   likes: z.lazy(() => BlogLikeUncheckedUpdateManyWithoutBlogNestedInputSchema).optional(),
   tags: z.lazy(() => BlogTagUncheckedUpdateManyWithoutBlogNestedInputSchema).optional(),
   TranslationQueue: z.lazy(() => TranslationQueueUncheckedUpdateManyWithoutBlogNestedInputSchema).optional()
+}).strict();
+
+export const BlogCreateManyOriginalBlogInputSchema: z.ZodType<Prisma.BlogCreateManyOriginalBlogInput> = z.object({
+  id: z.string().cuid().optional(),
+  title: z.string(),
+  content: z.string(),
+  titlePunch: z.string().optional().nullable(),
+  slug: z.string(),
+  seoDescription: z.string().optional().nullable(),
+  baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
+  imagenSeoId: z.string().optional().nullable(),
+  dateNews: z.coerce.date(),
+  imagenCardId: z.string().optional().nullable(),
+  newsItemId: z.string().optional().nullable(),
+  readTime: z.number().int().optional().nullable(),
+  views: z.number().int().optional(),
+  dateCreated: z.coerce.date().optional(),
+  categoryId: z.string().optional().nullable()
+}).strict();
+
+export const ImageCreateManyBlogInputSchema: z.ZodType<Prisma.ImageCreateManyBlogInput> = z.object({
+  id: z.string().cuid().optional(),
+  url: z.string(),
+  alt: z.string().optional().nullable(),
+  width: z.number().int().optional().nullable(),
+  height: z.number().int().optional().nullable(),
+  format: z.string().optional().nullable(),
+  publicId: z.string(),
+  folder: z.string().optional().nullable(),
+  size: z.number().int().optional().nullable(),
+  createdAt: z.coerce.date().optional(),
+  updatedAt: z.coerce.date().optional(),
+  userId: z.string().optional().nullable(),
+  categoryId: z.string().optional().nullable(),
+  newsItemId: z.string().optional().nullable(),
+  pollId: z.string().optional().nullable()
+}).strict();
+
+export const BlogAuthorCreateManyBlogInputSchema: z.ZodType<Prisma.BlogAuthorCreateManyBlogInput> = z.object({
+  id: z.string().cuid().optional(),
+  authorId: z.string()
+}).strict();
+
+export const BlogLikeCreateManyBlogInputSchema: z.ZodType<Prisma.BlogLikeCreateManyBlogInput> = z.object({
+  id: z.string().cuid().optional(),
+  userId: z.string(),
+  createdAt: z.coerce.date().optional()
+}).strict();
+
+export const BlogTagCreateManyBlogInputSchema: z.ZodType<Prisma.BlogTagCreateManyBlogInput> = z.object({
+  id: z.string().cuid().optional(),
+  tagId: z.string()
+}).strict();
+
+export const TranslationQueueCreateManyBlogInputSchema: z.ZodType<Prisma.TranslationQueueCreateManyBlogInput> = z.object({
+  id: z.string().cuid().optional(),
+  targetLanguage: z.string(),
+  status: z.string().optional(),
+  retryCount: z.number().int().optional(),
+  errorMessage: z.string().optional().nullable(),
+  priority: z.number().int().optional(),
+  createdAt: z.coerce.date().optional(),
+  processedAt: z.coerce.date().optional().nullable(),
+  completedAt: z.coerce.date().optional().nullable()
+}).strict();
+
+export const BlogUpdateWithoutOriginalBlogInputSchema: z.ZodType<Prisma.BlogUpdateWithoutOriginalBlogInput> = z.object({
+  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  title: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  content: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  titlePunch: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  seoDescription: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  dateNews: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  readTime: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  views: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
+  dateCreated: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  translations: z.lazy(() => BlogUpdateManyWithoutOriginalBlogNestedInputSchema).optional(),
+  imagenSeo: z.lazy(() => ImageUpdateOneWithoutBlogImagenSeoNestedInputSchema).optional(),
+  imagenCard: z.lazy(() => ImageUpdateOneWithoutBlogImagenCardNestedInputSchema).optional(),
+  newsItem: z.lazy(() => NewsItemUpdateOneWithoutBlogNestedInputSchema).optional(),
+  Image: z.lazy(() => ImageUpdateManyWithoutBlogNestedInputSchema).optional(),
+  blogAuthors: z.lazy(() => BlogAuthorUpdateManyWithoutBlogNestedInputSchema).optional(),
+  likes: z.lazy(() => BlogLikeUpdateManyWithoutBlogNestedInputSchema).optional(),
+  tags: z.lazy(() => BlogTagUpdateManyWithoutBlogNestedInputSchema).optional(),
+  Category: z.lazy(() => CategoryUpdateOneWithoutBlogNestedInputSchema).optional(),
+  TranslationQueue: z.lazy(() => TranslationQueueUpdateManyWithoutBlogNestedInputSchema).optional()
+}).strict();
+
+export const BlogUncheckedUpdateWithoutOriginalBlogInputSchema: z.ZodType<Prisma.BlogUncheckedUpdateWithoutOriginalBlogInput> = z.object({
+  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  title: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  content: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  titlePunch: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  seoDescription: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  imagenSeoId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  dateNews: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  imagenCardId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  newsItemId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  readTime: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  views: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
+  dateCreated: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  categoryId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  translations: z.lazy(() => BlogUncheckedUpdateManyWithoutOriginalBlogNestedInputSchema).optional(),
+  Image: z.lazy(() => ImageUncheckedUpdateManyWithoutBlogNestedInputSchema).optional(),
+  blogAuthors: z.lazy(() => BlogAuthorUncheckedUpdateManyWithoutBlogNestedInputSchema).optional(),
+  likes: z.lazy(() => BlogLikeUncheckedUpdateManyWithoutBlogNestedInputSchema).optional(),
+  tags: z.lazy(() => BlogTagUncheckedUpdateManyWithoutBlogNestedInputSchema).optional(),
+  TranslationQueue: z.lazy(() => TranslationQueueUncheckedUpdateManyWithoutBlogNestedInputSchema).optional()
+}).strict();
+
+export const BlogUncheckedUpdateManyWithoutOriginalBlogInputSchema: z.ZodType<Prisma.BlogUncheckedUpdateManyWithoutOriginalBlogInput> = z.object({
+  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  title: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  content: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  titlePunch: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  seoDescription: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  imagenSeoId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  dateNews: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  imagenCardId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  newsItemId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  readTime: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  views: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
+  dateCreated: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  categoryId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+}).strict();
+
+export const ImageUpdateWithoutBlogInputSchema: z.ZodType<Prisma.ImageUpdateWithoutBlogInput> = z.object({
+  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  url: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  alt: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  width: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  height: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  format: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  publicId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  folder: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  size: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  user: z.lazy(() => UserUpdateOneWithoutImageNestedInputSchema).optional(),
+  category: z.lazy(() => CategoryUpdateOneWithoutImageNestedInputSchema).optional(),
+  newsItem: z.lazy(() => NewsItemUpdateOneWithoutImageNestedInputSchema).optional(),
+  poll: z.lazy(() => PollUpdateOneWithoutImageNestedInputSchema).optional(),
+  blogImagenSeo: z.lazy(() => BlogUpdateManyWithoutImagenSeoNestedInputSchema).optional(),
+  blogImagenCard: z.lazy(() => BlogUpdateManyWithoutImagenCardNestedInputSchema).optional(),
+  authorProfileImage: z.lazy(() => AuthorUpdateOneWithoutProfileImageNestedInputSchema).optional()
+}).strict();
+
+export const ImageUncheckedUpdateWithoutBlogInputSchema: z.ZodType<Prisma.ImageUncheckedUpdateWithoutBlogInput> = z.object({
+  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  url: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  alt: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  width: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  height: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  format: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  publicId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  folder: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  size: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  userId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  categoryId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  newsItemId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  pollId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  blogImagenSeo: z.lazy(() => BlogUncheckedUpdateManyWithoutImagenSeoNestedInputSchema).optional(),
+  blogImagenCard: z.lazy(() => BlogUncheckedUpdateManyWithoutImagenCardNestedInputSchema).optional(),
+  authorProfileImage: z.lazy(() => AuthorUncheckedUpdateOneWithoutProfileImageNestedInputSchema).optional()
+}).strict();
+
+export const ImageUncheckedUpdateManyWithoutBlogInputSchema: z.ZodType<Prisma.ImageUncheckedUpdateManyWithoutBlogInput> = z.object({
+  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  url: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  alt: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  width: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  height: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  format: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  publicId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  folder: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  size: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  userId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  categoryId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  newsItemId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  pollId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+}).strict();
+
+export const BlogAuthorUpdateWithoutBlogInputSchema: z.ZodType<Prisma.BlogAuthorUpdateWithoutBlogInput> = z.object({
+  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  author: z.lazy(() => AuthorUpdateOneRequiredWithoutBlogAuthorsNestedInputSchema).optional()
+}).strict();
+
+export const BlogAuthorUncheckedUpdateWithoutBlogInputSchema: z.ZodType<Prisma.BlogAuthorUncheckedUpdateWithoutBlogInput> = z.object({
+  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  authorId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+}).strict();
+
+export const BlogAuthorUncheckedUpdateManyWithoutBlogInputSchema: z.ZodType<Prisma.BlogAuthorUncheckedUpdateManyWithoutBlogInput> = z.object({
+  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  authorId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+}).strict();
+
+export const BlogLikeUpdateWithoutBlogInputSchema: z.ZodType<Prisma.BlogLikeUpdateWithoutBlogInput> = z.object({
+  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  user: z.lazy(() => UserUpdateOneRequiredWithoutBlogLikesNestedInputSchema).optional()
+}).strict();
+
+export const BlogLikeUncheckedUpdateWithoutBlogInputSchema: z.ZodType<Prisma.BlogLikeUncheckedUpdateWithoutBlogInput> = z.object({
+  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  userId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+}).strict();
+
+export const BlogLikeUncheckedUpdateManyWithoutBlogInputSchema: z.ZodType<Prisma.BlogLikeUncheckedUpdateManyWithoutBlogInput> = z.object({
+  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  userId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+}).strict();
+
+export const BlogTagUpdateWithoutBlogInputSchema: z.ZodType<Prisma.BlogTagUpdateWithoutBlogInput> = z.object({
+  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  tag: z.lazy(() => TagUpdateOneRequiredWithoutBlogsNestedInputSchema).optional()
+}).strict();
+
+export const BlogTagUncheckedUpdateWithoutBlogInputSchema: z.ZodType<Prisma.BlogTagUncheckedUpdateWithoutBlogInput> = z.object({
+  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  tagId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+}).strict();
+
+export const BlogTagUncheckedUpdateManyWithoutBlogInputSchema: z.ZodType<Prisma.BlogTagUncheckedUpdateManyWithoutBlogInput> = z.object({
+  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  tagId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+}).strict();
+
+export const TranslationQueueUpdateWithoutBlogInputSchema: z.ZodType<Prisma.TranslationQueueUpdateWithoutBlogInput> = z.object({
+  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  targetLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  status: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  retryCount: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
+  errorMessage: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  priority: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
+  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  processedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  completedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+}).strict();
+
+export const TranslationQueueUncheckedUpdateWithoutBlogInputSchema: z.ZodType<Prisma.TranslationQueueUncheckedUpdateWithoutBlogInput> = z.object({
+  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  targetLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  status: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  retryCount: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
+  errorMessage: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  priority: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
+  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  processedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  completedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+}).strict();
+
+export const TranslationQueueUncheckedUpdateManyWithoutBlogInputSchema: z.ZodType<Prisma.TranslationQueueUncheckedUpdateManyWithoutBlogInput> = z.object({
+  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  targetLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  status: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  retryCount: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
+  errorMessage: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  priority: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
+  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  processedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  completedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+}).strict();
+
+export const CategoryCreateManyOriginalCategoryInputSchema: z.ZodType<Prisma.CategoryCreateManyOriginalCategoryInput> = z.object({
+  id: z.string().uuid().optional(),
+  name: z.string(),
+  slug: z.string(),
+  baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional()
+}).strict();
+
+export const PollCreateManyCategoryInputSchema: z.ZodType<Prisma.PollCreateManyCategoryInput> = z.object({
+  id: z.string().uuid().optional(),
+  question: z.string(),
+  slug: z.string(),
+  description: z.string().optional().nullable(),
+  baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
+  originalPollId: z.string().optional().nullable(),
+  startDate: z.coerce.date(),
+  endDate: z.coerce.date(),
+  createdAt: z.coerce.date().optional(),
+  Archived: z.boolean().optional(),
+  isPublic: z.boolean().optional(),
+  ArchivedAt: z.coerce.date().optional().nullable(),
+  Deleted: z.boolean().optional(),
+  DeletedAt: z.coerce.date().optional().nullable(),
+  newsItemId: z.string().optional().nullable()
+}).strict();
+
+export const ImageCreateManyCategoryInputSchema: z.ZodType<Prisma.ImageCreateManyCategoryInput> = z.object({
+  id: z.string().cuid().optional(),
+  url: z.string(),
+  alt: z.string().optional().nullable(),
+  width: z.number().int().optional().nullable(),
+  height: z.number().int().optional().nullable(),
+  format: z.string().optional().nullable(),
+  publicId: z.string(),
+  folder: z.string().optional().nullable(),
+  size: z.number().int().optional().nullable(),
+  createdAt: z.coerce.date().optional(),
+  updatedAt: z.coerce.date().optional(),
+  userId: z.string().optional().nullable(),
+  newsItemId: z.string().optional().nullable(),
+  pollId: z.string().optional().nullable(),
+  blogId: z.string().optional().nullable()
+}).strict();
+
+export const BlogCreateManyCategoryInputSchema: z.ZodType<Prisma.BlogCreateManyCategoryInput> = z.object({
+  id: z.string().cuid().optional(),
+  title: z.string(),
+  content: z.string(),
+  titlePunch: z.string().optional().nullable(),
+  slug: z.string(),
+  seoDescription: z.string().optional().nullable(),
+  baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
+  originalBlogId: z.string().optional().nullable(),
+  imagenSeoId: z.string().optional().nullable(),
+  dateNews: z.coerce.date(),
+  imagenCardId: z.string().optional().nullable(),
+  newsItemId: z.string().optional().nullable(),
+  readTime: z.number().int().optional().nullable(),
+  views: z.number().int().optional(),
+  dateCreated: z.coerce.date().optional()
+}).strict();
+
+export const CategoryUpdateWithoutOriginalCategoryInputSchema: z.ZodType<Prisma.CategoryUpdateWithoutOriginalCategoryInput> = z.object({
+  id: z.union([ z.string().uuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  name: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  translations: z.lazy(() => CategoryUpdateManyWithoutOriginalCategoryNestedInputSchema).optional(),
+  polls: z.lazy(() => PollUpdateManyWithoutCategoryNestedInputSchema).optional(),
+  Image: z.lazy(() => ImageUpdateManyWithoutCategoryNestedInputSchema).optional(),
+  Blog: z.lazy(() => BlogUpdateManyWithoutCategoryNestedInputSchema).optional()
+}).strict();
+
+export const CategoryUncheckedUpdateWithoutOriginalCategoryInputSchema: z.ZodType<Prisma.CategoryUncheckedUpdateWithoutOriginalCategoryInput> = z.object({
+  id: z.union([ z.string().uuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  name: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  translations: z.lazy(() => CategoryUncheckedUpdateManyWithoutOriginalCategoryNestedInputSchema).optional(),
+  polls: z.lazy(() => PollUncheckedUpdateManyWithoutCategoryNestedInputSchema).optional(),
+  Image: z.lazy(() => ImageUncheckedUpdateManyWithoutCategoryNestedInputSchema).optional(),
+  Blog: z.lazy(() => BlogUncheckedUpdateManyWithoutCategoryNestedInputSchema).optional()
+}).strict();
+
+export const CategoryUncheckedUpdateManyWithoutOriginalCategoryInputSchema: z.ZodType<Prisma.CategoryUncheckedUpdateManyWithoutOriginalCategoryInput> = z.object({
+  id: z.union([ z.string().uuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  name: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+}).strict();
+
+export const PollUpdateWithoutCategoryInputSchema: z.ZodType<Prisma.PollUpdateWithoutCategoryInput> = z.object({
+  id: z.union([ z.string().uuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  question: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  description: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  startDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  endDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  Archived: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  isPublic: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  ArchivedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  Deleted: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  DeletedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  originalPoll: z.lazy(() => PollUpdateOneWithoutTranslationsNestedInputSchema).optional(),
+  translations: z.lazy(() => PollUpdateManyWithoutOriginalPollNestedInputSchema).optional(),
+  options: z.lazy(() => PollOptionUpdateManyWithoutPollNestedInputSchema).optional(),
+  Vote: z.lazy(() => VoteUpdateManyWithoutPollNestedInputSchema).optional(),
+  newsItem: z.lazy(() => NewsItemUpdateOneWithoutPollNestedInputSchema).optional(),
+  Image: z.lazy(() => ImageUpdateManyWithoutPollNestedInputSchema).optional()
+}).strict();
+
+export const PollUncheckedUpdateWithoutCategoryInputSchema: z.ZodType<Prisma.PollUncheckedUpdateWithoutCategoryInput> = z.object({
+  id: z.union([ z.string().uuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  question: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  description: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  originalPollId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  startDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  endDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  Archived: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  isPublic: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  ArchivedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  Deleted: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  DeletedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  newsItemId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  translations: z.lazy(() => PollUncheckedUpdateManyWithoutOriginalPollNestedInputSchema).optional(),
+  options: z.lazy(() => PollOptionUncheckedUpdateManyWithoutPollNestedInputSchema).optional(),
+  Vote: z.lazy(() => VoteUncheckedUpdateManyWithoutPollNestedInputSchema).optional(),
+  Image: z.lazy(() => ImageUncheckedUpdateManyWithoutPollNestedInputSchema).optional()
+}).strict();
+
+export const PollUncheckedUpdateManyWithoutCategoryInputSchema: z.ZodType<Prisma.PollUncheckedUpdateManyWithoutCategoryInput> = z.object({
+  id: z.union([ z.string().uuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  question: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  description: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  originalPollId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  startDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  endDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  Archived: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  isPublic: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  ArchivedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  Deleted: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  DeletedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  newsItemId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+}).strict();
+
+export const ImageUpdateWithoutCategoryInputSchema: z.ZodType<Prisma.ImageUpdateWithoutCategoryInput> = z.object({
+  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  url: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  alt: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  width: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  height: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  format: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  publicId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  folder: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  size: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  user: z.lazy(() => UserUpdateOneWithoutImageNestedInputSchema).optional(),
+  newsItem: z.lazy(() => NewsItemUpdateOneWithoutImageNestedInputSchema).optional(),
+  poll: z.lazy(() => PollUpdateOneWithoutImageNestedInputSchema).optional(),
+  blogImagenSeo: z.lazy(() => BlogUpdateManyWithoutImagenSeoNestedInputSchema).optional(),
+  blogImagenCard: z.lazy(() => BlogUpdateManyWithoutImagenCardNestedInputSchema).optional(),
+  authorProfileImage: z.lazy(() => AuthorUpdateOneWithoutProfileImageNestedInputSchema).optional(),
+  Blog: z.lazy(() => BlogUpdateOneWithoutImageNestedInputSchema).optional()
+}).strict();
+
+export const ImageUncheckedUpdateWithoutCategoryInputSchema: z.ZodType<Prisma.ImageUncheckedUpdateWithoutCategoryInput> = z.object({
+  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  url: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  alt: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  width: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  height: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  format: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  publicId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  folder: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  size: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  userId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  newsItemId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  pollId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  blogId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  blogImagenSeo: z.lazy(() => BlogUncheckedUpdateManyWithoutImagenSeoNestedInputSchema).optional(),
+  blogImagenCard: z.lazy(() => BlogUncheckedUpdateManyWithoutImagenCardNestedInputSchema).optional(),
+  authorProfileImage: z.lazy(() => AuthorUncheckedUpdateOneWithoutProfileImageNestedInputSchema).optional()
+}).strict();
+
+export const ImageUncheckedUpdateManyWithoutCategoryInputSchema: z.ZodType<Prisma.ImageUncheckedUpdateManyWithoutCategoryInput> = z.object({
+  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  url: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  alt: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  width: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  height: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  format: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  publicId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  folder: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  size: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  userId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  newsItemId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  pollId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  blogId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+}).strict();
+
+export const BlogUpdateWithoutCategoryInputSchema: z.ZodType<Prisma.BlogUpdateWithoutCategoryInput> = z.object({
+  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  title: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  content: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  titlePunch: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  seoDescription: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  dateNews: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  readTime: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  views: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
+  dateCreated: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  originalBlog: z.lazy(() => BlogUpdateOneWithoutTranslationsNestedInputSchema).optional(),
+  translations: z.lazy(() => BlogUpdateManyWithoutOriginalBlogNestedInputSchema).optional(),
+  imagenSeo: z.lazy(() => ImageUpdateOneWithoutBlogImagenSeoNestedInputSchema).optional(),
+  imagenCard: z.lazy(() => ImageUpdateOneWithoutBlogImagenCardNestedInputSchema).optional(),
+  newsItem: z.lazy(() => NewsItemUpdateOneWithoutBlogNestedInputSchema).optional(),
+  Image: z.lazy(() => ImageUpdateManyWithoutBlogNestedInputSchema).optional(),
+  blogAuthors: z.lazy(() => BlogAuthorUpdateManyWithoutBlogNestedInputSchema).optional(),
+  likes: z.lazy(() => BlogLikeUpdateManyWithoutBlogNestedInputSchema).optional(),
+  tags: z.lazy(() => BlogTagUpdateManyWithoutBlogNestedInputSchema).optional(),
+  TranslationQueue: z.lazy(() => TranslationQueueUpdateManyWithoutBlogNestedInputSchema).optional()
+}).strict();
+
+export const BlogUncheckedUpdateWithoutCategoryInputSchema: z.ZodType<Prisma.BlogUncheckedUpdateWithoutCategoryInput> = z.object({
+  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  title: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  content: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  titlePunch: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  seoDescription: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  originalBlogId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  imagenSeoId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  dateNews: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  imagenCardId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  newsItemId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  readTime: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  views: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
+  dateCreated: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  translations: z.lazy(() => BlogUncheckedUpdateManyWithoutOriginalBlogNestedInputSchema).optional(),
+  Image: z.lazy(() => ImageUncheckedUpdateManyWithoutBlogNestedInputSchema).optional(),
+  blogAuthors: z.lazy(() => BlogAuthorUncheckedUpdateManyWithoutBlogNestedInputSchema).optional(),
+  likes: z.lazy(() => BlogLikeUncheckedUpdateManyWithoutBlogNestedInputSchema).optional(),
+  tags: z.lazy(() => BlogTagUncheckedUpdateManyWithoutBlogNestedInputSchema).optional(),
+  TranslationQueue: z.lazy(() => TranslationQueueUncheckedUpdateManyWithoutBlogNestedInputSchema).optional()
+}).strict();
+
+export const BlogUncheckedUpdateManyWithoutCategoryInputSchema: z.ZodType<Prisma.BlogUncheckedUpdateManyWithoutCategoryInput> = z.object({
+  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  title: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  content: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  titlePunch: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  seoDescription: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  originalBlogId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  imagenSeoId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  dateNews: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  imagenCardId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  newsItemId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  readTime: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  views: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
+  dateCreated: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+}).strict();
+
+export const TagCreateManyOriginalTagInputSchema: z.ZodType<Prisma.TagCreateManyOriginalTagInput> = z.object({
+  id: z.string().cuid().optional(),
+  name: z.string(),
+  slug: z.string(),
+  description: z.string().optional().nullable(),
+  baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional()
+}).strict();
+
+export const BlogTagCreateManyTagInputSchema: z.ZodType<Prisma.BlogTagCreateManyTagInput> = z.object({
+  id: z.string().cuid().optional(),
+  blogId: z.string()
+}).strict();
+
+export const TagUpdateWithoutOriginalTagInputSchema: z.ZodType<Prisma.TagUpdateWithoutOriginalTagInput> = z.object({
+  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  name: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  description: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  translations: z.lazy(() => TagUpdateManyWithoutOriginalTagNestedInputSchema).optional(),
+  blogs: z.lazy(() => BlogTagUpdateManyWithoutTagNestedInputSchema).optional()
+}).strict();
+
+export const TagUncheckedUpdateWithoutOriginalTagInputSchema: z.ZodType<Prisma.TagUncheckedUpdateWithoutOriginalTagInput> = z.object({
+  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  name: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  description: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  translations: z.lazy(() => TagUncheckedUpdateManyWithoutOriginalTagNestedInputSchema).optional(),
+  blogs: z.lazy(() => BlogTagUncheckedUpdateManyWithoutTagNestedInputSchema).optional()
+}).strict();
+
+export const TagUncheckedUpdateManyWithoutOriginalTagInputSchema: z.ZodType<Prisma.TagUncheckedUpdateManyWithoutOriginalTagInput> = z.object({
+  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  name: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  description: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+}).strict();
+
+export const BlogTagUpdateWithoutTagInputSchema: z.ZodType<Prisma.BlogTagUpdateWithoutTagInput> = z.object({
+  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  blog: z.lazy(() => BlogUpdateOneRequiredWithoutTagsNestedInputSchema).optional()
+}).strict();
+
+export const BlogTagUncheckedUpdateWithoutTagInputSchema: z.ZodType<Prisma.BlogTagUncheckedUpdateWithoutTagInput> = z.object({
+  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  blogId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+}).strict();
+
+export const BlogTagUncheckedUpdateManyWithoutTagInputSchema: z.ZodType<Prisma.BlogTagUncheckedUpdateManyWithoutTagInput> = z.object({
+  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  blogId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+}).strict();
+
+export const PollCreateManyOriginalPollInputSchema: z.ZodType<Prisma.PollCreateManyOriginalPollInput> = z.object({
+  id: z.string().uuid().optional(),
+  question: z.string(),
+  slug: z.string(),
+  description: z.string().optional().nullable(),
+  baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
+  startDate: z.coerce.date(),
+  endDate: z.coerce.date(),
+  createdAt: z.coerce.date().optional(),
+  Archived: z.boolean().optional(),
+  isPublic: z.boolean().optional(),
+  ArchivedAt: z.coerce.date().optional().nullable(),
+  Deleted: z.boolean().optional(),
+  DeletedAt: z.coerce.date().optional().nullable(),
+  categoryId: z.string(),
+  newsItemId: z.string().optional().nullable()
+}).strict();
+
+export const PollOptionCreateManyPollInputSchema: z.ZodType<Prisma.PollOptionCreateManyPollInput> = z.object({
+  id: z.string().uuid().optional(),
+  text: z.string(),
+  baseLanguage: z.string().optional()
+}).strict();
+
+export const VoteCreateManyPollInputSchema: z.ZodType<Prisma.VoteCreateManyPollInput> = z.object({
+  id: z.string().uuid().optional(),
+  hashedIp: z.string(),
+  anonymousId: z.string().optional().nullable(),
+  createdAt: z.coerce.date().optional(),
+  pollOptionId: z.string(),
+  userId: z.string().optional().nullable()
+}).strict();
+
+export const ImageCreateManyPollInputSchema: z.ZodType<Prisma.ImageCreateManyPollInput> = z.object({
+  id: z.string().cuid().optional(),
+  url: z.string(),
+  alt: z.string().optional().nullable(),
+  width: z.number().int().optional().nullable(),
+  height: z.number().int().optional().nullable(),
+  format: z.string().optional().nullable(),
+  publicId: z.string(),
+  folder: z.string().optional().nullable(),
+  size: z.number().int().optional().nullable(),
+  createdAt: z.coerce.date().optional(),
+  updatedAt: z.coerce.date().optional(),
+  userId: z.string().optional().nullable(),
+  categoryId: z.string().optional().nullable(),
+  newsItemId: z.string().optional().nullable(),
+  blogId: z.string().optional().nullable()
+}).strict();
+
+export const PollUpdateWithoutOriginalPollInputSchema: z.ZodType<Prisma.PollUpdateWithoutOriginalPollInput> = z.object({
+  id: z.union([ z.string().uuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  question: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  description: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  startDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  endDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  Archived: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  isPublic: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  ArchivedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  Deleted: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  DeletedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  translations: z.lazy(() => PollUpdateManyWithoutOriginalPollNestedInputSchema).optional(),
+  category: z.lazy(() => CategoryUpdateOneRequiredWithoutPollsNestedInputSchema).optional(),
+  options: z.lazy(() => PollOptionUpdateManyWithoutPollNestedInputSchema).optional(),
+  Vote: z.lazy(() => VoteUpdateManyWithoutPollNestedInputSchema).optional(),
+  newsItem: z.lazy(() => NewsItemUpdateOneWithoutPollNestedInputSchema).optional(),
+  Image: z.lazy(() => ImageUpdateManyWithoutPollNestedInputSchema).optional()
+}).strict();
+
+export const PollUncheckedUpdateWithoutOriginalPollInputSchema: z.ZodType<Prisma.PollUncheckedUpdateWithoutOriginalPollInput> = z.object({
+  id: z.union([ z.string().uuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  question: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  description: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  startDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  endDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  Archived: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  isPublic: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  ArchivedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  Deleted: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  DeletedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  categoryId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  newsItemId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  translations: z.lazy(() => PollUncheckedUpdateManyWithoutOriginalPollNestedInputSchema).optional(),
+  options: z.lazy(() => PollOptionUncheckedUpdateManyWithoutPollNestedInputSchema).optional(),
+  Vote: z.lazy(() => VoteUncheckedUpdateManyWithoutPollNestedInputSchema).optional(),
+  Image: z.lazy(() => ImageUncheckedUpdateManyWithoutPollNestedInputSchema).optional()
+}).strict();
+
+export const PollUncheckedUpdateManyWithoutOriginalPollInputSchema: z.ZodType<Prisma.PollUncheckedUpdateManyWithoutOriginalPollInput> = z.object({
+  id: z.union([ z.string().uuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  question: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  description: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  startDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  endDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  Archived: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  isPublic: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  ArchivedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  Deleted: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  DeletedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  categoryId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  newsItemId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+}).strict();
+
+export const PollOptionUpdateWithoutPollInputSchema: z.ZodType<Prisma.PollOptionUpdateWithoutPollInput> = z.object({
+  id: z.union([ z.string().uuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  text: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  votes: z.lazy(() => VoteUpdateManyWithoutPollOptionNestedInputSchema).optional()
+}).strict();
+
+export const PollOptionUncheckedUpdateWithoutPollInputSchema: z.ZodType<Prisma.PollOptionUncheckedUpdateWithoutPollInput> = z.object({
+  id: z.union([ z.string().uuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  text: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  votes: z.lazy(() => VoteUncheckedUpdateManyWithoutPollOptionNestedInputSchema).optional()
+}).strict();
+
+export const PollOptionUncheckedUpdateManyWithoutPollInputSchema: z.ZodType<Prisma.PollOptionUncheckedUpdateManyWithoutPollInput> = z.object({
+  id: z.union([ z.string().uuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  text: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+}).strict();
+
+export const VoteUpdateWithoutPollInputSchema: z.ZodType<Prisma.VoteUpdateWithoutPollInput> = z.object({
+  id: z.union([ z.string().uuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  hashedIp: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  anonymousId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  pollOption: z.lazy(() => PollOptionUpdateOneRequiredWithoutVotesNestedInputSchema).optional(),
+  user: z.lazy(() => UserUpdateOneWithoutVotesNestedInputSchema).optional()
+}).strict();
+
+export const VoteUncheckedUpdateWithoutPollInputSchema: z.ZodType<Prisma.VoteUncheckedUpdateWithoutPollInput> = z.object({
+  id: z.union([ z.string().uuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  hashedIp: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  anonymousId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  pollOptionId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  userId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+}).strict();
+
+export const VoteUncheckedUpdateManyWithoutPollInputSchema: z.ZodType<Prisma.VoteUncheckedUpdateManyWithoutPollInput> = z.object({
+  id: z.union([ z.string().uuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  hashedIp: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  anonymousId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  pollOptionId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  userId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+}).strict();
+
+export const ImageUpdateWithoutPollInputSchema: z.ZodType<Prisma.ImageUpdateWithoutPollInput> = z.object({
+  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  url: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  alt: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  width: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  height: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  format: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  publicId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  folder: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  size: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  user: z.lazy(() => UserUpdateOneWithoutImageNestedInputSchema).optional(),
+  category: z.lazy(() => CategoryUpdateOneWithoutImageNestedInputSchema).optional(),
+  newsItem: z.lazy(() => NewsItemUpdateOneWithoutImageNestedInputSchema).optional(),
+  blogImagenSeo: z.lazy(() => BlogUpdateManyWithoutImagenSeoNestedInputSchema).optional(),
+  blogImagenCard: z.lazy(() => BlogUpdateManyWithoutImagenCardNestedInputSchema).optional(),
+  authorProfileImage: z.lazy(() => AuthorUpdateOneWithoutProfileImageNestedInputSchema).optional(),
+  Blog: z.lazy(() => BlogUpdateOneWithoutImageNestedInputSchema).optional()
+}).strict();
+
+export const ImageUncheckedUpdateWithoutPollInputSchema: z.ZodType<Prisma.ImageUncheckedUpdateWithoutPollInput> = z.object({
+  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  url: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  alt: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  width: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  height: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  format: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  publicId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  folder: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  size: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  userId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  categoryId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  newsItemId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  blogId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  blogImagenSeo: z.lazy(() => BlogUncheckedUpdateManyWithoutImagenSeoNestedInputSchema).optional(),
+  blogImagenCard: z.lazy(() => BlogUncheckedUpdateManyWithoutImagenCardNestedInputSchema).optional(),
+  authorProfileImage: z.lazy(() => AuthorUncheckedUpdateOneWithoutProfileImageNestedInputSchema).optional()
+}).strict();
+
+export const ImageUncheckedUpdateManyWithoutPollInputSchema: z.ZodType<Prisma.ImageUncheckedUpdateManyWithoutPollInput> = z.object({
+  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  url: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  alt: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  width: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  height: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  format: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  publicId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  folder: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  size: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  userId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  categoryId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  newsItemId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  blogId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
 }).strict();
 
 export const AccountCreateManyUserInputSchema: z.ZodType<Prisma.AccountCreateManyUserInput> = z.object({
@@ -13015,236 +15102,6 @@ export const ReadingHistoryUncheckedUpdateManyWithoutUserInputSchema: z.ZodType<
   readTime: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
 }).strict();
 
-export const PollCreateManyCategoryInputSchema: z.ZodType<Prisma.PollCreateManyCategoryInput> = z.object({
-  id: z.string().uuid().optional(),
-  question: z.string(),
-  slug: z.string(),
-  description: z.string().optional().nullable(),
-  baseLanguage: z.string().optional(),
-  startDate: z.coerce.date(),
-  endDate: z.coerce.date(),
-  createdAt: z.coerce.date().optional(),
-  Archived: z.boolean().optional(),
-  isPublic: z.boolean().optional(),
-  ArchivedAt: z.coerce.date().optional().nullable(),
-  Deleted: z.boolean().optional(),
-  DeletedAt: z.coerce.date().optional().nullable(),
-  newsItemId: z.string().optional().nullable()
-}).strict();
-
-export const ImageCreateManyCategoryInputSchema: z.ZodType<Prisma.ImageCreateManyCategoryInput> = z.object({
-  id: z.string().cuid().optional(),
-  url: z.string(),
-  alt: z.string().optional().nullable(),
-  width: z.number().int().optional().nullable(),
-  height: z.number().int().optional().nullable(),
-  format: z.string().optional().nullable(),
-  publicId: z.string(),
-  folder: z.string().optional().nullable(),
-  size: z.number().int().optional().nullable(),
-  createdAt: z.coerce.date().optional(),
-  updatedAt: z.coerce.date().optional(),
-  userId: z.string().optional().nullable(),
-  newsItemId: z.string().optional().nullable(),
-  pollId: z.string().optional().nullable(),
-  blogId: z.string().optional().nullable()
-}).strict();
-
-export const BlogCreateManyCategoryInputSchema: z.ZodType<Prisma.BlogCreateManyCategoryInput> = z.object({
-  id: z.string().cuid().optional(),
-  title: z.string(),
-  content: z.string(),
-  titlePunch: z.string().optional().nullable(),
-  slug: z.string(),
-  seoDescription: z.string().optional().nullable(),
-  baseLanguage: z.string().optional(),
-  imagenSeoId: z.string().optional().nullable(),
-  dateNews: z.coerce.date(),
-  imagenCardId: z.string().optional().nullable(),
-  newsItemId: z.string().optional().nullable(),
-  readTime: z.number().int().optional().nullable(),
-  views: z.number().int().optional(),
-  dateCreated: z.coerce.date().optional()
-}).strict();
-
-export const PollUpdateWithoutCategoryInputSchema: z.ZodType<Prisma.PollUpdateWithoutCategoryInput> = z.object({
-  id: z.union([ z.string().uuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  question: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  description: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  startDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  endDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  Archived: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
-  isPublic: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
-  ArchivedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  Deleted: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
-  DeletedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  options: z.lazy(() => PollOptionUpdateManyWithoutPollNestedInputSchema).optional(),
-  Vote: z.lazy(() => VoteUpdateManyWithoutPollNestedInputSchema).optional(),
-  newsItem: z.lazy(() => NewsItemUpdateOneWithoutPollNestedInputSchema).optional(),
-  Image: z.lazy(() => ImageUpdateManyWithoutPollNestedInputSchema).optional()
-}).strict();
-
-export const PollUncheckedUpdateWithoutCategoryInputSchema: z.ZodType<Prisma.PollUncheckedUpdateWithoutCategoryInput> = z.object({
-  id: z.union([ z.string().uuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  question: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  description: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  startDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  endDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  Archived: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
-  isPublic: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
-  ArchivedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  Deleted: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
-  DeletedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  newsItemId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  options: z.lazy(() => PollOptionUncheckedUpdateManyWithoutPollNestedInputSchema).optional(),
-  Vote: z.lazy(() => VoteUncheckedUpdateManyWithoutPollNestedInputSchema).optional(),
-  Image: z.lazy(() => ImageUncheckedUpdateManyWithoutPollNestedInputSchema).optional()
-}).strict();
-
-export const PollUncheckedUpdateManyWithoutCategoryInputSchema: z.ZodType<Prisma.PollUncheckedUpdateManyWithoutCategoryInput> = z.object({
-  id: z.union([ z.string().uuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  question: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  description: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  startDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  endDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  Archived: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
-  isPublic: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
-  ArchivedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  Deleted: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
-  DeletedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  newsItemId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-}).strict();
-
-export const ImageUpdateWithoutCategoryInputSchema: z.ZodType<Prisma.ImageUpdateWithoutCategoryInput> = z.object({
-  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  url: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  alt: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  width: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  height: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  format: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  publicId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  folder: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  size: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  user: z.lazy(() => UserUpdateOneWithoutImageNestedInputSchema).optional(),
-  newsItem: z.lazy(() => NewsItemUpdateOneWithoutImageNestedInputSchema).optional(),
-  poll: z.lazy(() => PollUpdateOneWithoutImageNestedInputSchema).optional(),
-  blogImagenSeo: z.lazy(() => BlogUpdateManyWithoutImagenSeoNestedInputSchema).optional(),
-  blogImagenCard: z.lazy(() => BlogUpdateManyWithoutImagenCardNestedInputSchema).optional(),
-  authorProfileImage: z.lazy(() => AuthorUpdateOneWithoutProfileImageNestedInputSchema).optional(),
-  Blog: z.lazy(() => BlogUpdateOneWithoutImageNestedInputSchema).optional()
-}).strict();
-
-export const ImageUncheckedUpdateWithoutCategoryInputSchema: z.ZodType<Prisma.ImageUncheckedUpdateWithoutCategoryInput> = z.object({
-  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  url: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  alt: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  width: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  height: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  format: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  publicId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  folder: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  size: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  userId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  newsItemId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  pollId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  blogId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  blogImagenSeo: z.lazy(() => BlogUncheckedUpdateManyWithoutImagenSeoNestedInputSchema).optional(),
-  blogImagenCard: z.lazy(() => BlogUncheckedUpdateManyWithoutImagenCardNestedInputSchema).optional(),
-  authorProfileImage: z.lazy(() => AuthorUncheckedUpdateOneWithoutProfileImageNestedInputSchema).optional()
-}).strict();
-
-export const ImageUncheckedUpdateManyWithoutCategoryInputSchema: z.ZodType<Prisma.ImageUncheckedUpdateManyWithoutCategoryInput> = z.object({
-  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  url: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  alt: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  width: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  height: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  format: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  publicId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  folder: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  size: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  userId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  newsItemId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  pollId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  blogId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-}).strict();
-
-export const BlogUpdateWithoutCategoryInputSchema: z.ZodType<Prisma.BlogUpdateWithoutCategoryInput> = z.object({
-  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  title: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  content: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  titlePunch: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  seoDescription: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  dateNews: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  readTime: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  views: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
-  dateCreated: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  imagenSeo: z.lazy(() => ImageUpdateOneWithoutBlogImagenSeoNestedInputSchema).optional(),
-  imagenCard: z.lazy(() => ImageUpdateOneWithoutBlogImagenCardNestedInputSchema).optional(),
-  newsItem: z.lazy(() => NewsItemUpdateOneWithoutBlogNestedInputSchema).optional(),
-  Image: z.lazy(() => ImageUpdateManyWithoutBlogNestedInputSchema).optional(),
-  blogAuthors: z.lazy(() => BlogAuthorUpdateManyWithoutBlogNestedInputSchema).optional(),
-  likes: z.lazy(() => BlogLikeUpdateManyWithoutBlogNestedInputSchema).optional(),
-  tags: z.lazy(() => BlogTagUpdateManyWithoutBlogNestedInputSchema).optional(),
-  TranslationQueue: z.lazy(() => TranslationQueueUpdateManyWithoutBlogNestedInputSchema).optional()
-}).strict();
-
-export const BlogUncheckedUpdateWithoutCategoryInputSchema: z.ZodType<Prisma.BlogUncheckedUpdateWithoutCategoryInput> = z.object({
-  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  title: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  content: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  titlePunch: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  seoDescription: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  imagenSeoId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  dateNews: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  imagenCardId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  newsItemId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  readTime: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  views: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
-  dateCreated: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  Image: z.lazy(() => ImageUncheckedUpdateManyWithoutBlogNestedInputSchema).optional(),
-  blogAuthors: z.lazy(() => BlogAuthorUncheckedUpdateManyWithoutBlogNestedInputSchema).optional(),
-  likes: z.lazy(() => BlogLikeUncheckedUpdateManyWithoutBlogNestedInputSchema).optional(),
-  tags: z.lazy(() => BlogTagUncheckedUpdateManyWithoutBlogNestedInputSchema).optional(),
-  TranslationQueue: z.lazy(() => TranslationQueueUncheckedUpdateManyWithoutBlogNestedInputSchema).optional()
-}).strict();
-
-export const BlogUncheckedUpdateManyWithoutCategoryInputSchema: z.ZodType<Prisma.BlogUncheckedUpdateManyWithoutCategoryInput> = z.object({
-  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  title: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  content: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  titlePunch: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  seoDescription: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  imagenSeoId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  dateNews: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  imagenCardId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  newsItemId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  readTime: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  views: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
-  dateCreated: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-}).strict();
-
 export const ImageCreateManyNewsItemInputSchema: z.ZodType<Prisma.ImageCreateManyNewsItemInput> = z.object({
   id: z.string().cuid().optional(),
   url: z.string(),
@@ -13321,356 +15178,6 @@ export const ImageUncheckedUpdateManyWithoutNewsItemInputSchema: z.ZodType<Prism
   categoryId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   pollId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   blogId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-}).strict();
-
-export const PollOptionCreateManyPollInputSchema: z.ZodType<Prisma.PollOptionCreateManyPollInput> = z.object({
-  id: z.string().uuid().optional(),
-  text: z.string(),
-  baseLanguage: z.string().optional()
-}).strict();
-
-export const VoteCreateManyPollInputSchema: z.ZodType<Prisma.VoteCreateManyPollInput> = z.object({
-  id: z.string().uuid().optional(),
-  hashedIp: z.string(),
-  anonymousId: z.string().optional().nullable(),
-  createdAt: z.coerce.date().optional(),
-  pollOptionId: z.string(),
-  userId: z.string().optional().nullable()
-}).strict();
-
-export const ImageCreateManyPollInputSchema: z.ZodType<Prisma.ImageCreateManyPollInput> = z.object({
-  id: z.string().cuid().optional(),
-  url: z.string(),
-  alt: z.string().optional().nullable(),
-  width: z.number().int().optional().nullable(),
-  height: z.number().int().optional().nullable(),
-  format: z.string().optional().nullable(),
-  publicId: z.string(),
-  folder: z.string().optional().nullable(),
-  size: z.number().int().optional().nullable(),
-  createdAt: z.coerce.date().optional(),
-  updatedAt: z.coerce.date().optional(),
-  userId: z.string().optional().nullable(),
-  categoryId: z.string().optional().nullable(),
-  newsItemId: z.string().optional().nullable(),
-  blogId: z.string().optional().nullable()
-}).strict();
-
-export const PollOptionUpdateWithoutPollInputSchema: z.ZodType<Prisma.PollOptionUpdateWithoutPollInput> = z.object({
-  id: z.union([ z.string().uuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  text: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  votes: z.lazy(() => VoteUpdateManyWithoutPollOptionNestedInputSchema).optional()
-}).strict();
-
-export const PollOptionUncheckedUpdateWithoutPollInputSchema: z.ZodType<Prisma.PollOptionUncheckedUpdateWithoutPollInput> = z.object({
-  id: z.union([ z.string().uuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  text: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  votes: z.lazy(() => VoteUncheckedUpdateManyWithoutPollOptionNestedInputSchema).optional()
-}).strict();
-
-export const PollOptionUncheckedUpdateManyWithoutPollInputSchema: z.ZodType<Prisma.PollOptionUncheckedUpdateManyWithoutPollInput> = z.object({
-  id: z.union([ z.string().uuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  text: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-}).strict();
-
-export const VoteUpdateWithoutPollInputSchema: z.ZodType<Prisma.VoteUpdateWithoutPollInput> = z.object({
-  id: z.union([ z.string().uuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  hashedIp: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  anonymousId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  pollOption: z.lazy(() => PollOptionUpdateOneRequiredWithoutVotesNestedInputSchema).optional(),
-  user: z.lazy(() => UserUpdateOneWithoutVotesNestedInputSchema).optional()
-}).strict();
-
-export const VoteUncheckedUpdateWithoutPollInputSchema: z.ZodType<Prisma.VoteUncheckedUpdateWithoutPollInput> = z.object({
-  id: z.union([ z.string().uuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  hashedIp: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  anonymousId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  pollOptionId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  userId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-}).strict();
-
-export const VoteUncheckedUpdateManyWithoutPollInputSchema: z.ZodType<Prisma.VoteUncheckedUpdateManyWithoutPollInput> = z.object({
-  id: z.union([ z.string().uuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  hashedIp: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  anonymousId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  pollOptionId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  userId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-}).strict();
-
-export const ImageUpdateWithoutPollInputSchema: z.ZodType<Prisma.ImageUpdateWithoutPollInput> = z.object({
-  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  url: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  alt: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  width: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  height: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  format: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  publicId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  folder: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  size: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  user: z.lazy(() => UserUpdateOneWithoutImageNestedInputSchema).optional(),
-  category: z.lazy(() => CategoryUpdateOneWithoutImageNestedInputSchema).optional(),
-  newsItem: z.lazy(() => NewsItemUpdateOneWithoutImageNestedInputSchema).optional(),
-  blogImagenSeo: z.lazy(() => BlogUpdateManyWithoutImagenSeoNestedInputSchema).optional(),
-  blogImagenCard: z.lazy(() => BlogUpdateManyWithoutImagenCardNestedInputSchema).optional(),
-  authorProfileImage: z.lazy(() => AuthorUpdateOneWithoutProfileImageNestedInputSchema).optional(),
-  Blog: z.lazy(() => BlogUpdateOneWithoutImageNestedInputSchema).optional()
-}).strict();
-
-export const ImageUncheckedUpdateWithoutPollInputSchema: z.ZodType<Prisma.ImageUncheckedUpdateWithoutPollInput> = z.object({
-  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  url: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  alt: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  width: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  height: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  format: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  publicId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  folder: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  size: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  userId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  categoryId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  newsItemId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  blogId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  blogImagenSeo: z.lazy(() => BlogUncheckedUpdateManyWithoutImagenSeoNestedInputSchema).optional(),
-  blogImagenCard: z.lazy(() => BlogUncheckedUpdateManyWithoutImagenCardNestedInputSchema).optional(),
-  authorProfileImage: z.lazy(() => AuthorUncheckedUpdateOneWithoutProfileImageNestedInputSchema).optional()
-}).strict();
-
-export const ImageUncheckedUpdateManyWithoutPollInputSchema: z.ZodType<Prisma.ImageUncheckedUpdateManyWithoutPollInput> = z.object({
-  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  url: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  alt: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  width: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  height: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  format: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  publicId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  folder: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  size: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  userId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  categoryId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  newsItemId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  blogId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-}).strict();
-
-export const ImageCreateManyBlogInputSchema: z.ZodType<Prisma.ImageCreateManyBlogInput> = z.object({
-  id: z.string().cuid().optional(),
-  url: z.string(),
-  alt: z.string().optional().nullable(),
-  width: z.number().int().optional().nullable(),
-  height: z.number().int().optional().nullable(),
-  format: z.string().optional().nullable(),
-  publicId: z.string(),
-  folder: z.string().optional().nullable(),
-  size: z.number().int().optional().nullable(),
-  createdAt: z.coerce.date().optional(),
-  updatedAt: z.coerce.date().optional(),
-  userId: z.string().optional().nullable(),
-  categoryId: z.string().optional().nullable(),
-  newsItemId: z.string().optional().nullable(),
-  pollId: z.string().optional().nullable()
-}).strict();
-
-export const BlogAuthorCreateManyBlogInputSchema: z.ZodType<Prisma.BlogAuthorCreateManyBlogInput> = z.object({
-  id: z.string().cuid().optional(),
-  authorId: z.string()
-}).strict();
-
-export const BlogLikeCreateManyBlogInputSchema: z.ZodType<Prisma.BlogLikeCreateManyBlogInput> = z.object({
-  id: z.string().cuid().optional(),
-  userId: z.string(),
-  createdAt: z.coerce.date().optional()
-}).strict();
-
-export const BlogTagCreateManyBlogInputSchema: z.ZodType<Prisma.BlogTagCreateManyBlogInput> = z.object({
-  id: z.string().cuid().optional(),
-  tagId: z.string()
-}).strict();
-
-export const TranslationQueueCreateManyBlogInputSchema: z.ZodType<Prisma.TranslationQueueCreateManyBlogInput> = z.object({
-  id: z.string().cuid().optional(),
-  targetLanguage: z.string(),
-  status: z.string().optional(),
-  retryCount: z.number().int().optional(),
-  errorMessage: z.string().optional().nullable(),
-  priority: z.number().int().optional(),
-  createdAt: z.coerce.date().optional(),
-  processedAt: z.coerce.date().optional().nullable(),
-  completedAt: z.coerce.date().optional().nullable()
-}).strict();
-
-export const ImageUpdateWithoutBlogInputSchema: z.ZodType<Prisma.ImageUpdateWithoutBlogInput> = z.object({
-  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  url: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  alt: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  width: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  height: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  format: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  publicId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  folder: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  size: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  user: z.lazy(() => UserUpdateOneWithoutImageNestedInputSchema).optional(),
-  category: z.lazy(() => CategoryUpdateOneWithoutImageNestedInputSchema).optional(),
-  newsItem: z.lazy(() => NewsItemUpdateOneWithoutImageNestedInputSchema).optional(),
-  poll: z.lazy(() => PollUpdateOneWithoutImageNestedInputSchema).optional(),
-  blogImagenSeo: z.lazy(() => BlogUpdateManyWithoutImagenSeoNestedInputSchema).optional(),
-  blogImagenCard: z.lazy(() => BlogUpdateManyWithoutImagenCardNestedInputSchema).optional(),
-  authorProfileImage: z.lazy(() => AuthorUpdateOneWithoutProfileImageNestedInputSchema).optional()
-}).strict();
-
-export const ImageUncheckedUpdateWithoutBlogInputSchema: z.ZodType<Prisma.ImageUncheckedUpdateWithoutBlogInput> = z.object({
-  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  url: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  alt: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  width: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  height: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  format: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  publicId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  folder: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  size: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  userId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  categoryId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  newsItemId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  pollId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  blogImagenSeo: z.lazy(() => BlogUncheckedUpdateManyWithoutImagenSeoNestedInputSchema).optional(),
-  blogImagenCard: z.lazy(() => BlogUncheckedUpdateManyWithoutImagenCardNestedInputSchema).optional(),
-  authorProfileImage: z.lazy(() => AuthorUncheckedUpdateOneWithoutProfileImageNestedInputSchema).optional()
-}).strict();
-
-export const ImageUncheckedUpdateManyWithoutBlogInputSchema: z.ZodType<Prisma.ImageUncheckedUpdateManyWithoutBlogInput> = z.object({
-  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  url: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  alt: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  width: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  height: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  format: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  publicId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  folder: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  size: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  userId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  categoryId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  newsItemId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  pollId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-}).strict();
-
-export const BlogAuthorUpdateWithoutBlogInputSchema: z.ZodType<Prisma.BlogAuthorUpdateWithoutBlogInput> = z.object({
-  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  author: z.lazy(() => AuthorUpdateOneRequiredWithoutBlogAuthorsNestedInputSchema).optional()
-}).strict();
-
-export const BlogAuthorUncheckedUpdateWithoutBlogInputSchema: z.ZodType<Prisma.BlogAuthorUncheckedUpdateWithoutBlogInput> = z.object({
-  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  authorId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-}).strict();
-
-export const BlogAuthorUncheckedUpdateManyWithoutBlogInputSchema: z.ZodType<Prisma.BlogAuthorUncheckedUpdateManyWithoutBlogInput> = z.object({
-  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  authorId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-}).strict();
-
-export const BlogLikeUpdateWithoutBlogInputSchema: z.ZodType<Prisma.BlogLikeUpdateWithoutBlogInput> = z.object({
-  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  user: z.lazy(() => UserUpdateOneRequiredWithoutBlogLikesNestedInputSchema).optional()
-}).strict();
-
-export const BlogLikeUncheckedUpdateWithoutBlogInputSchema: z.ZodType<Prisma.BlogLikeUncheckedUpdateWithoutBlogInput> = z.object({
-  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  userId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-}).strict();
-
-export const BlogLikeUncheckedUpdateManyWithoutBlogInputSchema: z.ZodType<Prisma.BlogLikeUncheckedUpdateManyWithoutBlogInput> = z.object({
-  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  userId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-}).strict();
-
-export const BlogTagUpdateWithoutBlogInputSchema: z.ZodType<Prisma.BlogTagUpdateWithoutBlogInput> = z.object({
-  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  tag: z.lazy(() => TagUpdateOneRequiredWithoutBlogsNestedInputSchema).optional()
-}).strict();
-
-export const BlogTagUncheckedUpdateWithoutBlogInputSchema: z.ZodType<Prisma.BlogTagUncheckedUpdateWithoutBlogInput> = z.object({
-  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  tagId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-}).strict();
-
-export const BlogTagUncheckedUpdateManyWithoutBlogInputSchema: z.ZodType<Prisma.BlogTagUncheckedUpdateManyWithoutBlogInput> = z.object({
-  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  tagId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-}).strict();
-
-export const TranslationQueueUpdateWithoutBlogInputSchema: z.ZodType<Prisma.TranslationQueueUpdateWithoutBlogInput> = z.object({
-  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  targetLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  status: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  retryCount: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
-  errorMessage: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  priority: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
-  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  processedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  completedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-}).strict();
-
-export const TranslationQueueUncheckedUpdateWithoutBlogInputSchema: z.ZodType<Prisma.TranslationQueueUncheckedUpdateWithoutBlogInput> = z.object({
-  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  targetLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  status: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  retryCount: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
-  errorMessage: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  priority: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
-  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  processedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  completedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-}).strict();
-
-export const TranslationQueueUncheckedUpdateManyWithoutBlogInputSchema: z.ZodType<Prisma.TranslationQueueUncheckedUpdateManyWithoutBlogInput> = z.object({
-  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  targetLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  status: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  retryCount: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
-  errorMessage: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  priority: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
-  createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  processedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  completedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-}).strict();
-
-export const BlogTagCreateManyTagInputSchema: z.ZodType<Prisma.BlogTagCreateManyTagInput> = z.object({
-  id: z.string().cuid().optional(),
-  blogId: z.string()
-}).strict();
-
-export const BlogTagUpdateWithoutTagInputSchema: z.ZodType<Prisma.BlogTagUpdateWithoutTagInput> = z.object({
-  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  blog: z.lazy(() => BlogUpdateOneRequiredWithoutTagsNestedInputSchema).optional()
-}).strict();
-
-export const BlogTagUncheckedUpdateWithoutTagInputSchema: z.ZodType<Prisma.BlogTagUncheckedUpdateWithoutTagInput> = z.object({
-  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  blogId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-}).strict();
-
-export const BlogTagUncheckedUpdateManyWithoutTagInputSchema: z.ZodType<Prisma.BlogTagUncheckedUpdateManyWithoutTagInput> = z.object({
-  id: z.union([ z.string().cuid(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  blogId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
 }).strict();
 
 export const VoteCreateManyPollOptionInputSchema: z.ZodType<Prisma.VoteCreateManyPollOptionInput> = z.object({
@@ -13781,6 +15288,8 @@ export const BlogCreateManyImagenSeoInputSchema: z.ZodType<Prisma.BlogCreateMany
   slug: z.string(),
   seoDescription: z.string().optional().nullable(),
   baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
+  originalBlogId: z.string().optional().nullable(),
   dateNews: z.coerce.date(),
   imagenCardId: z.string().optional().nullable(),
   newsItemId: z.string().optional().nullable(),
@@ -13798,6 +15307,8 @@ export const BlogCreateManyImagenCardInputSchema: z.ZodType<Prisma.BlogCreateMan
   slug: z.string(),
   seoDescription: z.string().optional().nullable(),
   baseLanguage: z.string().optional(),
+  isTranslation: z.boolean().optional(),
+  originalBlogId: z.string().optional().nullable(),
   imagenSeoId: z.string().optional().nullable(),
   dateNews: z.coerce.date(),
   newsItemId: z.string().optional().nullable(),
@@ -13815,10 +15326,13 @@ export const BlogUpdateWithoutImagenSeoInputSchema: z.ZodType<Prisma.BlogUpdateW
   slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   seoDescription: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
   dateNews: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   readTime: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   views: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
   dateCreated: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  originalBlog: z.lazy(() => BlogUpdateOneWithoutTranslationsNestedInputSchema).optional(),
+  translations: z.lazy(() => BlogUpdateManyWithoutOriginalBlogNestedInputSchema).optional(),
   imagenCard: z.lazy(() => ImageUpdateOneWithoutBlogImagenCardNestedInputSchema).optional(),
   newsItem: z.lazy(() => NewsItemUpdateOneWithoutBlogNestedInputSchema).optional(),
   Image: z.lazy(() => ImageUpdateManyWithoutBlogNestedInputSchema).optional(),
@@ -13837,6 +15351,8 @@ export const BlogUncheckedUpdateWithoutImagenSeoInputSchema: z.ZodType<Prisma.Bl
   slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   seoDescription: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  originalBlogId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   dateNews: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   imagenCardId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   newsItemId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
@@ -13844,6 +15360,7 @@ export const BlogUncheckedUpdateWithoutImagenSeoInputSchema: z.ZodType<Prisma.Bl
   views: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
   dateCreated: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   categoryId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  translations: z.lazy(() => BlogUncheckedUpdateManyWithoutOriginalBlogNestedInputSchema).optional(),
   Image: z.lazy(() => ImageUncheckedUpdateManyWithoutBlogNestedInputSchema).optional(),
   blogAuthors: z.lazy(() => BlogAuthorUncheckedUpdateManyWithoutBlogNestedInputSchema).optional(),
   likes: z.lazy(() => BlogLikeUncheckedUpdateManyWithoutBlogNestedInputSchema).optional(),
@@ -13859,6 +15376,8 @@ export const BlogUncheckedUpdateManyWithoutImagenSeoInputSchema: z.ZodType<Prism
   slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   seoDescription: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  originalBlogId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   dateNews: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   imagenCardId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   newsItemId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
@@ -13876,10 +15395,13 @@ export const BlogUpdateWithoutImagenCardInputSchema: z.ZodType<Prisma.BlogUpdate
   slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   seoDescription: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
   dateNews: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   readTime: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   views: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
   dateCreated: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  originalBlog: z.lazy(() => BlogUpdateOneWithoutTranslationsNestedInputSchema).optional(),
+  translations: z.lazy(() => BlogUpdateManyWithoutOriginalBlogNestedInputSchema).optional(),
   imagenSeo: z.lazy(() => ImageUpdateOneWithoutBlogImagenSeoNestedInputSchema).optional(),
   newsItem: z.lazy(() => NewsItemUpdateOneWithoutBlogNestedInputSchema).optional(),
   Image: z.lazy(() => ImageUpdateManyWithoutBlogNestedInputSchema).optional(),
@@ -13898,6 +15420,8 @@ export const BlogUncheckedUpdateWithoutImagenCardInputSchema: z.ZodType<Prisma.B
   slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   seoDescription: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  originalBlogId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   imagenSeoId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   dateNews: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   newsItemId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
@@ -13905,6 +15429,7 @@ export const BlogUncheckedUpdateWithoutImagenCardInputSchema: z.ZodType<Prisma.B
   views: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
   dateCreated: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   categoryId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  translations: z.lazy(() => BlogUncheckedUpdateManyWithoutOriginalBlogNestedInputSchema).optional(),
   Image: z.lazy(() => ImageUncheckedUpdateManyWithoutBlogNestedInputSchema).optional(),
   blogAuthors: z.lazy(() => BlogAuthorUncheckedUpdateManyWithoutBlogNestedInputSchema).optional(),
   likes: z.lazy(() => BlogLikeUncheckedUpdateManyWithoutBlogNestedInputSchema).optional(),
@@ -13920,6 +15445,8 @@ export const BlogUncheckedUpdateManyWithoutImagenCardInputSchema: z.ZodType<Pris
   slug: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   seoDescription: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   baseLanguage: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  isTranslation: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
+  originalBlogId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   imagenSeoId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   dateNews: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   newsItemId: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
@@ -13988,6 +15515,254 @@ export const TranslationFindUniqueArgsSchema: z.ZodType<Prisma.TranslationFindUn
 export const TranslationFindUniqueOrThrowArgsSchema: z.ZodType<Prisma.TranslationFindUniqueOrThrowArgs> = z.object({
   select: TranslationSelectSchema.optional(),
   where: TranslationWhereUniqueInputSchema,
+}).strict() ;
+
+export const BlogFindFirstArgsSchema: z.ZodType<Prisma.BlogFindFirstArgs> = z.object({
+  select: BlogSelectSchema.optional(),
+  include: BlogIncludeSchema.optional(),
+  where: BlogWhereInputSchema.optional(),
+  orderBy: z.union([ BlogOrderByWithRelationInputSchema.array(),BlogOrderByWithRelationInputSchema ]).optional(),
+  cursor: BlogWhereUniqueInputSchema.optional(),
+  take: z.number().optional(),
+  skip: z.number().optional(),
+  distinct: z.union([ BlogScalarFieldEnumSchema,BlogScalarFieldEnumSchema.array() ]).optional(),
+}).strict() ;
+
+export const BlogFindFirstOrThrowArgsSchema: z.ZodType<Prisma.BlogFindFirstOrThrowArgs> = z.object({
+  select: BlogSelectSchema.optional(),
+  include: BlogIncludeSchema.optional(),
+  where: BlogWhereInputSchema.optional(),
+  orderBy: z.union([ BlogOrderByWithRelationInputSchema.array(),BlogOrderByWithRelationInputSchema ]).optional(),
+  cursor: BlogWhereUniqueInputSchema.optional(),
+  take: z.number().optional(),
+  skip: z.number().optional(),
+  distinct: z.union([ BlogScalarFieldEnumSchema,BlogScalarFieldEnumSchema.array() ]).optional(),
+}).strict() ;
+
+export const BlogFindManyArgsSchema: z.ZodType<Prisma.BlogFindManyArgs> = z.object({
+  select: BlogSelectSchema.optional(),
+  include: BlogIncludeSchema.optional(),
+  where: BlogWhereInputSchema.optional(),
+  orderBy: z.union([ BlogOrderByWithRelationInputSchema.array(),BlogOrderByWithRelationInputSchema ]).optional(),
+  cursor: BlogWhereUniqueInputSchema.optional(),
+  take: z.number().optional(),
+  skip: z.number().optional(),
+  distinct: z.union([ BlogScalarFieldEnumSchema,BlogScalarFieldEnumSchema.array() ]).optional(),
+}).strict() ;
+
+export const BlogAggregateArgsSchema: z.ZodType<Prisma.BlogAggregateArgs> = z.object({
+  where: BlogWhereInputSchema.optional(),
+  orderBy: z.union([ BlogOrderByWithRelationInputSchema.array(),BlogOrderByWithRelationInputSchema ]).optional(),
+  cursor: BlogWhereUniqueInputSchema.optional(),
+  take: z.number().optional(),
+  skip: z.number().optional(),
+}).strict() ;
+
+export const BlogGroupByArgsSchema: z.ZodType<Prisma.BlogGroupByArgs> = z.object({
+  where: BlogWhereInputSchema.optional(),
+  orderBy: z.union([ BlogOrderByWithAggregationInputSchema.array(),BlogOrderByWithAggregationInputSchema ]).optional(),
+  by: BlogScalarFieldEnumSchema.array(),
+  having: BlogScalarWhereWithAggregatesInputSchema.optional(),
+  take: z.number().optional(),
+  skip: z.number().optional(),
+}).strict() ;
+
+export const BlogFindUniqueArgsSchema: z.ZodType<Prisma.BlogFindUniqueArgs> = z.object({
+  select: BlogSelectSchema.optional(),
+  include: BlogIncludeSchema.optional(),
+  where: BlogWhereUniqueInputSchema,
+}).strict() ;
+
+export const BlogFindUniqueOrThrowArgsSchema: z.ZodType<Prisma.BlogFindUniqueOrThrowArgs> = z.object({
+  select: BlogSelectSchema.optional(),
+  include: BlogIncludeSchema.optional(),
+  where: BlogWhereUniqueInputSchema,
+}).strict() ;
+
+export const CategoryFindFirstArgsSchema: z.ZodType<Prisma.CategoryFindFirstArgs> = z.object({
+  select: CategorySelectSchema.optional(),
+  include: CategoryIncludeSchema.optional(),
+  where: CategoryWhereInputSchema.optional(),
+  orderBy: z.union([ CategoryOrderByWithRelationInputSchema.array(),CategoryOrderByWithRelationInputSchema ]).optional(),
+  cursor: CategoryWhereUniqueInputSchema.optional(),
+  take: z.number().optional(),
+  skip: z.number().optional(),
+  distinct: z.union([ CategoryScalarFieldEnumSchema,CategoryScalarFieldEnumSchema.array() ]).optional(),
+}).strict() ;
+
+export const CategoryFindFirstOrThrowArgsSchema: z.ZodType<Prisma.CategoryFindFirstOrThrowArgs> = z.object({
+  select: CategorySelectSchema.optional(),
+  include: CategoryIncludeSchema.optional(),
+  where: CategoryWhereInputSchema.optional(),
+  orderBy: z.union([ CategoryOrderByWithRelationInputSchema.array(),CategoryOrderByWithRelationInputSchema ]).optional(),
+  cursor: CategoryWhereUniqueInputSchema.optional(),
+  take: z.number().optional(),
+  skip: z.number().optional(),
+  distinct: z.union([ CategoryScalarFieldEnumSchema,CategoryScalarFieldEnumSchema.array() ]).optional(),
+}).strict() ;
+
+export const CategoryFindManyArgsSchema: z.ZodType<Prisma.CategoryFindManyArgs> = z.object({
+  select: CategorySelectSchema.optional(),
+  include: CategoryIncludeSchema.optional(),
+  where: CategoryWhereInputSchema.optional(),
+  orderBy: z.union([ CategoryOrderByWithRelationInputSchema.array(),CategoryOrderByWithRelationInputSchema ]).optional(),
+  cursor: CategoryWhereUniqueInputSchema.optional(),
+  take: z.number().optional(),
+  skip: z.number().optional(),
+  distinct: z.union([ CategoryScalarFieldEnumSchema,CategoryScalarFieldEnumSchema.array() ]).optional(),
+}).strict() ;
+
+export const CategoryAggregateArgsSchema: z.ZodType<Prisma.CategoryAggregateArgs> = z.object({
+  where: CategoryWhereInputSchema.optional(),
+  orderBy: z.union([ CategoryOrderByWithRelationInputSchema.array(),CategoryOrderByWithRelationInputSchema ]).optional(),
+  cursor: CategoryWhereUniqueInputSchema.optional(),
+  take: z.number().optional(),
+  skip: z.number().optional(),
+}).strict() ;
+
+export const CategoryGroupByArgsSchema: z.ZodType<Prisma.CategoryGroupByArgs> = z.object({
+  where: CategoryWhereInputSchema.optional(),
+  orderBy: z.union([ CategoryOrderByWithAggregationInputSchema.array(),CategoryOrderByWithAggregationInputSchema ]).optional(),
+  by: CategoryScalarFieldEnumSchema.array(),
+  having: CategoryScalarWhereWithAggregatesInputSchema.optional(),
+  take: z.number().optional(),
+  skip: z.number().optional(),
+}).strict() ;
+
+export const CategoryFindUniqueArgsSchema: z.ZodType<Prisma.CategoryFindUniqueArgs> = z.object({
+  select: CategorySelectSchema.optional(),
+  include: CategoryIncludeSchema.optional(),
+  where: CategoryWhereUniqueInputSchema,
+}).strict() ;
+
+export const CategoryFindUniqueOrThrowArgsSchema: z.ZodType<Prisma.CategoryFindUniqueOrThrowArgs> = z.object({
+  select: CategorySelectSchema.optional(),
+  include: CategoryIncludeSchema.optional(),
+  where: CategoryWhereUniqueInputSchema,
+}).strict() ;
+
+export const TagFindFirstArgsSchema: z.ZodType<Prisma.TagFindFirstArgs> = z.object({
+  select: TagSelectSchema.optional(),
+  include: TagIncludeSchema.optional(),
+  where: TagWhereInputSchema.optional(),
+  orderBy: z.union([ TagOrderByWithRelationInputSchema.array(),TagOrderByWithRelationInputSchema ]).optional(),
+  cursor: TagWhereUniqueInputSchema.optional(),
+  take: z.number().optional(),
+  skip: z.number().optional(),
+  distinct: z.union([ TagScalarFieldEnumSchema,TagScalarFieldEnumSchema.array() ]).optional(),
+}).strict() ;
+
+export const TagFindFirstOrThrowArgsSchema: z.ZodType<Prisma.TagFindFirstOrThrowArgs> = z.object({
+  select: TagSelectSchema.optional(),
+  include: TagIncludeSchema.optional(),
+  where: TagWhereInputSchema.optional(),
+  orderBy: z.union([ TagOrderByWithRelationInputSchema.array(),TagOrderByWithRelationInputSchema ]).optional(),
+  cursor: TagWhereUniqueInputSchema.optional(),
+  take: z.number().optional(),
+  skip: z.number().optional(),
+  distinct: z.union([ TagScalarFieldEnumSchema,TagScalarFieldEnumSchema.array() ]).optional(),
+}).strict() ;
+
+export const TagFindManyArgsSchema: z.ZodType<Prisma.TagFindManyArgs> = z.object({
+  select: TagSelectSchema.optional(),
+  include: TagIncludeSchema.optional(),
+  where: TagWhereInputSchema.optional(),
+  orderBy: z.union([ TagOrderByWithRelationInputSchema.array(),TagOrderByWithRelationInputSchema ]).optional(),
+  cursor: TagWhereUniqueInputSchema.optional(),
+  take: z.number().optional(),
+  skip: z.number().optional(),
+  distinct: z.union([ TagScalarFieldEnumSchema,TagScalarFieldEnumSchema.array() ]).optional(),
+}).strict() ;
+
+export const TagAggregateArgsSchema: z.ZodType<Prisma.TagAggregateArgs> = z.object({
+  where: TagWhereInputSchema.optional(),
+  orderBy: z.union([ TagOrderByWithRelationInputSchema.array(),TagOrderByWithRelationInputSchema ]).optional(),
+  cursor: TagWhereUniqueInputSchema.optional(),
+  take: z.number().optional(),
+  skip: z.number().optional(),
+}).strict() ;
+
+export const TagGroupByArgsSchema: z.ZodType<Prisma.TagGroupByArgs> = z.object({
+  where: TagWhereInputSchema.optional(),
+  orderBy: z.union([ TagOrderByWithAggregationInputSchema.array(),TagOrderByWithAggregationInputSchema ]).optional(),
+  by: TagScalarFieldEnumSchema.array(),
+  having: TagScalarWhereWithAggregatesInputSchema.optional(),
+  take: z.number().optional(),
+  skip: z.number().optional(),
+}).strict() ;
+
+export const TagFindUniqueArgsSchema: z.ZodType<Prisma.TagFindUniqueArgs> = z.object({
+  select: TagSelectSchema.optional(),
+  include: TagIncludeSchema.optional(),
+  where: TagWhereUniqueInputSchema,
+}).strict() ;
+
+export const TagFindUniqueOrThrowArgsSchema: z.ZodType<Prisma.TagFindUniqueOrThrowArgs> = z.object({
+  select: TagSelectSchema.optional(),
+  include: TagIncludeSchema.optional(),
+  where: TagWhereUniqueInputSchema,
+}).strict() ;
+
+export const PollFindFirstArgsSchema: z.ZodType<Prisma.PollFindFirstArgs> = z.object({
+  select: PollSelectSchema.optional(),
+  include: PollIncludeSchema.optional(),
+  where: PollWhereInputSchema.optional(),
+  orderBy: z.union([ PollOrderByWithRelationInputSchema.array(),PollOrderByWithRelationInputSchema ]).optional(),
+  cursor: PollWhereUniqueInputSchema.optional(),
+  take: z.number().optional(),
+  skip: z.number().optional(),
+  distinct: z.union([ PollScalarFieldEnumSchema,PollScalarFieldEnumSchema.array() ]).optional(),
+}).strict() ;
+
+export const PollFindFirstOrThrowArgsSchema: z.ZodType<Prisma.PollFindFirstOrThrowArgs> = z.object({
+  select: PollSelectSchema.optional(),
+  include: PollIncludeSchema.optional(),
+  where: PollWhereInputSchema.optional(),
+  orderBy: z.union([ PollOrderByWithRelationInputSchema.array(),PollOrderByWithRelationInputSchema ]).optional(),
+  cursor: PollWhereUniqueInputSchema.optional(),
+  take: z.number().optional(),
+  skip: z.number().optional(),
+  distinct: z.union([ PollScalarFieldEnumSchema,PollScalarFieldEnumSchema.array() ]).optional(),
+}).strict() ;
+
+export const PollFindManyArgsSchema: z.ZodType<Prisma.PollFindManyArgs> = z.object({
+  select: PollSelectSchema.optional(),
+  include: PollIncludeSchema.optional(),
+  where: PollWhereInputSchema.optional(),
+  orderBy: z.union([ PollOrderByWithRelationInputSchema.array(),PollOrderByWithRelationInputSchema ]).optional(),
+  cursor: PollWhereUniqueInputSchema.optional(),
+  take: z.number().optional(),
+  skip: z.number().optional(),
+  distinct: z.union([ PollScalarFieldEnumSchema,PollScalarFieldEnumSchema.array() ]).optional(),
+}).strict() ;
+
+export const PollAggregateArgsSchema: z.ZodType<Prisma.PollAggregateArgs> = z.object({
+  where: PollWhereInputSchema.optional(),
+  orderBy: z.union([ PollOrderByWithRelationInputSchema.array(),PollOrderByWithRelationInputSchema ]).optional(),
+  cursor: PollWhereUniqueInputSchema.optional(),
+  take: z.number().optional(),
+  skip: z.number().optional(),
+}).strict() ;
+
+export const PollGroupByArgsSchema: z.ZodType<Prisma.PollGroupByArgs> = z.object({
+  where: PollWhereInputSchema.optional(),
+  orderBy: z.union([ PollOrderByWithAggregationInputSchema.array(),PollOrderByWithAggregationInputSchema ]).optional(),
+  by: PollScalarFieldEnumSchema.array(),
+  having: PollScalarWhereWithAggregatesInputSchema.optional(),
+  take: z.number().optional(),
+  skip: z.number().optional(),
+}).strict() ;
+
+export const PollFindUniqueArgsSchema: z.ZodType<Prisma.PollFindUniqueArgs> = z.object({
+  select: PollSelectSchema.optional(),
+  include: PollIncludeSchema.optional(),
+  where: PollWhereUniqueInputSchema,
+}).strict() ;
+
+export const PollFindUniqueOrThrowArgsSchema: z.ZodType<Prisma.PollFindUniqueOrThrowArgs> = z.object({
+  select: PollSelectSchema.optional(),
+  include: PollIncludeSchema.optional(),
+  where: PollWhereUniqueInputSchema,
 }).strict() ;
 
 export const UserFindFirstArgsSchema: z.ZodType<Prisma.UserFindFirstArgs> = z.object({
@@ -14419,68 +16194,6 @@ export const VoteFindUniqueOrThrowArgsSchema: z.ZodType<Prisma.VoteFindUniqueOrT
   where: VoteWhereUniqueInputSchema,
 }).strict() ;
 
-export const CategoryFindFirstArgsSchema: z.ZodType<Prisma.CategoryFindFirstArgs> = z.object({
-  select: CategorySelectSchema.optional(),
-  include: CategoryIncludeSchema.optional(),
-  where: CategoryWhereInputSchema.optional(),
-  orderBy: z.union([ CategoryOrderByWithRelationInputSchema.array(),CategoryOrderByWithRelationInputSchema ]).optional(),
-  cursor: CategoryWhereUniqueInputSchema.optional(),
-  take: z.number().optional(),
-  skip: z.number().optional(),
-  distinct: z.union([ CategoryScalarFieldEnumSchema,CategoryScalarFieldEnumSchema.array() ]).optional(),
-}).strict() ;
-
-export const CategoryFindFirstOrThrowArgsSchema: z.ZodType<Prisma.CategoryFindFirstOrThrowArgs> = z.object({
-  select: CategorySelectSchema.optional(),
-  include: CategoryIncludeSchema.optional(),
-  where: CategoryWhereInputSchema.optional(),
-  orderBy: z.union([ CategoryOrderByWithRelationInputSchema.array(),CategoryOrderByWithRelationInputSchema ]).optional(),
-  cursor: CategoryWhereUniqueInputSchema.optional(),
-  take: z.number().optional(),
-  skip: z.number().optional(),
-  distinct: z.union([ CategoryScalarFieldEnumSchema,CategoryScalarFieldEnumSchema.array() ]).optional(),
-}).strict() ;
-
-export const CategoryFindManyArgsSchema: z.ZodType<Prisma.CategoryFindManyArgs> = z.object({
-  select: CategorySelectSchema.optional(),
-  include: CategoryIncludeSchema.optional(),
-  where: CategoryWhereInputSchema.optional(),
-  orderBy: z.union([ CategoryOrderByWithRelationInputSchema.array(),CategoryOrderByWithRelationInputSchema ]).optional(),
-  cursor: CategoryWhereUniqueInputSchema.optional(),
-  take: z.number().optional(),
-  skip: z.number().optional(),
-  distinct: z.union([ CategoryScalarFieldEnumSchema,CategoryScalarFieldEnumSchema.array() ]).optional(),
-}).strict() ;
-
-export const CategoryAggregateArgsSchema: z.ZodType<Prisma.CategoryAggregateArgs> = z.object({
-  where: CategoryWhereInputSchema.optional(),
-  orderBy: z.union([ CategoryOrderByWithRelationInputSchema.array(),CategoryOrderByWithRelationInputSchema ]).optional(),
-  cursor: CategoryWhereUniqueInputSchema.optional(),
-  take: z.number().optional(),
-  skip: z.number().optional(),
-}).strict() ;
-
-export const CategoryGroupByArgsSchema: z.ZodType<Prisma.CategoryGroupByArgs> = z.object({
-  where: CategoryWhereInputSchema.optional(),
-  orderBy: z.union([ CategoryOrderByWithAggregationInputSchema.array(),CategoryOrderByWithAggregationInputSchema ]).optional(),
-  by: CategoryScalarFieldEnumSchema.array(),
-  having: CategoryScalarWhereWithAggregatesInputSchema.optional(),
-  take: z.number().optional(),
-  skip: z.number().optional(),
-}).strict() ;
-
-export const CategoryFindUniqueArgsSchema: z.ZodType<Prisma.CategoryFindUniqueArgs> = z.object({
-  select: CategorySelectSchema.optional(),
-  include: CategoryIncludeSchema.optional(),
-  where: CategoryWhereUniqueInputSchema,
-}).strict() ;
-
-export const CategoryFindUniqueOrThrowArgsSchema: z.ZodType<Prisma.CategoryFindUniqueOrThrowArgs> = z.object({
-  select: CategorySelectSchema.optional(),
-  include: CategoryIncludeSchema.optional(),
-  where: CategoryWhereUniqueInputSchema,
-}).strict() ;
-
 export const NewsItemFindFirstArgsSchema: z.ZodType<Prisma.NewsItemFindFirstArgs> = z.object({
   select: NewsItemSelectSchema.optional(),
   include: NewsItemIncludeSchema.optional(),
@@ -14541,192 +16254,6 @@ export const NewsItemFindUniqueOrThrowArgsSchema: z.ZodType<Prisma.NewsItemFindU
   select: NewsItemSelectSchema.optional(),
   include: NewsItemIncludeSchema.optional(),
   where: NewsItemWhereUniqueInputSchema,
-}).strict() ;
-
-export const PollFindFirstArgsSchema: z.ZodType<Prisma.PollFindFirstArgs> = z.object({
-  select: PollSelectSchema.optional(),
-  include: PollIncludeSchema.optional(),
-  where: PollWhereInputSchema.optional(),
-  orderBy: z.union([ PollOrderByWithRelationInputSchema.array(),PollOrderByWithRelationInputSchema ]).optional(),
-  cursor: PollWhereUniqueInputSchema.optional(),
-  take: z.number().optional(),
-  skip: z.number().optional(),
-  distinct: z.union([ PollScalarFieldEnumSchema,PollScalarFieldEnumSchema.array() ]).optional(),
-}).strict() ;
-
-export const PollFindFirstOrThrowArgsSchema: z.ZodType<Prisma.PollFindFirstOrThrowArgs> = z.object({
-  select: PollSelectSchema.optional(),
-  include: PollIncludeSchema.optional(),
-  where: PollWhereInputSchema.optional(),
-  orderBy: z.union([ PollOrderByWithRelationInputSchema.array(),PollOrderByWithRelationInputSchema ]).optional(),
-  cursor: PollWhereUniqueInputSchema.optional(),
-  take: z.number().optional(),
-  skip: z.number().optional(),
-  distinct: z.union([ PollScalarFieldEnumSchema,PollScalarFieldEnumSchema.array() ]).optional(),
-}).strict() ;
-
-export const PollFindManyArgsSchema: z.ZodType<Prisma.PollFindManyArgs> = z.object({
-  select: PollSelectSchema.optional(),
-  include: PollIncludeSchema.optional(),
-  where: PollWhereInputSchema.optional(),
-  orderBy: z.union([ PollOrderByWithRelationInputSchema.array(),PollOrderByWithRelationInputSchema ]).optional(),
-  cursor: PollWhereUniqueInputSchema.optional(),
-  take: z.number().optional(),
-  skip: z.number().optional(),
-  distinct: z.union([ PollScalarFieldEnumSchema,PollScalarFieldEnumSchema.array() ]).optional(),
-}).strict() ;
-
-export const PollAggregateArgsSchema: z.ZodType<Prisma.PollAggregateArgs> = z.object({
-  where: PollWhereInputSchema.optional(),
-  orderBy: z.union([ PollOrderByWithRelationInputSchema.array(),PollOrderByWithRelationInputSchema ]).optional(),
-  cursor: PollWhereUniqueInputSchema.optional(),
-  take: z.number().optional(),
-  skip: z.number().optional(),
-}).strict() ;
-
-export const PollGroupByArgsSchema: z.ZodType<Prisma.PollGroupByArgs> = z.object({
-  where: PollWhereInputSchema.optional(),
-  orderBy: z.union([ PollOrderByWithAggregationInputSchema.array(),PollOrderByWithAggregationInputSchema ]).optional(),
-  by: PollScalarFieldEnumSchema.array(),
-  having: PollScalarWhereWithAggregatesInputSchema.optional(),
-  take: z.number().optional(),
-  skip: z.number().optional(),
-}).strict() ;
-
-export const PollFindUniqueArgsSchema: z.ZodType<Prisma.PollFindUniqueArgs> = z.object({
-  select: PollSelectSchema.optional(),
-  include: PollIncludeSchema.optional(),
-  where: PollWhereUniqueInputSchema,
-}).strict() ;
-
-export const PollFindUniqueOrThrowArgsSchema: z.ZodType<Prisma.PollFindUniqueOrThrowArgs> = z.object({
-  select: PollSelectSchema.optional(),
-  include: PollIncludeSchema.optional(),
-  where: PollWhereUniqueInputSchema,
-}).strict() ;
-
-export const BlogFindFirstArgsSchema: z.ZodType<Prisma.BlogFindFirstArgs> = z.object({
-  select: BlogSelectSchema.optional(),
-  include: BlogIncludeSchema.optional(),
-  where: BlogWhereInputSchema.optional(),
-  orderBy: z.union([ BlogOrderByWithRelationInputSchema.array(),BlogOrderByWithRelationInputSchema ]).optional(),
-  cursor: BlogWhereUniqueInputSchema.optional(),
-  take: z.number().optional(),
-  skip: z.number().optional(),
-  distinct: z.union([ BlogScalarFieldEnumSchema,BlogScalarFieldEnumSchema.array() ]).optional(),
-}).strict() ;
-
-export const BlogFindFirstOrThrowArgsSchema: z.ZodType<Prisma.BlogFindFirstOrThrowArgs> = z.object({
-  select: BlogSelectSchema.optional(),
-  include: BlogIncludeSchema.optional(),
-  where: BlogWhereInputSchema.optional(),
-  orderBy: z.union([ BlogOrderByWithRelationInputSchema.array(),BlogOrderByWithRelationInputSchema ]).optional(),
-  cursor: BlogWhereUniqueInputSchema.optional(),
-  take: z.number().optional(),
-  skip: z.number().optional(),
-  distinct: z.union([ BlogScalarFieldEnumSchema,BlogScalarFieldEnumSchema.array() ]).optional(),
-}).strict() ;
-
-export const BlogFindManyArgsSchema: z.ZodType<Prisma.BlogFindManyArgs> = z.object({
-  select: BlogSelectSchema.optional(),
-  include: BlogIncludeSchema.optional(),
-  where: BlogWhereInputSchema.optional(),
-  orderBy: z.union([ BlogOrderByWithRelationInputSchema.array(),BlogOrderByWithRelationInputSchema ]).optional(),
-  cursor: BlogWhereUniqueInputSchema.optional(),
-  take: z.number().optional(),
-  skip: z.number().optional(),
-  distinct: z.union([ BlogScalarFieldEnumSchema,BlogScalarFieldEnumSchema.array() ]).optional(),
-}).strict() ;
-
-export const BlogAggregateArgsSchema: z.ZodType<Prisma.BlogAggregateArgs> = z.object({
-  where: BlogWhereInputSchema.optional(),
-  orderBy: z.union([ BlogOrderByWithRelationInputSchema.array(),BlogOrderByWithRelationInputSchema ]).optional(),
-  cursor: BlogWhereUniqueInputSchema.optional(),
-  take: z.number().optional(),
-  skip: z.number().optional(),
-}).strict() ;
-
-export const BlogGroupByArgsSchema: z.ZodType<Prisma.BlogGroupByArgs> = z.object({
-  where: BlogWhereInputSchema.optional(),
-  orderBy: z.union([ BlogOrderByWithAggregationInputSchema.array(),BlogOrderByWithAggregationInputSchema ]).optional(),
-  by: BlogScalarFieldEnumSchema.array(),
-  having: BlogScalarWhereWithAggregatesInputSchema.optional(),
-  take: z.number().optional(),
-  skip: z.number().optional(),
-}).strict() ;
-
-export const BlogFindUniqueArgsSchema: z.ZodType<Prisma.BlogFindUniqueArgs> = z.object({
-  select: BlogSelectSchema.optional(),
-  include: BlogIncludeSchema.optional(),
-  where: BlogWhereUniqueInputSchema,
-}).strict() ;
-
-export const BlogFindUniqueOrThrowArgsSchema: z.ZodType<Prisma.BlogFindUniqueOrThrowArgs> = z.object({
-  select: BlogSelectSchema.optional(),
-  include: BlogIncludeSchema.optional(),
-  where: BlogWhereUniqueInputSchema,
-}).strict() ;
-
-export const TagFindFirstArgsSchema: z.ZodType<Prisma.TagFindFirstArgs> = z.object({
-  select: TagSelectSchema.optional(),
-  include: TagIncludeSchema.optional(),
-  where: TagWhereInputSchema.optional(),
-  orderBy: z.union([ TagOrderByWithRelationInputSchema.array(),TagOrderByWithRelationInputSchema ]).optional(),
-  cursor: TagWhereUniqueInputSchema.optional(),
-  take: z.number().optional(),
-  skip: z.number().optional(),
-  distinct: z.union([ TagScalarFieldEnumSchema,TagScalarFieldEnumSchema.array() ]).optional(),
-}).strict() ;
-
-export const TagFindFirstOrThrowArgsSchema: z.ZodType<Prisma.TagFindFirstOrThrowArgs> = z.object({
-  select: TagSelectSchema.optional(),
-  include: TagIncludeSchema.optional(),
-  where: TagWhereInputSchema.optional(),
-  orderBy: z.union([ TagOrderByWithRelationInputSchema.array(),TagOrderByWithRelationInputSchema ]).optional(),
-  cursor: TagWhereUniqueInputSchema.optional(),
-  take: z.number().optional(),
-  skip: z.number().optional(),
-  distinct: z.union([ TagScalarFieldEnumSchema,TagScalarFieldEnumSchema.array() ]).optional(),
-}).strict() ;
-
-export const TagFindManyArgsSchema: z.ZodType<Prisma.TagFindManyArgs> = z.object({
-  select: TagSelectSchema.optional(),
-  include: TagIncludeSchema.optional(),
-  where: TagWhereInputSchema.optional(),
-  orderBy: z.union([ TagOrderByWithRelationInputSchema.array(),TagOrderByWithRelationInputSchema ]).optional(),
-  cursor: TagWhereUniqueInputSchema.optional(),
-  take: z.number().optional(),
-  skip: z.number().optional(),
-  distinct: z.union([ TagScalarFieldEnumSchema,TagScalarFieldEnumSchema.array() ]).optional(),
-}).strict() ;
-
-export const TagAggregateArgsSchema: z.ZodType<Prisma.TagAggregateArgs> = z.object({
-  where: TagWhereInputSchema.optional(),
-  orderBy: z.union([ TagOrderByWithRelationInputSchema.array(),TagOrderByWithRelationInputSchema ]).optional(),
-  cursor: TagWhereUniqueInputSchema.optional(),
-  take: z.number().optional(),
-  skip: z.number().optional(),
-}).strict() ;
-
-export const TagGroupByArgsSchema: z.ZodType<Prisma.TagGroupByArgs> = z.object({
-  where: TagWhereInputSchema.optional(),
-  orderBy: z.union([ TagOrderByWithAggregationInputSchema.array(),TagOrderByWithAggregationInputSchema ]).optional(),
-  by: TagScalarFieldEnumSchema.array(),
-  having: TagScalarWhereWithAggregatesInputSchema.optional(),
-  take: z.number().optional(),
-  skip: z.number().optional(),
-}).strict() ;
-
-export const TagFindUniqueArgsSchema: z.ZodType<Prisma.TagFindUniqueArgs> = z.object({
-  select: TagSelectSchema.optional(),
-  include: TagIncludeSchema.optional(),
-  where: TagWhereUniqueInputSchema,
-}).strict() ;
-
-export const TagFindUniqueOrThrowArgsSchema: z.ZodType<Prisma.TagFindUniqueOrThrowArgs> = z.object({
-  select: TagSelectSchema.optional(),
-  include: TagIncludeSchema.optional(),
-  where: TagWhereUniqueInputSchema,
 }).strict() ;
 
 export const BlogTagFindFirstArgsSchema: z.ZodType<Prisma.BlogTagFindFirstArgs> = z.object({
@@ -15275,6 +16802,222 @@ export const TranslationDeleteManyArgsSchema: z.ZodType<Prisma.TranslationDelete
   limit: z.number().optional(),
 }).strict() ;
 
+export const BlogCreateArgsSchema: z.ZodType<Prisma.BlogCreateArgs> = z.object({
+  select: BlogSelectSchema.optional(),
+  include: BlogIncludeSchema.optional(),
+  data: z.union([ BlogCreateInputSchema,BlogUncheckedCreateInputSchema ]),
+}).strict() ;
+
+export const BlogUpsertArgsSchema: z.ZodType<Prisma.BlogUpsertArgs> = z.object({
+  select: BlogSelectSchema.optional(),
+  include: BlogIncludeSchema.optional(),
+  where: BlogWhereUniqueInputSchema,
+  create: z.union([ BlogCreateInputSchema,BlogUncheckedCreateInputSchema ]),
+  update: z.union([ BlogUpdateInputSchema,BlogUncheckedUpdateInputSchema ]),
+}).strict() ;
+
+export const BlogCreateManyArgsSchema: z.ZodType<Prisma.BlogCreateManyArgs> = z.object({
+  data: z.union([ BlogCreateManyInputSchema,BlogCreateManyInputSchema.array() ]),
+  skipDuplicates: z.boolean().optional(),
+}).strict() ;
+
+export const BlogCreateManyAndReturnArgsSchema: z.ZodType<Prisma.BlogCreateManyAndReturnArgs> = z.object({
+  data: z.union([ BlogCreateManyInputSchema,BlogCreateManyInputSchema.array() ]),
+  skipDuplicates: z.boolean().optional(),
+}).strict() ;
+
+export const BlogDeleteArgsSchema: z.ZodType<Prisma.BlogDeleteArgs> = z.object({
+  select: BlogSelectSchema.optional(),
+  include: BlogIncludeSchema.optional(),
+  where: BlogWhereUniqueInputSchema,
+}).strict() ;
+
+export const BlogUpdateArgsSchema: z.ZodType<Prisma.BlogUpdateArgs> = z.object({
+  select: BlogSelectSchema.optional(),
+  include: BlogIncludeSchema.optional(),
+  data: z.union([ BlogUpdateInputSchema,BlogUncheckedUpdateInputSchema ]),
+  where: BlogWhereUniqueInputSchema,
+}).strict() ;
+
+export const BlogUpdateManyArgsSchema: z.ZodType<Prisma.BlogUpdateManyArgs> = z.object({
+  data: z.union([ BlogUpdateManyMutationInputSchema,BlogUncheckedUpdateManyInputSchema ]),
+  where: BlogWhereInputSchema.optional(),
+  limit: z.number().optional(),
+}).strict() ;
+
+export const BlogUpdateManyAndReturnArgsSchema: z.ZodType<Prisma.BlogUpdateManyAndReturnArgs> = z.object({
+  data: z.union([ BlogUpdateManyMutationInputSchema,BlogUncheckedUpdateManyInputSchema ]),
+  where: BlogWhereInputSchema.optional(),
+  limit: z.number().optional(),
+}).strict() ;
+
+export const BlogDeleteManyArgsSchema: z.ZodType<Prisma.BlogDeleteManyArgs> = z.object({
+  where: BlogWhereInputSchema.optional(),
+  limit: z.number().optional(),
+}).strict() ;
+
+export const CategoryCreateArgsSchema: z.ZodType<Prisma.CategoryCreateArgs> = z.object({
+  select: CategorySelectSchema.optional(),
+  include: CategoryIncludeSchema.optional(),
+  data: z.union([ CategoryCreateInputSchema,CategoryUncheckedCreateInputSchema ]),
+}).strict() ;
+
+export const CategoryUpsertArgsSchema: z.ZodType<Prisma.CategoryUpsertArgs> = z.object({
+  select: CategorySelectSchema.optional(),
+  include: CategoryIncludeSchema.optional(),
+  where: CategoryWhereUniqueInputSchema,
+  create: z.union([ CategoryCreateInputSchema,CategoryUncheckedCreateInputSchema ]),
+  update: z.union([ CategoryUpdateInputSchema,CategoryUncheckedUpdateInputSchema ]),
+}).strict() ;
+
+export const CategoryCreateManyArgsSchema: z.ZodType<Prisma.CategoryCreateManyArgs> = z.object({
+  data: z.union([ CategoryCreateManyInputSchema,CategoryCreateManyInputSchema.array() ]),
+  skipDuplicates: z.boolean().optional(),
+}).strict() ;
+
+export const CategoryCreateManyAndReturnArgsSchema: z.ZodType<Prisma.CategoryCreateManyAndReturnArgs> = z.object({
+  data: z.union([ CategoryCreateManyInputSchema,CategoryCreateManyInputSchema.array() ]),
+  skipDuplicates: z.boolean().optional(),
+}).strict() ;
+
+export const CategoryDeleteArgsSchema: z.ZodType<Prisma.CategoryDeleteArgs> = z.object({
+  select: CategorySelectSchema.optional(),
+  include: CategoryIncludeSchema.optional(),
+  where: CategoryWhereUniqueInputSchema,
+}).strict() ;
+
+export const CategoryUpdateArgsSchema: z.ZodType<Prisma.CategoryUpdateArgs> = z.object({
+  select: CategorySelectSchema.optional(),
+  include: CategoryIncludeSchema.optional(),
+  data: z.union([ CategoryUpdateInputSchema,CategoryUncheckedUpdateInputSchema ]),
+  where: CategoryWhereUniqueInputSchema,
+}).strict() ;
+
+export const CategoryUpdateManyArgsSchema: z.ZodType<Prisma.CategoryUpdateManyArgs> = z.object({
+  data: z.union([ CategoryUpdateManyMutationInputSchema,CategoryUncheckedUpdateManyInputSchema ]),
+  where: CategoryWhereInputSchema.optional(),
+  limit: z.number().optional(),
+}).strict() ;
+
+export const CategoryUpdateManyAndReturnArgsSchema: z.ZodType<Prisma.CategoryUpdateManyAndReturnArgs> = z.object({
+  data: z.union([ CategoryUpdateManyMutationInputSchema,CategoryUncheckedUpdateManyInputSchema ]),
+  where: CategoryWhereInputSchema.optional(),
+  limit: z.number().optional(),
+}).strict() ;
+
+export const CategoryDeleteManyArgsSchema: z.ZodType<Prisma.CategoryDeleteManyArgs> = z.object({
+  where: CategoryWhereInputSchema.optional(),
+  limit: z.number().optional(),
+}).strict() ;
+
+export const TagCreateArgsSchema: z.ZodType<Prisma.TagCreateArgs> = z.object({
+  select: TagSelectSchema.optional(),
+  include: TagIncludeSchema.optional(),
+  data: z.union([ TagCreateInputSchema,TagUncheckedCreateInputSchema ]),
+}).strict() ;
+
+export const TagUpsertArgsSchema: z.ZodType<Prisma.TagUpsertArgs> = z.object({
+  select: TagSelectSchema.optional(),
+  include: TagIncludeSchema.optional(),
+  where: TagWhereUniqueInputSchema,
+  create: z.union([ TagCreateInputSchema,TagUncheckedCreateInputSchema ]),
+  update: z.union([ TagUpdateInputSchema,TagUncheckedUpdateInputSchema ]),
+}).strict() ;
+
+export const TagCreateManyArgsSchema: z.ZodType<Prisma.TagCreateManyArgs> = z.object({
+  data: z.union([ TagCreateManyInputSchema,TagCreateManyInputSchema.array() ]),
+  skipDuplicates: z.boolean().optional(),
+}).strict() ;
+
+export const TagCreateManyAndReturnArgsSchema: z.ZodType<Prisma.TagCreateManyAndReturnArgs> = z.object({
+  data: z.union([ TagCreateManyInputSchema,TagCreateManyInputSchema.array() ]),
+  skipDuplicates: z.boolean().optional(),
+}).strict() ;
+
+export const TagDeleteArgsSchema: z.ZodType<Prisma.TagDeleteArgs> = z.object({
+  select: TagSelectSchema.optional(),
+  include: TagIncludeSchema.optional(),
+  where: TagWhereUniqueInputSchema,
+}).strict() ;
+
+export const TagUpdateArgsSchema: z.ZodType<Prisma.TagUpdateArgs> = z.object({
+  select: TagSelectSchema.optional(),
+  include: TagIncludeSchema.optional(),
+  data: z.union([ TagUpdateInputSchema,TagUncheckedUpdateInputSchema ]),
+  where: TagWhereUniqueInputSchema,
+}).strict() ;
+
+export const TagUpdateManyArgsSchema: z.ZodType<Prisma.TagUpdateManyArgs> = z.object({
+  data: z.union([ TagUpdateManyMutationInputSchema,TagUncheckedUpdateManyInputSchema ]),
+  where: TagWhereInputSchema.optional(),
+  limit: z.number().optional(),
+}).strict() ;
+
+export const TagUpdateManyAndReturnArgsSchema: z.ZodType<Prisma.TagUpdateManyAndReturnArgs> = z.object({
+  data: z.union([ TagUpdateManyMutationInputSchema,TagUncheckedUpdateManyInputSchema ]),
+  where: TagWhereInputSchema.optional(),
+  limit: z.number().optional(),
+}).strict() ;
+
+export const TagDeleteManyArgsSchema: z.ZodType<Prisma.TagDeleteManyArgs> = z.object({
+  where: TagWhereInputSchema.optional(),
+  limit: z.number().optional(),
+}).strict() ;
+
+export const PollCreateArgsSchema: z.ZodType<Prisma.PollCreateArgs> = z.object({
+  select: PollSelectSchema.optional(),
+  include: PollIncludeSchema.optional(),
+  data: z.union([ PollCreateInputSchema,PollUncheckedCreateInputSchema ]),
+}).strict() ;
+
+export const PollUpsertArgsSchema: z.ZodType<Prisma.PollUpsertArgs> = z.object({
+  select: PollSelectSchema.optional(),
+  include: PollIncludeSchema.optional(),
+  where: PollWhereUniqueInputSchema,
+  create: z.union([ PollCreateInputSchema,PollUncheckedCreateInputSchema ]),
+  update: z.union([ PollUpdateInputSchema,PollUncheckedUpdateInputSchema ]),
+}).strict() ;
+
+export const PollCreateManyArgsSchema: z.ZodType<Prisma.PollCreateManyArgs> = z.object({
+  data: z.union([ PollCreateManyInputSchema,PollCreateManyInputSchema.array() ]),
+  skipDuplicates: z.boolean().optional(),
+}).strict() ;
+
+export const PollCreateManyAndReturnArgsSchema: z.ZodType<Prisma.PollCreateManyAndReturnArgs> = z.object({
+  data: z.union([ PollCreateManyInputSchema,PollCreateManyInputSchema.array() ]),
+  skipDuplicates: z.boolean().optional(),
+}).strict() ;
+
+export const PollDeleteArgsSchema: z.ZodType<Prisma.PollDeleteArgs> = z.object({
+  select: PollSelectSchema.optional(),
+  include: PollIncludeSchema.optional(),
+  where: PollWhereUniqueInputSchema,
+}).strict() ;
+
+export const PollUpdateArgsSchema: z.ZodType<Prisma.PollUpdateArgs> = z.object({
+  select: PollSelectSchema.optional(),
+  include: PollIncludeSchema.optional(),
+  data: z.union([ PollUpdateInputSchema,PollUncheckedUpdateInputSchema ]),
+  where: PollWhereUniqueInputSchema,
+}).strict() ;
+
+export const PollUpdateManyArgsSchema: z.ZodType<Prisma.PollUpdateManyArgs> = z.object({
+  data: z.union([ PollUpdateManyMutationInputSchema,PollUncheckedUpdateManyInputSchema ]),
+  where: PollWhereInputSchema.optional(),
+  limit: z.number().optional(),
+}).strict() ;
+
+export const PollUpdateManyAndReturnArgsSchema: z.ZodType<Prisma.PollUpdateManyAndReturnArgs> = z.object({
+  data: z.union([ PollUpdateManyMutationInputSchema,PollUncheckedUpdateManyInputSchema ]),
+  where: PollWhereInputSchema.optional(),
+  limit: z.number().optional(),
+}).strict() ;
+
+export const PollDeleteManyArgsSchema: z.ZodType<Prisma.PollDeleteManyArgs> = z.object({
+  where: PollWhereInputSchema.optional(),
+  limit: z.number().optional(),
+}).strict() ;
+
 export const UserCreateArgsSchema: z.ZodType<Prisma.UserCreateArgs> = z.object({
   select: UserSelectSchema.optional(),
   include: UserIncludeSchema.optional(),
@@ -15649,60 +17392,6 @@ export const VoteDeleteManyArgsSchema: z.ZodType<Prisma.VoteDeleteManyArgs> = z.
   limit: z.number().optional(),
 }).strict() ;
 
-export const CategoryCreateArgsSchema: z.ZodType<Prisma.CategoryCreateArgs> = z.object({
-  select: CategorySelectSchema.optional(),
-  include: CategoryIncludeSchema.optional(),
-  data: z.union([ CategoryCreateInputSchema,CategoryUncheckedCreateInputSchema ]),
-}).strict() ;
-
-export const CategoryUpsertArgsSchema: z.ZodType<Prisma.CategoryUpsertArgs> = z.object({
-  select: CategorySelectSchema.optional(),
-  include: CategoryIncludeSchema.optional(),
-  where: CategoryWhereUniqueInputSchema,
-  create: z.union([ CategoryCreateInputSchema,CategoryUncheckedCreateInputSchema ]),
-  update: z.union([ CategoryUpdateInputSchema,CategoryUncheckedUpdateInputSchema ]),
-}).strict() ;
-
-export const CategoryCreateManyArgsSchema: z.ZodType<Prisma.CategoryCreateManyArgs> = z.object({
-  data: z.union([ CategoryCreateManyInputSchema,CategoryCreateManyInputSchema.array() ]),
-  skipDuplicates: z.boolean().optional(),
-}).strict() ;
-
-export const CategoryCreateManyAndReturnArgsSchema: z.ZodType<Prisma.CategoryCreateManyAndReturnArgs> = z.object({
-  data: z.union([ CategoryCreateManyInputSchema,CategoryCreateManyInputSchema.array() ]),
-  skipDuplicates: z.boolean().optional(),
-}).strict() ;
-
-export const CategoryDeleteArgsSchema: z.ZodType<Prisma.CategoryDeleteArgs> = z.object({
-  select: CategorySelectSchema.optional(),
-  include: CategoryIncludeSchema.optional(),
-  where: CategoryWhereUniqueInputSchema,
-}).strict() ;
-
-export const CategoryUpdateArgsSchema: z.ZodType<Prisma.CategoryUpdateArgs> = z.object({
-  select: CategorySelectSchema.optional(),
-  include: CategoryIncludeSchema.optional(),
-  data: z.union([ CategoryUpdateInputSchema,CategoryUncheckedUpdateInputSchema ]),
-  where: CategoryWhereUniqueInputSchema,
-}).strict() ;
-
-export const CategoryUpdateManyArgsSchema: z.ZodType<Prisma.CategoryUpdateManyArgs> = z.object({
-  data: z.union([ CategoryUpdateManyMutationInputSchema,CategoryUncheckedUpdateManyInputSchema ]),
-  where: CategoryWhereInputSchema.optional(),
-  limit: z.number().optional(),
-}).strict() ;
-
-export const CategoryUpdateManyAndReturnArgsSchema: z.ZodType<Prisma.CategoryUpdateManyAndReturnArgs> = z.object({
-  data: z.union([ CategoryUpdateManyMutationInputSchema,CategoryUncheckedUpdateManyInputSchema ]),
-  where: CategoryWhereInputSchema.optional(),
-  limit: z.number().optional(),
-}).strict() ;
-
-export const CategoryDeleteManyArgsSchema: z.ZodType<Prisma.CategoryDeleteManyArgs> = z.object({
-  where: CategoryWhereInputSchema.optional(),
-  limit: z.number().optional(),
-}).strict() ;
-
 export const NewsItemCreateArgsSchema: z.ZodType<Prisma.NewsItemCreateArgs> = z.object({
   select: NewsItemSelectSchema.optional(),
   include: NewsItemIncludeSchema.optional(),
@@ -15754,168 +17443,6 @@ export const NewsItemUpdateManyAndReturnArgsSchema: z.ZodType<Prisma.NewsItemUpd
 
 export const NewsItemDeleteManyArgsSchema: z.ZodType<Prisma.NewsItemDeleteManyArgs> = z.object({
   where: NewsItemWhereInputSchema.optional(),
-  limit: z.number().optional(),
-}).strict() ;
-
-export const PollCreateArgsSchema: z.ZodType<Prisma.PollCreateArgs> = z.object({
-  select: PollSelectSchema.optional(),
-  include: PollIncludeSchema.optional(),
-  data: z.union([ PollCreateInputSchema,PollUncheckedCreateInputSchema ]),
-}).strict() ;
-
-export const PollUpsertArgsSchema: z.ZodType<Prisma.PollUpsertArgs> = z.object({
-  select: PollSelectSchema.optional(),
-  include: PollIncludeSchema.optional(),
-  where: PollWhereUniqueInputSchema,
-  create: z.union([ PollCreateInputSchema,PollUncheckedCreateInputSchema ]),
-  update: z.union([ PollUpdateInputSchema,PollUncheckedUpdateInputSchema ]),
-}).strict() ;
-
-export const PollCreateManyArgsSchema: z.ZodType<Prisma.PollCreateManyArgs> = z.object({
-  data: z.union([ PollCreateManyInputSchema,PollCreateManyInputSchema.array() ]),
-  skipDuplicates: z.boolean().optional(),
-}).strict() ;
-
-export const PollCreateManyAndReturnArgsSchema: z.ZodType<Prisma.PollCreateManyAndReturnArgs> = z.object({
-  data: z.union([ PollCreateManyInputSchema,PollCreateManyInputSchema.array() ]),
-  skipDuplicates: z.boolean().optional(),
-}).strict() ;
-
-export const PollDeleteArgsSchema: z.ZodType<Prisma.PollDeleteArgs> = z.object({
-  select: PollSelectSchema.optional(),
-  include: PollIncludeSchema.optional(),
-  where: PollWhereUniqueInputSchema,
-}).strict() ;
-
-export const PollUpdateArgsSchema: z.ZodType<Prisma.PollUpdateArgs> = z.object({
-  select: PollSelectSchema.optional(),
-  include: PollIncludeSchema.optional(),
-  data: z.union([ PollUpdateInputSchema,PollUncheckedUpdateInputSchema ]),
-  where: PollWhereUniqueInputSchema,
-}).strict() ;
-
-export const PollUpdateManyArgsSchema: z.ZodType<Prisma.PollUpdateManyArgs> = z.object({
-  data: z.union([ PollUpdateManyMutationInputSchema,PollUncheckedUpdateManyInputSchema ]),
-  where: PollWhereInputSchema.optional(),
-  limit: z.number().optional(),
-}).strict() ;
-
-export const PollUpdateManyAndReturnArgsSchema: z.ZodType<Prisma.PollUpdateManyAndReturnArgs> = z.object({
-  data: z.union([ PollUpdateManyMutationInputSchema,PollUncheckedUpdateManyInputSchema ]),
-  where: PollWhereInputSchema.optional(),
-  limit: z.number().optional(),
-}).strict() ;
-
-export const PollDeleteManyArgsSchema: z.ZodType<Prisma.PollDeleteManyArgs> = z.object({
-  where: PollWhereInputSchema.optional(),
-  limit: z.number().optional(),
-}).strict() ;
-
-export const BlogCreateArgsSchema: z.ZodType<Prisma.BlogCreateArgs> = z.object({
-  select: BlogSelectSchema.optional(),
-  include: BlogIncludeSchema.optional(),
-  data: z.union([ BlogCreateInputSchema,BlogUncheckedCreateInputSchema ]),
-}).strict() ;
-
-export const BlogUpsertArgsSchema: z.ZodType<Prisma.BlogUpsertArgs> = z.object({
-  select: BlogSelectSchema.optional(),
-  include: BlogIncludeSchema.optional(),
-  where: BlogWhereUniqueInputSchema,
-  create: z.union([ BlogCreateInputSchema,BlogUncheckedCreateInputSchema ]),
-  update: z.union([ BlogUpdateInputSchema,BlogUncheckedUpdateInputSchema ]),
-}).strict() ;
-
-export const BlogCreateManyArgsSchema: z.ZodType<Prisma.BlogCreateManyArgs> = z.object({
-  data: z.union([ BlogCreateManyInputSchema,BlogCreateManyInputSchema.array() ]),
-  skipDuplicates: z.boolean().optional(),
-}).strict() ;
-
-export const BlogCreateManyAndReturnArgsSchema: z.ZodType<Prisma.BlogCreateManyAndReturnArgs> = z.object({
-  data: z.union([ BlogCreateManyInputSchema,BlogCreateManyInputSchema.array() ]),
-  skipDuplicates: z.boolean().optional(),
-}).strict() ;
-
-export const BlogDeleteArgsSchema: z.ZodType<Prisma.BlogDeleteArgs> = z.object({
-  select: BlogSelectSchema.optional(),
-  include: BlogIncludeSchema.optional(),
-  where: BlogWhereUniqueInputSchema,
-}).strict() ;
-
-export const BlogUpdateArgsSchema: z.ZodType<Prisma.BlogUpdateArgs> = z.object({
-  select: BlogSelectSchema.optional(),
-  include: BlogIncludeSchema.optional(),
-  data: z.union([ BlogUpdateInputSchema,BlogUncheckedUpdateInputSchema ]),
-  where: BlogWhereUniqueInputSchema,
-}).strict() ;
-
-export const BlogUpdateManyArgsSchema: z.ZodType<Prisma.BlogUpdateManyArgs> = z.object({
-  data: z.union([ BlogUpdateManyMutationInputSchema,BlogUncheckedUpdateManyInputSchema ]),
-  where: BlogWhereInputSchema.optional(),
-  limit: z.number().optional(),
-}).strict() ;
-
-export const BlogUpdateManyAndReturnArgsSchema: z.ZodType<Prisma.BlogUpdateManyAndReturnArgs> = z.object({
-  data: z.union([ BlogUpdateManyMutationInputSchema,BlogUncheckedUpdateManyInputSchema ]),
-  where: BlogWhereInputSchema.optional(),
-  limit: z.number().optional(),
-}).strict() ;
-
-export const BlogDeleteManyArgsSchema: z.ZodType<Prisma.BlogDeleteManyArgs> = z.object({
-  where: BlogWhereInputSchema.optional(),
-  limit: z.number().optional(),
-}).strict() ;
-
-export const TagCreateArgsSchema: z.ZodType<Prisma.TagCreateArgs> = z.object({
-  select: TagSelectSchema.optional(),
-  include: TagIncludeSchema.optional(),
-  data: z.union([ TagCreateInputSchema,TagUncheckedCreateInputSchema ]),
-}).strict() ;
-
-export const TagUpsertArgsSchema: z.ZodType<Prisma.TagUpsertArgs> = z.object({
-  select: TagSelectSchema.optional(),
-  include: TagIncludeSchema.optional(),
-  where: TagWhereUniqueInputSchema,
-  create: z.union([ TagCreateInputSchema,TagUncheckedCreateInputSchema ]),
-  update: z.union([ TagUpdateInputSchema,TagUncheckedUpdateInputSchema ]),
-}).strict() ;
-
-export const TagCreateManyArgsSchema: z.ZodType<Prisma.TagCreateManyArgs> = z.object({
-  data: z.union([ TagCreateManyInputSchema,TagCreateManyInputSchema.array() ]),
-  skipDuplicates: z.boolean().optional(),
-}).strict() ;
-
-export const TagCreateManyAndReturnArgsSchema: z.ZodType<Prisma.TagCreateManyAndReturnArgs> = z.object({
-  data: z.union([ TagCreateManyInputSchema,TagCreateManyInputSchema.array() ]),
-  skipDuplicates: z.boolean().optional(),
-}).strict() ;
-
-export const TagDeleteArgsSchema: z.ZodType<Prisma.TagDeleteArgs> = z.object({
-  select: TagSelectSchema.optional(),
-  include: TagIncludeSchema.optional(),
-  where: TagWhereUniqueInputSchema,
-}).strict() ;
-
-export const TagUpdateArgsSchema: z.ZodType<Prisma.TagUpdateArgs> = z.object({
-  select: TagSelectSchema.optional(),
-  include: TagIncludeSchema.optional(),
-  data: z.union([ TagUpdateInputSchema,TagUncheckedUpdateInputSchema ]),
-  where: TagWhereUniqueInputSchema,
-}).strict() ;
-
-export const TagUpdateManyArgsSchema: z.ZodType<Prisma.TagUpdateManyArgs> = z.object({
-  data: z.union([ TagUpdateManyMutationInputSchema,TagUncheckedUpdateManyInputSchema ]),
-  where: TagWhereInputSchema.optional(),
-  limit: z.number().optional(),
-}).strict() ;
-
-export const TagUpdateManyAndReturnArgsSchema: z.ZodType<Prisma.TagUpdateManyAndReturnArgs> = z.object({
-  data: z.union([ TagUpdateManyMutationInputSchema,TagUncheckedUpdateManyInputSchema ]),
-  where: TagWhereInputSchema.optional(),
-  limit: z.number().optional(),
-}).strict() ;
-
-export const TagDeleteManyArgsSchema: z.ZodType<Prisma.TagDeleteManyArgs> = z.object({
-  where: TagWhereInputSchema.optional(),
   limit: z.number().optional(),
 }).strict() ;
 

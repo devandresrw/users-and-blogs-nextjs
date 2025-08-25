@@ -14,20 +14,126 @@ datasource db {
   // Eliminar relationMode = "prisma" - no es necesario para PostgreSQL
 }
 
-// Modelo para manejar traducciones
+// Modelo actualizado para manejar traducciones como registros relacionados
 model Translation {
-  id         String   @id @default(cuid())
-  entityType String // 'blog', 'category', 'tag', 'poll', etc.
-  entityId   String // ID de la entidad original
-  language   String // 'es', 'en', 'fr', etc.
-  field      String // 'title', 'content', 'description', etc.
-  value      String   @db.Text
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id               String   @id @default(cuid())
+  originalEntityId String // ID de la entidad original
+  entityType       String // 'blog', 'category', 'tag', 'poll', etc.
+  translatedIds    String[] // Array con IDs de todas las traducciones
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
-  @@unique([entityType, entityId, language, field])
-  @@index([entityType, entityId])
-  @@index([language])
+  @@unique([originalEntityId, entityType])
+  @@index([originalEntityId])
+  @@index([entityType])
+}
+
+// Blog actualizado - cada traducción es un registro separado
+model Blog {
+  id             String  @id @default(cuid())
+  title          String
+  content        String
+  titlePunch     String?
+  slug           String  @unique
+  seoDescription String?
+  baseLanguage   String  @default("es")
+  isTranslation  Boolean @default(false) // ✅ NUEVO: Indica si es traducción
+  originalBlogId String? // ✅ NUEVO: ID del blog original
+  originalBlog   Blog?   @relation("BlogTranslations", fields: [originalBlogId], references: [id])
+  translations   Blog[]  @relation("BlogTranslations")
+
+  // ... resto de campos existentes
+  imagenSeoId  String?
+  imagenSeo    Image?    @relation("BlogImagenSeo", fields: [imagenSeoId], references: [id])
+  dateNews     DateTime
+  imagenCardId String?
+  imagenCard   Image?    @relation("BlogImagenCard", fields: [imagenCardId], references: [id])
+  newsItem     NewsItem? @relation("NewsItemBlog", fields: [newsItemId], references: [id], onDelete: Cascade)
+  newsItemId   String?   @unique
+  Image        Image[]
+  readTime     Int?
+  views        Int       @default(0)
+  dateCreated  DateTime  @default(now())
+
+  // Relaciones (solo para el blog original)
+  blogAuthors      BlogAuthor[]
+  likes            BlogLike[]
+  tags             BlogTag[]
+  categoryId       String?
+  Category         Category?          @relation(fields: [categoryId], references: [id])
+  TranslationQueue TranslationQueue[]
+
+  @@index([originalBlogId])
+  @@index([baseLanguage])
+  @@index([isTranslation])
+}
+
+// Actualizar otros modelos de manera similar
+model Category {
+  id                 String     @id @default(uuid())
+  name               String
+  slug               String     @unique
+  baseLanguage       String     @default("es")
+  isTranslation      Boolean    @default(false) // ✅ NUEVO
+  originalCategoryId String? // ✅ NUEVO
+  originalCategory   Category?  @relation("CategoryTranslations", fields: [originalCategoryId], references: [id])
+  translations       Category[] @relation("CategoryTranslations")
+
+  polls Poll[]
+  Image Image[]
+  Blog  Blog[]
+
+  @@index([originalCategoryId])
+  @@index([baseLanguage])
+}
+
+model Tag {
+  id            String  @id @default(cuid())
+  name          String  @unique
+  slug          String  @unique
+  description   String?
+  baseLanguage  String  @default("es")
+  isTranslation Boolean @default(false) // ✅ NUEVO
+  originalTagId String? // ✅ NUEVO
+  originalTag   Tag?    @relation("TagTranslations", fields: [originalTagId], references: [id])
+  translations  Tag[]   @relation("TagTranslations")
+
+  blogs BlogTag[]
+
+  @@index([originalTagId])
+  @@index([baseLanguage])
+}
+
+model Poll {
+  id             String  @id @default(uuid())
+  question       String
+  slug           String  @unique
+  description    String?
+  baseLanguage   String  @default("es")
+  isTranslation  Boolean @default(false) // ✅ NUEVO
+  originalPollId String? // ✅ NUEVO
+  originalPoll   Poll?   @relation("PollTranslations", fields: [originalPollId], references: [id])
+  translations   Poll[]  @relation("PollTranslations")
+
+  startDate  DateTime
+  endDate    DateTime
+  createdAt  DateTime  @default(now())
+  Archived   Boolean   @default(false)
+  isPublic   Boolean   @default(true)
+  ArchivedAt DateTime?
+  Deleted    Boolean   @default(false)
+  DeletedAt  DateTime?
+
+  categoryId String
+  category   Category     @relation(fields: [categoryId], references: [id])
+  options    PollOption[]
+  Vote       Vote[]
+  newsItem   NewsItem?    @relation("NewsItemPoll", fields: [newsItemId], references: [id], onDelete: Cascade)
+  newsItemId String?      @unique
+  Image      Image[]
+
+  @@index([originalPollId])
+  @@index([baseLanguage])
 }
 
 model User {
@@ -145,16 +251,6 @@ model Vote {
   @@index([anonymousId, pollId])
 }
 
-model Category {
-  id           String  @id @default(uuid())
-  name         String // Idioma base (español)
-  slug         String  @unique
-  baseLanguage String  @default("es") // Idioma base
-  polls        Poll[]
-  Image        Image[]
-  Blog         Blog[]
-}
-
 model NewsItem {
   id           String   @id @default(cuid())
   title        String // Idioma base
@@ -167,68 +263,6 @@ model NewsItem {
   blog   Blog?   @relation("NewsItemBlog")
   blogId String? @unique
   Image  Image[]
-}
-
-model Poll {
-  id           String    @id @default(uuid())
-  question     String // Idioma base
-  slug         String    @unique
-  description  String? // Idioma base
-  baseLanguage String    @default("es")
-  startDate    DateTime
-  endDate      DateTime
-  createdAt    DateTime  @default(now())
-  Archived     Boolean   @default(false)
-  isPublic     Boolean   @default(true)
-  ArchivedAt   DateTime?
-  Deleted      Boolean   @default(false)
-  DeletedAt    DateTime?
-
-  categoryId String
-  category   Category @relation(fields: [categoryId], references: [id])
-
-  options    PollOption[]
-  Vote       Vote[]
-  newsItem   NewsItem?    @relation("NewsItemPoll", fields: [newsItemId], references: [id], onDelete: Cascade)
-  newsItemId String?      @unique
-  Image      Image[]
-}
-
-model Blog {
-  id               String             @id @default(cuid())
-  title            String // Idioma base
-  content          String // Idioma base
-  titlePunch       String? // Idioma base
-  slug             String             @unique
-  seoDescription   String? // Idioma base
-  baseLanguage     String             @default("es")
-  imagenSeoId      String? // Relación a imagen SEO
-  imagenSeo        Image?             @relation("BlogImagenSeo", fields: [imagenSeoId], references: [id])
-  dateNews         DateTime
-  imagenCardId     String? // Relación a imagen de tarjeta
-  imagenCard       Image?             @relation("BlogImagenCard", fields: [imagenCardId], references: [id])
-  newsItem         NewsItem?          @relation("NewsItemBlog", fields: [newsItemId], references: [id], onDelete: Cascade)
-  newsItemId       String?            @unique
-  Image            Image[]
-  readTime         Int? // minutos
-  views            Int                @default(0)
-  dateCreated      DateTime           @default(now())
-  // Relaciones
-  blogAuthors      BlogAuthor[]
-  likes            BlogLike[]
-  tags             BlogTag[] // Relación muchos a muchos con Tag
-  categoryId       String?
-  Category         Category?          @relation(fields: [categoryId], references: [id])
-  TranslationQueue TranslationQueue[]
-}
-
-model Tag {
-  id           String    @id @default(cuid())
-  name         String    @unique // Idioma base
-  slug         String    @unique
-  description  String? // Idioma base
-  baseLanguage String    @default("es")
-  blogs        BlogTag[]
 }
 
 model BlogTag {

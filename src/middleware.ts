@@ -140,7 +140,7 @@ export const config = {
    * - api (all API routes including NextAuth)
    * - _next/static (static files)
    * - _next/image (image optimization files)
-   * - favicon.ico (favicon file)
+   * - favicon.ico (favicon f ile)
    * - static assets
    */
   '/((?!api|_next/static|_next/image|favicon.ico).*)',
