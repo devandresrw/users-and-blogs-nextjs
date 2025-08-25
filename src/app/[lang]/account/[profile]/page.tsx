@@ -1,3 +1,9 @@
+/*
+Pagina principal de perfil contiene
+permite modificar la informacón del usuario
+Nombre, correo, info, redes sociales... 
+
+*/
 import { WrapperProfile } from '@/components/account/profile/WrapperProfile'
 import { getCurrentUser } from '@/lib/actions/user.actions'
 import { redirect } from 'next/navigation'
